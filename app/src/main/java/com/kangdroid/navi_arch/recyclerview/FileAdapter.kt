@@ -8,10 +8,8 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.ItemFileBinding
 
-class FileAdapter(val onClick: (FileData) -> Unit) :
+class FileAdapter(val onClick: (FileData) -> Unit, val fileList: List<FileData>) :
     RecyclerView.Adapter<FileAdapter.FileViewHolder>() {
-
-    private var fileList: List<FileData> = listOf()
 
     inner class FileViewHolder(private val itemFileBinding: ItemFileBinding) :
         RecyclerView.ViewHolder(itemFileBinding.root) {
@@ -46,9 +44,4 @@ class FileAdapter(val onClick: (FileData) -> Unit) :
     }
 
     override fun getItemCount(): Int = fileList.size
-
-    fun setFileList(fileList: List<FileData>) {
-        this.fileList = fileList
-        notifyDataSetChanged()
-    }
 }

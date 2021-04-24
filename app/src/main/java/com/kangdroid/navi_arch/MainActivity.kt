@@ -5,10 +5,10 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.kangdroid.navi_arch.data.FileData
+import com.google.android.material.tabs.TabLayoutMediator
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
-import com.kangdroid.navi_arch.fileView.FileViewModel
+import com.kangdroid.navi_arch.pager.PagerAdapter
+import com.kangdroid.navi_arch.pager.PagerViewModel
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
 
 // The View
@@ -18,29 +18,27 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private val fileViewModel: FileViewModel by lazy {
-        ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(FileViewModel::class.java)
+    private val pagerViewModel: PagerViewModel by lazy {
+        ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(PagerViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
 
-        // Recycler View
-        val fileAdapter: FileAdapter = FileAdapter {
-            Log.d(this::class.java.simpleName, "ViewModel Testing")
-            Log.d(this::class.java.simpleName, "Token: ${it.token}")
-        }
-        activityMainBinding.naviMainRecyclerView.adapter = fileAdapter
-        activityMainBinding.naviMainRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        // Pager Adapter
+        val pageAdapter: PagerAdapter = PagerAdapter()
+        activityMainBinding.viewPager.adapter = pageAdapter
 
-        // View Model Init[Observe]
-        fileViewModel.liveFileData.observe(this, Observer<List<FileData>> {
-            // Update UI when data changed
-            fileAdapter.setFileList(it)
+        TabLayoutMediator(activityMainBinding.mainTab, activityMainBinding.viewPager) { tab, position ->
+            tab.text = "test"
+        }.attach()
+
+        pagerViewModel.livePagerData.observe(this, Observer<List<FileAdapter>> {
+            Log.d(this::class.java.simpleName, "Observed, Setting changed page")
+            pageAdapter.setNaviPageList(it)
         })
 
-        // Start with Root
-        fileViewModel.exploreRootData()
+        pagerViewModel.createInitialRootPage()
     }
 }
