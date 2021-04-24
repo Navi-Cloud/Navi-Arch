@@ -64,7 +64,7 @@ object ServerManagement {
      * Returns: List of FileResponseDTO[The Response] - could be empty.
      * Returns: NULL when error occurred.
      */
-    fun getInsideFiles(requestToken: String): List<FileData>? {
+    fun getInsideFiles(requestToken: String): List<FileData> {
         val insiderFunction: Call<List<FileData>>? = api?.getInsideFiles(requestToken)
         val response: Response<List<FileData>>? = try {
             insiderFunction?.execute()
@@ -73,6 +73,6 @@ object ServerManagement {
             Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
             null
         }
-        return response?.body()
+        return response?.body() ?: listOf()
     }
 }
