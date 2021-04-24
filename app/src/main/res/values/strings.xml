@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Navi-Arch</string>
+
+    <!-- Recycler View Row Strings -->
+    <string name="file_default_name">default-file-name</string>
+    <string name="file_default_last_modified_time">default-last-modified-time</string>
 </resources>

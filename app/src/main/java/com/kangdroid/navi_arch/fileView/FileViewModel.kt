@@ -1,13 +1,14 @@
 package com.kangdroid.navi_arch.fileView
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.server.ServerManagement
+import kotlinx.coroutines.*
 
-class FileViewModel(application: Application) : AndroidViewModel(application) {
+class FileViewModel : ViewModel() {
 
+    private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private val fileList: MutableList<FileData> = mutableListOf()
     val liveFileData: MutableLiveData<List<FileData>> = MutableLiveData()
 
@@ -18,5 +19,15 @@ class FileViewModel(application: Application) : AndroidViewModel(application) {
     fun exploreData(toExploreToken: String) {
         val exploredData: List<FileData> = ServerManagement.getInsideFiles(toExploreToken)
         liveFileData.value = exploredData
+    }
+
+    fun exploreRootData() {
+        coroutineScope.launch {
+            val rootToken: String = ServerManagement.getRootToken()
+            val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
+            withContext(Dispatchers.Main) {
+                liveFileData.value = exploredData
+            }
+        }
     }
 }
