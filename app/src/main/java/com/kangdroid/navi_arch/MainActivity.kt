@@ -37,7 +37,11 @@ class MainActivity : AppCompatActivity() {
             activityMainBinding.mainTab,
             activityMainBinding.viewPager
         ) { tab, position ->
-            tab.text = "test"
+            tab.text = if (position == 0) {
+                "/"
+            } else {
+                pagerViewModel.livePagerData.value?.get(position)?.currentFolder?.getBriefName()
+            }
         }.attach()
 
         pagerViewModel.livePagerData.observe(this, Observer<List<FileAdapter>> {
