@@ -8,7 +8,7 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.ItemFileBinding
 
-class FileAdapter(val onClick: (FileData) -> Unit, val fileList: List<FileData>) :
+class FileAdapter(val onClick: (FileData, Int) -> Unit, private val fileList: List<FileData>, val pageNumber: Int) :
     RecyclerView.Adapter<FileAdapter.FileViewHolder>() {
 
     inner class FileViewHolder(private val itemFileBinding: ItemFileBinding) :
@@ -28,7 +28,7 @@ class FileAdapter(val onClick: (FileData) -> Unit, val fileList: List<FileData>)
 
             // When each row clicked
             itemFileBinding.root.setOnClickListener {
-                onClick(fileData)
+                onClick(fileData, pageNumber)
             }
         }
     }

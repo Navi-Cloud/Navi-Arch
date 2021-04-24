@@ -17,9 +17,10 @@ class PagerViewModel: ViewModel() {
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
     // Inner Recycler View onClickListener
-    private val recyclerOnClickListener: ((FileData) -> Unit) = {
+    private val recyclerOnClickListener: ((FileData, Int) -> Unit) = { it, pageNumber ->
         Log.d(this::class.java.simpleName, "ViewModel Testing")
         Log.d(this::class.java.simpleName, "Token: ${it.token}")
+        Log.d(this::class.java.simpleName, "Current Page Number: $pageNumber")
         explorePage(it.token)
     }
 
@@ -34,7 +35,7 @@ class PagerViewModel: ViewModel() {
             val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
             withContext(Dispatchers.Main) {
                 pageSet.add(rootToken)
-                pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
+                pageList.add(FileAdapter(recyclerOnClickListener, exploredData, pageList.size))
                 livePagerData.value = pageList
             }
         }
@@ -48,7 +49,7 @@ class PagerViewModel: ViewModel() {
             coroutineScope.launch {
                 val exploredData: List<FileData> = ServerManagement.getInsideFiles(exploreToken)
                 withContext(Dispatchers.Main) {
-                    pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
+                    pageList.add(FileAdapter(recyclerOnClickListener, exploredData, pageList.size))
                     pageSet.add(exploreToken)
                     livePagerData.value = pageList
                 }
