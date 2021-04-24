@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         pagerViewModel.livePagerData.observe(this, Observer<List<FileAdapter>> {
             Log.d(this::class.java.simpleName, "Observed, Setting changed page")
             pageAdapter.setNaviPageList(it)
+            activityMainBinding.viewPager.currentItem = it.lastIndex
         })
 
         pagerViewModel.createInitialRootPage()
