@@ -23,7 +23,7 @@ class PagerViewModel : ViewModel() {
 
         // Only Explore Folder pages
         if (it.fileType == FileType.Folder.toString()) {
-            explorePage(it.token, pageNumber)
+            explorePage(it, pageNumber)
         }
     }
 
@@ -43,7 +43,7 @@ class PagerViewModel : ViewModel() {
                         recyclerOnClickListener,
                         exploredData,
                         pageList.size + 1,
-                        rootToken
+                        FileData (fileName = "/", fileType = "Folder", lastModifiedTime = System.currentTimeMillis(), token = rootToken)
                     )
                 )
                 livePagerData.value = pageList
@@ -52,7 +52,7 @@ class PagerViewModel : ViewModel() {
     }
 
     // Create Additional Page
-    private fun explorePage(exploreToken: String, requestedPageNumber: Int) {
+    private fun explorePage(nextFolder: FileData, requestedPageNumber: Int) {
 
         // Remove last pages
         // Aka if user is currently viewing /tmp/testing/whatever
@@ -64,9 +64,9 @@ class PagerViewModel : ViewModel() {
                 // Last Page
                 val lastPage: FileAdapter = pageList.last()
                 Log.d(this::class.java.simpleName, "Removing: ${lastPage.pageNumber}")
-                Log.d(this::class.java.simpleName, "Removed Token: ${lastPage.currentFolderToken}")
+                Log.d(this::class.java.simpleName, "Removed Token: ${lastPage.currentFolder.token}")
                 pageSet.removeIf {
-                    it == lastPage.currentFolderToken
+                    it == lastPage.currentFolder.token
                 }
                 pageList.removeLast()
             }
@@ -74,19 +74,19 @@ class PagerViewModel : ViewModel() {
 
 
         // Find whether token is on page.
-        if (!pageSet.contains(exploreToken)) {
+        if (!pageSet.contains(nextFolder.token)) {
             coroutineScope.launch {
-                val exploredData: List<FileData> = ServerManagement.getInsideFiles(exploreToken)
+                val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
                 withContext(Dispatchers.Main) {
                     pageList.add(
                         FileAdapter(
                             recyclerOnClickListener,
                             exploredData,
                             pageList.size + 1,
-                            exploreToken
+                            nextFolder
                         )
                     )
-                    pageSet.add(exploreToken)
+                    pageSet.add(nextFolder.token)
                     livePagerData.value = pageList
                 }
             }

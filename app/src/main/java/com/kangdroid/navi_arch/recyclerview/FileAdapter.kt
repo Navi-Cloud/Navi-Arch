@@ -12,7 +12,7 @@ class FileAdapter(
     val onClick: (FileData, Int) -> Unit,
     private val fileList: List<FileData>,
     val pageNumber: Int,
-    val currentFolderToken: String
+    val currentFolder: FileData
 ) :
     RecyclerView.Adapter<FileAdapter.FileViewHolder>() {
 
