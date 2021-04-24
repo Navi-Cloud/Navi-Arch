@@ -19,7 +19,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val pagerViewModel: PagerViewModel by lazy {
-        ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(PagerViewModel::class.java)
+        ViewModelProvider(
+            this,
+            ViewModelProvider.NewInstanceFactory()
+        ).get(PagerViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +33,10 @@ class MainActivity : AppCompatActivity() {
         val pageAdapter: PagerAdapter = PagerAdapter()
         activityMainBinding.viewPager.adapter = pageAdapter
 
-        TabLayoutMediator(activityMainBinding.mainTab, activityMainBinding.viewPager) { tab, position ->
+        TabLayoutMediator(
+            activityMainBinding.mainTab,
+            activityMainBinding.viewPager
+        ) { tab, position ->
             tab.text = "test"
         }.attach()
 

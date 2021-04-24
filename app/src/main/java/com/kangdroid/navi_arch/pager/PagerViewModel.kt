@@ -1,7 +1,6 @@
 package com.kangdroid.navi_arch.pager
 
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kangdroid.navi_arch.data.FileData
@@ -10,7 +9,7 @@ import com.kangdroid.navi_arch.recyclerview.FileAdapter
 import com.kangdroid.navi_arch.server.ServerManagement
 import kotlinx.coroutines.*
 
-class PagerViewModel: ViewModel() {
+class PagerViewModel : ViewModel() {
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private val pageList: MutableList<FileAdapter> = mutableListOf()
     private val pageSet: MutableSet<String> = mutableSetOf()
@@ -21,7 +20,6 @@ class PagerViewModel: ViewModel() {
     private val recyclerOnClickListener: ((FileData, Int) -> Unit) = { it, pageNumber ->
         Log.d(this::class.java.simpleName, "ViewModel Testing")
         Log.d(this::class.java.simpleName, "Token: ${it.token}")
-//        Log.d(this::class.java.simpleName, "Current Page Number: $pageNumber")
 
         // Only Explore Folder pages
         if (it.fileType == FileType.Folder.toString()) {
@@ -40,7 +38,14 @@ class PagerViewModel: ViewModel() {
             val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
             withContext(Dispatchers.Main) {
                 pageSet.add(rootToken)
-                pageList.add(FileAdapter(recyclerOnClickListener, exploredData, pageList.size+1, rootToken))
+                pageList.add(
+                    FileAdapter(
+                        recyclerOnClickListener,
+                        exploredData,
+                        pageList.size + 1,
+                        rootToken
+                    )
+                )
                 livePagerData.value = pageList
             }
         }
@@ -73,7 +78,14 @@ class PagerViewModel: ViewModel() {
             coroutineScope.launch {
                 val exploredData: List<FileData> = ServerManagement.getInsideFiles(exploreToken)
                 withContext(Dispatchers.Main) {
-                    pageList.add(FileAdapter(recyclerOnClickListener, exploredData, pageList.size+1, exploreToken))
+                    pageList.add(
+                        FileAdapter(
+                            recyclerOnClickListener,
+                            exploredData,
+                            pageList.size + 1,
+                            exploreToken
+                        )
+                    )
                     pageSet.add(exploreToken)
                     livePagerData.value = pageList
                 }

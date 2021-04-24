@@ -7,21 +7,28 @@ import androidx.recyclerview.widget.RecyclerView
 import com.kangdroid.navi_arch.databinding.RecyclerFileListViewBinding
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
 
-class PagerAdapter: RecyclerView.Adapter<PagerAdapter.PagerViewHolder>() {
+class PagerAdapter : RecyclerView.Adapter<PagerAdapter.PagerViewHolder>() {
 
     var pageList: List<FileAdapter> = mutableListOf()
 
-    inner class PagerViewHolder(private val recyclerFileListViewBinding: RecyclerFileListViewBinding) : RecyclerView.ViewHolder(recyclerFileListViewBinding.root) {
+    inner class PagerViewHolder(private val recyclerFileListViewBinding: RecyclerFileListViewBinding) :
+        RecyclerView.ViewHolder(recyclerFileListViewBinding.root) {
 
         fun bind(fileAdapter: FileAdapter) {
             recyclerFileListViewBinding.naviMainRecycler.adapter = fileAdapter
-            recyclerFileListViewBinding.naviMainRecycler.layoutManager = LinearLayoutManager(recyclerFileListViewBinding.root.context, LinearLayoutManager.VERTICAL, false)
+            recyclerFileListViewBinding.naviMainRecycler.layoutManager = LinearLayoutManager(
+                recyclerFileListViewBinding.root.context,
+                LinearLayoutManager.VERTICAL,
+                false
+            )
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagerViewHolder {
-        val recyclerFileListViewBinding: RecyclerFileListViewBinding = RecyclerFileListViewBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false)
+        val recyclerFileListViewBinding: RecyclerFileListViewBinding =
+            RecyclerFileListViewBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
 
         return PagerViewHolder(recyclerFileListViewBinding)
     }

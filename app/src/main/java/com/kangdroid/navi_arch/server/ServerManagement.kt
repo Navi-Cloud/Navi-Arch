@@ -20,7 +20,10 @@ object ServerManagement {
      * Returns true if both retroFit/api is NOT-NULL,
      * false when either of retrofit/api is null
      */
-    fun initServerCommunication(serverAddress: String = "192.168.0.46", serverPort: String = "8080"): Boolean {
+    fun initServerCommunication(
+        serverAddress: String = "192.168.0.46",
+        serverPort: String = "8080"
+    ): Boolean {
         retroFit = try {
             Retrofit.Builder()
                 .baseUrl("http://$serverAddress:$serverPort")
