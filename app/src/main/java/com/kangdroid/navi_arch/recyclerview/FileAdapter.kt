@@ -8,7 +8,11 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.ItemFileBinding
 
-class FileAdapter(val onClick: (FileData, Int) -> Unit, private val fileList: List<FileData>, val pageNumber: Int) :
+class FileAdapter(
+    val onClick: (FileData, Int) -> Unit,
+    private val fileList: List<FileData>,
+    val pageNumber: Int,
+    val currentFolderToken: String) :
     RecyclerView.Adapter<FileAdapter.FileViewHolder>() {
 
     inner class FileViewHolder(private val itemFileBinding: ItemFileBinding) :
