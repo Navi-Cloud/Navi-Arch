@@ -12,6 +12,8 @@ import kotlinx.coroutines.*
 class PagerViewModel: ViewModel() {
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     private val pageList: MutableList<FileAdapter> = mutableListOf()
+    private val pageSet: MutableSet<String> = mutableSetOf()
+
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
     // Inner Recycler View onClickListener
@@ -31,6 +33,7 @@ class PagerViewModel: ViewModel() {
             val rootToken: String = ServerManagement.getRootToken()
             val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
             withContext(Dispatchers.Main) {
+                pageSet.add(rootToken)
                 pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
                 livePagerData.value = pageList
             }
@@ -39,11 +42,16 @@ class PagerViewModel: ViewModel() {
 
     // Create Additional Page
     private fun explorePage(exploreToken: String) {
-        coroutineScope.launch {
-            val exploredData: List<FileData> = ServerManagement.getInsideFiles(exploreToken)
-            withContext(Dispatchers.Main) {
-                pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
-                livePagerData.value = pageList
+
+        // Find whether token is on page.
+        if (!pageSet.contains(exploreToken)) {
+            coroutineScope.launch {
+                val exploredData: List<FileData> = ServerManagement.getInsideFiles(exploreToken)
+                withContext(Dispatchers.Main) {
+                    pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
+                    pageSet.add(exploreToken)
+                    livePagerData.value = pageList
+                }
             }
         }
     }
