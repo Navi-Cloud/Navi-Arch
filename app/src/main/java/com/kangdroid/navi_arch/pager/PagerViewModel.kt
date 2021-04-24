@@ -18,6 +18,7 @@ class PagerViewModel: ViewModel() {
     val recyclerOnClickListener: ((FileData) -> Unit) = {
         Log.d(this::class.java.simpleName, "ViewModel Testing")
         Log.d(this::class.java.simpleName, "Token: ${it.token}")
+        explorePage(it.token)
     }
 
     init {
@@ -29,6 +30,17 @@ class PagerViewModel: ViewModel() {
         coroutineScope.launch {
             val rootToken: String = ServerManagement.getRootToken()
             val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
+            withContext(Dispatchers.Main) {
+                pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
+                livePagerData.value = pageList
+            }
+        }
+    }
+
+    // Create Additional Page
+    private fun explorePage(exploreToken: String) {
+        coroutineScope.launch {
+            val exploredData: List<FileData> = ServerManagement.getInsideFiles(exploreToken)
             withContext(Dispatchers.Main) {
                 pageList.add(FileAdapter(recyclerOnClickListener, exploredData))
                 livePagerData.value = pageList
