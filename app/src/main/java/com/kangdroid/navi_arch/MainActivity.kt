@@ -10,7 +10,6 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 import com.kangdroid.navi_arch.fileView.FileViewModel
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
-import com.kangdroid.navi_arch.server.ServerManagement
 
 // The View
 class MainActivity : AppCompatActivity() {
@@ -28,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         // Recycler View
         val fileAdapter: FileAdapter = FileAdapter {
             Log.d(this::class.java.simpleName, "ViewModel Testing")
+            Log.d(this::class.java.simpleName, "Token: ${it.token}")
         }
         activityMainBinding.naviMainRecyclerView.adapter = fileAdapter
         activityMainBinding.naviMainRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)

@@ -17,8 +17,12 @@ class FileViewModel : ViewModel() {
     }
 
     fun exploreData(toExploreToken: String) {
-        val exploredData: List<FileData> = ServerManagement.getInsideFiles(toExploreToken)
-        liveFileData.value = exploredData
+        coroutineScope.launch {
+            val exploredData: List<FileData> = ServerManagement.getInsideFiles(toExploreToken)
+            withContext(Dispatchers.Main) {
+                liveFileData.value = exploredData
+            }
+        }
     }
 
     fun exploreRootData() {
