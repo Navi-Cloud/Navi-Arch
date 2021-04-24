@@ -18,7 +18,9 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private lateinit var fileViewModel: FileViewModel
+    private val fileViewModel: FileViewModel by lazy {
+        ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(FileViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,13 +34,13 @@ class MainActivity : AppCompatActivity() {
         activityMainBinding.naviMainRecyclerView.adapter = fileAdapter
         activityMainBinding.naviMainRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
-        fileViewModel = ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(FileViewModel::class.java)
-
+        // View Model Init[Observe]
         fileViewModel.liveFileData.observe(this, Observer<List<FileData>> {
             // Update UI when data changed
             fileAdapter.setFileList(it)
         })
 
+        // Start with Root
         fileViewModel.exploreRootData()
     }
 }

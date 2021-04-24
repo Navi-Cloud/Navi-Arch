@@ -5,9 +5,9 @@
     android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:padding="8dp"
     android:gravity="center_vertical"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:padding="8dp">
 
     <ImageView
         android:id="@+id/img_file_type"
@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="2dp"
         android:paddingEnd="0dp"
-        android:src="@drawable/ic_common_file_24"/>
+        android:src="@drawable/ic_common_file_24" />
 
     <TextView
         android:id="@+id/fileName"
