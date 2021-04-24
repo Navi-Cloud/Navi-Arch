@@ -15,7 +15,7 @@ class PagerViewModel: ViewModel() {
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
     // Inner Recycler View onClickListener
-    val recyclerOnClickListener: ((FileData) -> Unit) = {
+    private val recyclerOnClickListener: ((FileData) -> Unit) = {
         Log.d(this::class.java.simpleName, "ViewModel Testing")
         Log.d(this::class.java.simpleName, "Token: ${it.token}")
         explorePage(it.token)
