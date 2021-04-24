@@ -14,6 +14,9 @@ class PagerViewModel : ViewModel() {
     private val pageList: MutableList<FileAdapter> = mutableListOf()
     private val pageSet: MutableSet<String> = mutableSetOf()
 
+    // Cache Related - Only remove cache when upload method is defined.
+    private val pageCache: HashMap<String, FileAdapter> = HashMap()
+
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
     // Inner Recycler View onClickListener
@@ -37,15 +40,21 @@ class PagerViewModel : ViewModel() {
             val rootToken: String = ServerManagement.getRootToken()
             val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
             withContext(Dispatchers.Main) {
-                pageSet.add(rootToken)
-                pageList.add(
-                    FileAdapter(
-                        recyclerOnClickListener,
-                        exploredData,
-                        pageList.size + 1,
-                        FileData (fileName = "/", fileType = "Folder", lastModifiedTime = System.currentTimeMillis(), token = rootToken)
-                    )
+                val fileAdapter: FileAdapter = FileAdapter(
+                    recyclerOnClickListener,
+                    exploredData,
+                    pageList.size + 1,
+                    FileData (fileName = "/", fileType = "Folder", lastModifiedTime = System.currentTimeMillis(), token = rootToken)
                 )
+
+                // For Non-Automatic
+                pageSet.add(rootToken)
+
+                // Update Cache - Always add cache when requesting root
+                pageCache[rootToken] = fileAdapter
+
+                // Add to pageList
+                pageList.add(fileAdapter)
                 livePagerData.value = pageList
             }
         }
@@ -75,19 +84,37 @@ class PagerViewModel : ViewModel() {
 
         // Find whether token is on page.
         if (!pageSet.contains(nextFolder.token)) {
-            coroutineScope.launch {
-                val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
-                withContext(Dispatchers.Main) {
-                    pageList.add(
-                        FileAdapter(
+
+            // Check for cache
+            if (pageCache.contains(nextFolder.token)) {
+                Log.d(this::class.java.simpleName, "Using Cache for ${nextFolder.token}")
+                pageSet.add(nextFolder.token)
+                pageList.add(pageCache[nextFolder.token]!!)
+                livePagerData.value = pageList
+            } else {
+                // Not on cache
+                coroutineScope.launch {
+                    val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
+                    withContext(Dispatchers.Main) {
+                        val fileAdapter: FileAdapter = FileAdapter(
                             recyclerOnClickListener,
                             exploredData,
                             pageList.size + 1,
                             nextFolder
                         )
-                    )
-                    pageSet.add(nextFolder.token)
-                    livePagerData.value = pageList
+
+                        // Add to Main List
+                        pageList.add(fileAdapter)
+
+                        // Add to Set
+                        pageSet.add(nextFolder.token)
+
+                        // Add to Cache
+                        pageCache[nextFolder.token] = fileAdapter
+
+                        // Notify MainActivity
+                        livePagerData.value = pageList
+                    }
                 }
             }
         }
