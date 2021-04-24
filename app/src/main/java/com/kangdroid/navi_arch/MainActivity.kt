@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 
+// The View
 class MainActivity : AppCompatActivity() {
 
     private val activityMainBinding: ActivityMainBinding by lazy {
