@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
 import com.kangdroid.navi_arch.server.ServerManagement
 import kotlinx.coroutines.*
@@ -21,7 +22,11 @@ class PagerViewModel: ViewModel() {
         Log.d(this::class.java.simpleName, "ViewModel Testing")
         Log.d(this::class.java.simpleName, "Token: ${it.token}")
         Log.d(this::class.java.simpleName, "Current Page Number: $pageNumber")
-        explorePage(it.token)
+
+        // Only Explore Folder pages
+        if (it.fileType == FileType.Folder.toString()) {
+            explorePage(it.token)
+        }
     }
 
     init {
