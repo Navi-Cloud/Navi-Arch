@@ -87,6 +87,12 @@ object ServerManagement {
             Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
             null
         }
+
+        if (response?.isSuccessful == false) {
+            Log.e(TAG_SERVER_MANAGEMENT, "Upload did not successful")
+            Log.e(TAG_SERVER_MANAGEMENT, "Message: ${response.errorBody()?.string()}")
+        }
+
         return response?.body()?.string() ?: ""
     }
 }
