@@ -67,6 +67,22 @@ class PagerViewModel : ViewModel() {
         livePagerData.value = pageList
     }
 
+    private fun updatePageAndNotify(fileAdapter: FileAdapter, targetToken: String, addToCache: Boolean = false) {
+        // For Non-Automatic
+        pageSet.add(targetToken)
+
+        // Update Cache - Always add cache when requesting root
+        if (addToCache) {
+            pageCache[targetToken] = fileAdapter
+        }
+
+        // Add to pageList
+        pageList.add(fileAdapter)
+
+        // Notify live pager data
+        livePagerData.value = pageList
+    }
+
     // Create page
     fun createInitialRootPage() {
         // Network on other thread
@@ -90,17 +106,7 @@ class PagerViewModel : ViewModel() {
                     FileData (fileName = "/", fileType = "Folder", lastModifiedTime = System.currentTimeMillis(), token = rootToken)
                 )
 
-                // For Non-Automatic
-                pageSet.add(rootToken)
-
-                // Update Cache - Always add cache when requesting root
-                pageCache[rootToken] = fileAdapter
-
-                // Add to pageList
-                pageList.add(fileAdapter)
-
-                // Notify live pager data
-                livePagerData.value = pageList
+                updatePageAndNotify(fileAdapter, rootToken, false)
             }
         }
     }
@@ -117,9 +123,7 @@ class PagerViewModel : ViewModel() {
             // Check for cache
             if (pageCache.contains(nextFolder.token)) {
                 Log.d(this::class.java.simpleName, "Using Cache for ${nextFolder.token}")
-                pageSet.add(nextFolder.token)
-                pageList.add(pageCache[nextFolder.token]!!)
-                livePagerData.value = pageList
+                updatePageAndNotify(pageCache[nextFolder.token]!!, nextFolder.token, false)
             } else {
                 // Not on cache
                 coroutineScope.launch {
@@ -136,18 +140,7 @@ class PagerViewModel : ViewModel() {
                             pageList.size + 1,
                             nextFolder
                         )
-
-                        // Add to Main List
-                        pageList.add(fileAdapter)
-
-                        // Add to Set
-                        pageSet.add(nextFolder.token)
-
-                        // Add to Cache
-                        pageCache[nextFolder.token] = fileAdapter
-
-                        // Notify MainActivity
-                        livePagerData.value = pageList
+                        updatePageAndNotify(fileAdapter, nextFolder.token, true)
                     }
                 }
             }
