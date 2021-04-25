@@ -62,29 +62,13 @@ class PagerViewModel : ViewModel() {
 
     // Create Additional Page
     private fun explorePage(nextFolder: FileData, requestedPageNumber: Int) {
-
-        // Remove last pages
-        // Aka if user is currently viewing /tmp/testing/whatever
-        // and user requested to view /tmp/what, then we need to remove those /testing/whatever and add it.
+        // Remove preceding pages if required.
         if (pageList.size > requestedPageNumber) {
-            val toCount: Int = (pageList.size) - (requestedPageNumber)
-
-            for (i in 0 until toCount) {
-                // Last Page
-                val lastPage: FileAdapter = pageList.last()
-                Log.d(this::class.java.simpleName, "Removing: ${lastPage.pageNumber}")
-                Log.d(this::class.java.simpleName, "Removed Token: ${lastPage.currentFolder.token}")
-                pageSet.removeIf {
-                    it == lastPage.currentFolder.token
-                }
-                pageList.removeLast()
-            }
+            removePrecedingPages(requestedPageNumber)
         }
-
 
         // Find whether token is on page.
         if (!pageSet.contains(nextFolder.token)) {
-
             // Check for cache
             if (pageCache.contains(nextFolder.token)) {
                 Log.d(this::class.java.simpleName, "Using Cache for ${nextFolder.token}")
@@ -117,6 +101,21 @@ class PagerViewModel : ViewModel() {
                     }
                 }
             }
+        }
+    }
+
+    private fun removePrecedingPages(requestedPageNumber: Int) {
+        val toCount: Int = (pageList.size) - (requestedPageNumber)
+
+        for (i in 0 until toCount) {
+            // Last Page
+            val lastPage: FileAdapter = pageList.last()
+            Log.d(this::class.java.simpleName, "Removing: ${lastPage.pageNumber}")
+            Log.d(this::class.java.simpleName, "Removed Token: ${lastPage.currentFolder.token}")
+            pageSet.removeIf {
+                it == lastPage.currentFolder.token
+            }
+            pageList.removeLast()
         }
     }
 }
