@@ -16,10 +16,17 @@ import com.kangdroid.navi_arch.recyclerview.FileAdapter
 // The View
 class MainActivity : AppCompatActivity() {
 
+    // View Binding
     private val activityMainBinding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+    // Pager Adapter for ViewPager2
+    private val pageAdapter: PagerAdapter by lazy {
+        PagerAdapter()
+    }
+
+    // Pager ViewModel
     private val pagerViewModel: PagerViewModel by lazy {
         ViewModelProvider(
             this,
@@ -31,8 +38,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
 
-        // Pager Adapter
-        val pageAdapter: PagerAdapter = PagerAdapter()
+        // Init Pager Adapter
+        initPager()
+
+        // Init View Model
+        initViewModel()
+
+        // Init toggle button
+        initToggleButton()
+
+        // Now start from initial page
+        pagerViewModel.createInitialRootPage()
+    }
+
+    private fun initPager() {
         activityMainBinding.viewPager.adapter = pageAdapter
 
         TabLayoutMediator(
@@ -45,13 +64,17 @@ class MainActivity : AppCompatActivity() {
                 pagerViewModel.livePagerData.value?.get(position)?.currentFolder?.getBriefName()
             }
         }.attach()
+    }
 
+    private fun initViewModel() {
         pagerViewModel.livePagerData.observe(this, Observer<List<FileAdapter>> {
             Log.d(this::class.java.simpleName, "Observed, Setting changed page")
             pageAdapter.setNaviPageList(it)
             activityMainBinding.viewPager.currentItem = it.lastIndex
         })
+    }
 
+    private fun initToggleButton() {
         // Toggle Buttons[Sorting Buttons]
         val sortListener: (CompoundButton, Boolean) -> Unit = { _, _ ->
             pagerViewModel.sort(
@@ -70,7 +93,5 @@ class MainActivity : AppCompatActivity() {
             sortByType.setOnCheckedChangeListener(sortListener)
             sortByAscendingOrDescending.setOnCheckedChangeListener(sortListener)
         }
-
-        pagerViewModel.createInitialRootPage()
     }
 }
