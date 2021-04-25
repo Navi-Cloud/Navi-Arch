@@ -2,6 +2,7 @@ package com.kangdroid.navi_arch.server
 
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
@@ -75,5 +76,18 @@ object ServerManagement {
             null
         }
         return response?.body() ?: listOf()
+    }
+
+    fun upload(Param : HashMap<String,Any>, file: MultipartBody.Part) : String {
+        val uploading: Call<ResponseBody>? = api?.upload(Param, file)
+        val response: Response<ResponseBody>? = try{
+            uploading?.execute()
+        }catch (e:Exception){
+            Log.e(TAG_SERVER_MANAGEMENT, "Error when uploading File.")
+            Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
+            null
+        }
+        Log.i("upload", "SUCEEEEEDDDDD")
+        return response?.body()?.string() ?: ""
     }
 }
