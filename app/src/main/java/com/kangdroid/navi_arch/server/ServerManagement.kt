@@ -87,7 +87,6 @@ object ServerManagement {
             Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
             null
         }
-        Log.i("upload", "SUCEEEEEDDDDD")
         return response?.body()?.string() ?: ""
     }
 }

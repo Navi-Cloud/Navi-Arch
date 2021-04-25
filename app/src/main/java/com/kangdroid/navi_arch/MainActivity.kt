@@ -1,17 +1,23 @@
 package com.kangdroid.navi_arch
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
+import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 import com.kangdroid.navi_arch.pager.FileSortingMode
 import com.kangdroid.navi_arch.pager.PagerAdapter
 import com.kangdroid.navi_arch.pager.PagerViewModel
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
+import com.kangdroid.navi_arch.uploading.UploadingViewModel
 
 // The View
 class MainActivity : AppCompatActivity() {
@@ -34,9 +40,35 @@ class MainActivity : AppCompatActivity() {
         ).get(PagerViewModel::class.java)
     }
 
+    // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
+    // in case of code growing for uploading, leave it as View Model
+    private val uploadingViewModel: UploadingViewModel by lazy {
+        ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory(application)
+        ).get(UploadingViewModel::class.java)
+    }
+
+    // Value for detecting this activity launched with normal activity or Upload Activity.
+    private val uploadingIdentifier: String = "UPLOAD_ACTIVITY"
+    private val uploadingEnabled: String = "UPLOADING_ENABLED"
+    private val getContentRequestCode: Int = 10
+    private var isUploadingEnabled: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
+
+        // Check whether this is launched with uploadingIdentifier.
+        isUploadingEnabled = (intent.getStringExtra(uploadingIdentifier) == uploadingEnabled)
+
+        // If uploading is enabled, first select file to choose!
+        if (isUploadingEnabled) {
+            val intent : Intent = Intent(Intent.ACTION_GET_CONTENT).apply{
+                type = "*/*"
+            }
+            startActivityForResult(intent, getContentRequestCode)
+        }
 
         // Init Pager Adapter
         initPager()
@@ -49,6 +81,46 @@ class MainActivity : AppCompatActivity() {
 
         // Now start from initial page
         pagerViewModel.createInitialRootPage()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (isUploadingEnabled) {
+            menuInflater.inflate(R.menu.uploading_action, menu)
+        } else {
+            menuInflater.inflate(R.menu.main_action, menu)
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_upload -> {
+                val intent: Intent = Intent(this, MainActivity::class.java).apply {
+                    putExtra(uploadingIdentifier, uploadingEnabled)
+                }
+                startActivity(intent)
+                true
+            }
+            R.id.action_select_path -> {
+                Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
+                // Upload it!
+                val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
+                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token) {
+                    finish()
+                }
+                true
+            }
+            else -> false
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == getContentRequestCode && resultCode == RESULT_OK) {
+            data?.data?.also {
+                uploadingViewModel.createFileUri(it)
+            }
+        }
     }
 
     private fun initPager() {
