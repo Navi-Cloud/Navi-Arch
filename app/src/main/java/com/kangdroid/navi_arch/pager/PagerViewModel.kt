@@ -11,12 +11,17 @@ import kotlinx.coroutines.*
 
 class PagerViewModel : ViewModel() {
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
+
+    // Current Page List
     private val pageList: MutableList<FileAdapter> = mutableListOf()
+
+    // Set of pages for preventing same page is spammed.
     private val pageSet: MutableSet<String> = mutableSetOf()
 
     // Cache Related - Only remove cache when upload method is defined.
     private val pageCache: HashMap<String, FileAdapter> = HashMap()
 
+    // The data we are going to share with view[MainActivity]
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
     // For Sorting
@@ -64,14 +69,19 @@ class PagerViewModel : ViewModel() {
 
     // Create page
     fun createInitialRootPage() {
+        // Network on other thread
         coroutineScope.launch {
-            val rootToken: String = ServerManagement.getRootToken()
-            val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
+            val rootToken: String = ServerManagement.getRootToken() // Get rootToken
+            val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken) // Get Root Information
+
+            // Sort if needed
             val sortedData: List<FileData> = if (isReversed) {
                 exploredData.sortedWith(currentSortMode).asReversed()
             } else {
                 exploredData.sortedWith(currentSortMode)
             }
+
+            // After getting data, update UI Information
             withContext(Dispatchers.Main) {
                 val fileAdapter: FileAdapter = FileAdapter(
                     recyclerOnClickListener,
@@ -88,6 +98,8 @@ class PagerViewModel : ViewModel() {
 
                 // Add to pageList
                 pageList.add(fileAdapter)
+
+                // Notify live pager data
                 livePagerData.value = pageList
             }
         }
