@@ -4,4 +4,12 @@
     <!-- Recycler View Row Strings -->
     <string name="file_default_name">default-file-name</string>
     <string name="file_default_last_modified_time">default-last-modified-time</string>
+
+    <!-- Main Sort related Strings -->
+    <string name="sort_name">이름순 정렬</string>
+    <string name="sort_lmt">날짜순 정렬</string>
+    <string name="sort_ascending">오름차순</string>
+    <string name="sort_descending">내림차순</string>
+    <string name="sort_type">유형 구분</string>
+    <string name="sort_type_not">유형 혼합</string>
 </resources>

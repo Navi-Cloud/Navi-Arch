@@ -10,7 +10,7 @@ import com.kangdroid.navi_arch.databinding.ItemFileBinding
 
 class FileAdapter(
     val onClick: (FileData, Int) -> Unit,
-    private val fileList: List<FileData>,
+    var fileList: List<FileData>,
     val pageNumber: Int,
     val currentFolder: FileData
 ) :

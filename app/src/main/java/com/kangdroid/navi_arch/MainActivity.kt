@@ -2,11 +2,13 @@ package com.kangdroid.navi_arch
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
+import com.kangdroid.navi_arch.pager.FileSortingMode
 import com.kangdroid.navi_arch.pager.PagerAdapter
 import com.kangdroid.navi_arch.pager.PagerViewModel
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
@@ -49,6 +51,25 @@ class MainActivity : AppCompatActivity() {
             pageAdapter.setNaviPageList(it)
             activityMainBinding.viewPager.currentItem = it.lastIndex
         })
+
+        // Toggle Buttons[Sorting Buttons]
+        val sortListener: (CompoundButton, Boolean) -> Unit = { _, _ ->
+            pagerViewModel.sort(
+                when (activityMainBinding.sortByNameOrLMT.isChecked) {
+                    true -> if (activityMainBinding.sortByType.isChecked) FileSortingMode.LMT else FileSortingMode.TypedLMT
+                    false -> if (activityMainBinding.sortByType.isChecked) FileSortingMode.Name else FileSortingMode.TypedName
+                },
+                activityMainBinding.sortByAscendingOrDescending.isChecked,
+                activityMainBinding.viewPager.currentItem
+            )
+        }
+
+        // Toggle Button INIT
+        with (activityMainBinding) {
+            sortByNameOrLMT.setOnCheckedChangeListener(sortListener)
+            sortByType.setOnCheckedChangeListener(sortListener)
+            sortByAscendingOrDescending.setOnCheckedChangeListener(sortListener)
+        }
 
         pagerViewModel.createInitialRootPage()
     }

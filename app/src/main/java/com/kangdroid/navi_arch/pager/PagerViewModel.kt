@@ -19,6 +19,10 @@ class PagerViewModel : ViewModel() {
 
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
+    // For Sorting
+    private var currentSortMode: FileSortingMode = FileSortingMode.TypedName
+    private var isReversed: Boolean = false
+
     // Inner Recycler View onClickListener
     private val recyclerOnClickListener: ((FileData, Int) -> Unit) = { it, pageNumber ->
         Log.d(this::class.java.simpleName, "ViewModel Testing")
@@ -34,15 +38,44 @@ class PagerViewModel : ViewModel() {
         ServerManagement.initServerCommunication()
     }
 
+    // Sort
+    fun sort(mode: FileSortingMode, reverse: Boolean, pageNum: Int) {
+        // Update Fields
+        currentSortMode = mode
+        isReversed = reverse
+
+
+        // Invalidate current cache
+        pageCache.remove(pageList[pageNum].currentFolder.token)
+
+        // Sort them with Comparator
+        pageList[pageNum].fileList = if (reverse) {
+             pageList[pageNum].fileList.sortedWith(mode).asReversed()
+        } else {
+            pageList[pageNum].fileList.sortedWith(mode)
+        }
+
+        // Re-Enable cache
+        pageCache[pageList[pageNum].currentFolder.token] = pageList[pageNum]
+
+        // Notify Live Pager Data
+        livePagerData.value = pageList
+    }
+
     // Create page
     fun createInitialRootPage() {
         coroutineScope.launch {
             val rootToken: String = ServerManagement.getRootToken()
             val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken)
+            val sortedData: List<FileData> = if (isReversed) {
+                exploredData.sortedWith(currentSortMode).asReversed()
+            } else {
+                exploredData.sortedWith(currentSortMode)
+            }
             withContext(Dispatchers.Main) {
                 val fileAdapter: FileAdapter = FileAdapter(
                     recyclerOnClickListener,
-                    exploredData,
+                    sortedData,
                     pageList.size + 1,
                     FileData (fileName = "/", fileType = "Folder", lastModifiedTime = System.currentTimeMillis(), token = rootToken)
                 )
@@ -79,10 +112,15 @@ class PagerViewModel : ViewModel() {
                 // Not on cache
                 coroutineScope.launch {
                     val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
+                    val sortedData: List<FileData> = if (isReversed) {
+                        exploredData.sortedWith(currentSortMode).asReversed()
+                    } else {
+                        exploredData.sortedWith(currentSortMode)
+                    }
                     withContext(Dispatchers.Main) {
                         val fileAdapter: FileAdapter = FileAdapter(
                             recyclerOnClickListener,
-                            exploredData,
+                            sortedData,
                             pageList.size + 1,
                             nextFolder
                         )
