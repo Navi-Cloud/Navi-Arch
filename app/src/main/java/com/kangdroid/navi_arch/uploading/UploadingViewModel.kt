@@ -71,8 +71,8 @@ class UploadingViewModel(private val rawApplication: Application) : AndroidViewM
             file.appendText(strReader+"\n")
         }
 
-        Log.e(logTag,"File Contents: ${file.readText()}")
-        Log.e(logTag,"File Name: $filename")
+        Log.d(logTag,"File Contents: ${file.readText()}")
+        Log.d(logTag,"File Name: $filename")
 
         val requestBody : RequestBody = RequestBody.create(MediaType.parse("multipart/form-data"),file)
         val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile",filename,requestBody)
