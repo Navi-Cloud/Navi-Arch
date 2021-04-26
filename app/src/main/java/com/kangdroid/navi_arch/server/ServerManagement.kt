@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object ServerManagement {
 
-    private val TAG_SERVER_MANAGEMENT = "ServerManagement"
+    private val logTag: String = this::class.java.simpleName
     private var retroFit: Retrofit? = null
     private var api: APIInterface? = null
     // Variable/Value Initiation Ends
@@ -32,14 +32,14 @@ object ServerManagement {
                 .build()
         } catch (e: IllegalArgumentException) {
             // Log priority: Error[WTF is not allowed since it might terminate APP]
-            Log.e(TAG_SERVER_MANAGEMENT, "FATAL - SERVER INIT FAILED!!")
-            Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
+            Log.e(logTag, "FATAL - SERVER INIT FAILED!!")
+            Log.e(logTag, e.stackTraceToString())
             null
         }
 
         api = retroFit?.create(APIInterface::class.java) ?: run {
             Log.e(
-                TAG_SERVER_MANAGEMENT,
+                logTag,
                 "Server is NOT initiated, therefore api will not be implemented."
             )
             null
@@ -53,8 +53,8 @@ object ServerManagement {
         val response: Response<ResponseBody>? = try {
             tokenFunction?.execute()
         } catch (e: Exception) {
-            Log.e(TAG_SERVER_MANAGEMENT, "Error when getting root token from server.")
-            Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
+            Log.e(logTag, "Error when getting root token from server.")
+            Log.e(logTag, e.stackTraceToString())
             null
         }
         return response?.body()?.string() ?: ""
@@ -71,8 +71,8 @@ object ServerManagement {
         val response: Response<List<FileData>>? = try {
             insiderFunction?.execute()
         } catch (e: Exception) {
-            Log.e(TAG_SERVER_MANAGEMENT, "Error when getting directory list from server.")
-            Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
+            Log.e(logTag, "Error when getting directory list from server.")
+            Log.e(logTag, e.stackTraceToString())
             null
         }
         return response?.body() ?: listOf()
@@ -83,14 +83,14 @@ object ServerManagement {
         val response: Response<ResponseBody>? = try{
             uploading?.execute()
         }catch (e:Exception){
-            Log.e(TAG_SERVER_MANAGEMENT, "Error when uploading File.")
-            Log.e(TAG_SERVER_MANAGEMENT, e.stackTraceToString())
+            Log.e(logTag, "Error when uploading File.")
+            Log.e(logTag, e.stackTraceToString())
             null
         }
 
         if (response?.isSuccessful == false) {
-            Log.e(TAG_SERVER_MANAGEMENT, "Upload did not successful")
-            Log.e(TAG_SERVER_MANAGEMENT, "Message: ${response.errorBody()?.string()}")
+            Log.e(logTag, "Upload did not successful")
+            Log.e(logTag, "Message: ${response.errorBody()?.string()}")
         }
 
         return response?.body()?.string() ?: ""
