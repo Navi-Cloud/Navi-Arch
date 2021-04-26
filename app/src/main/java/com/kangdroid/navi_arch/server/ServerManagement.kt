@@ -88,15 +88,10 @@ class ServerManagement(
      * Returns: NULL when error occurred.
      */
     fun getInsideFiles(requestToken: String): List<FileData> {
-        val insiderFunction: Call<List<FileData>>? = api?.getInsideFiles(requestToken)
-        val response: Response<List<FileData>>? = try {
-            insiderFunction?.execute()
-        } catch (e: Exception) {
-            Log.e(logTag, "Error when getting directory list from server.")
-            Log.e(logTag, e.stackTraceToString())
-            null
-        }
-        return response?.body() ?: listOf()
+        val insiderFunction: Call<List<FileData>> = api.getInsideFiles(requestToken)
+        val response: Response<List<FileData>> = serverManagementHelper.exchangeDataWithServer(insiderFunction)
+        return response.body()
+            ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
 
     fun upload(Param : HashMap<String,Any>, file: MultipartBody.Part) : String {
