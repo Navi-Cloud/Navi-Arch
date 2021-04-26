@@ -112,7 +112,16 @@ class PagerViewModel : ViewModel() {
     }
 
     // Create Additional Page
-    private fun explorePage(nextFolder: FileData, requestedPageNumber: Int) {
+    fun explorePage(nextFolder: FileData, requestedPageNumber: Int, cleanUp: Boolean = false) {
+        // Invalidate all cache, set, pageList to cleanup[New-Fetch]
+        if (cleanUp) {
+            pageSet.remove(nextFolder.token)
+            pageCache.remove(nextFolder.token)
+            pageList.removeIf {
+                it.currentFolder.token == nextFolder.token
+            }
+        }
+
         // Remove preceding pages if required.
         if (pageList.size > requestedPageNumber) {
             removePrecedingPages(requestedPageNumber)

@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private val uploadingIdentifier: String = "UPLOAD_ACTIVITY"
     private val uploadingEnabled: String = "UPLOADING_ENABLED"
     private val getContentRequestCode: Int = 10
+    private val getUploadingActivityRequestCode: Int = 20
     private var isUploadingEnabled: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                 val intent: Intent = Intent(this, MainActivity::class.java).apply {
                     putExtra(uploadingIdentifier, uploadingEnabled)
                 }
-                startActivity(intent)
+                startActivityForResult(intent, getUploadingActivityRequestCode)
                 true
             }
 
@@ -109,6 +110,12 @@ class MainActivity : AppCompatActivity() {
                 // Upload it!
                 val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
                 uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token) {
+                    // Set UploadingActivity Result as RESULT_OK
+                    val intent: Intent = Intent().apply {
+                        setResult(RESULT_OK)
+                    }
+
+                    // Finish Activity
                     finish()
                 }
                 true
@@ -124,6 +131,14 @@ class MainActivity : AppCompatActivity() {
             data?.data?.also {
                 uploadingViewModel.createFileUri(it)
             }
+        } else if (requestCode == getUploadingActivityRequestCode && resultCode == RESULT_OK) {
+            // Update view since file is uploaded
+            val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
+            pagerViewModel.explorePage(
+                currentPageList[activityMainBinding.viewPager.currentItem].currentFolder,
+                activityMainBinding.viewPager.currentItem,
+                true
+            )
         }
     }
 
