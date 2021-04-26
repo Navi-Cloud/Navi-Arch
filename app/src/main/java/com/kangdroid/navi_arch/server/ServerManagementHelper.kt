@@ -40,11 +40,10 @@ class ServerManagementHelper(
      */
     fun <T> handleDataError(response: Response<T>) {
         // If error body is null, something went wrong.
-        val errorBody: ResponseBody = response.errorBody()
-            ?: throw NoSuchFieldException("Response was failed, but no response body received.")
+        val errorBody: ResponseBody = response.errorBody()!!
 
         // Get error body as map, since spring's default error response was sent.
-        val errorBodyMap: Map<String, String> = objectMapper.readValue(errorBody.string())
+        val errorBodyMap: Map<String, String> = objectMapper.readValue(errorBody.string()) // Could throw
         if (errorBodyMap.contains("message")) { // Common about our error response and spring error response
             throw RuntimeException("Server responded with: ${errorBodyMap["message"]}")
         } else {
