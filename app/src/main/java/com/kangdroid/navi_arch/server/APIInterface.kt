@@ -8,7 +8,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface APIInterface {
-    @GET("/api/navi/rootToken")
+    @GET("/api/navi/root-token")
     fun getRootToken(): Call<RootTokenResponseDto>
 
     @GET("/api/navi/findInsideFiles/{token}")
