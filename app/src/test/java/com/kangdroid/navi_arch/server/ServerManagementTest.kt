@@ -24,7 +24,9 @@ class ServerManagementTest {
     }
 
     // Server Management Object
-    private val serverManagement: ServerManagement = ServerManagement()
+    private val serverManagement: ServerManagement by lazy {
+        ServerManagement(baseUrl)
+    }
     
 
     // Object Mapper
@@ -74,7 +76,6 @@ class ServerManagementTest {
     @Before
     fun init() {
         mockServer.start(8081)
-        serverManagement.initServerCommunication(baseUrl.host, baseUrl.port.toString())
     }
 
     @After
@@ -85,14 +86,8 @@ class ServerManagementTest {
     // Init Test
     @Test
     fun is_initServerCommunication_works_well() {
-        assertThat(serverManagement.initServerCommunication(baseUrl.host, baseUrl.port.toString()))
+        assertThat(serverManagement.initWholeServerClient())
             .isEqualTo(true)
-    }
-
-    @Test
-    fun is_initServerCommunication_fails_wrong_ip() {
-        assertThat(serverManagement.initServerCommunication("", ""))
-            .isEqualTo(false)
     }
 
     // Root Token Test

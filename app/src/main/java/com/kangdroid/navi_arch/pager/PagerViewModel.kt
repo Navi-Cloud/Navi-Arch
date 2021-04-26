@@ -48,10 +48,6 @@ class PagerViewModel @Inject constructor(
         }
     }
 
-    init {
-        serverManagement.initServerCommunication()
-    }
-
     // Sort
     fun sort(mode: FileSortingMode, reverse: Boolean, pageNum: Int) {
         // Update Fields

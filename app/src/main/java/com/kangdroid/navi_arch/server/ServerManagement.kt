@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.server
 import android.os.Environment
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
+import okhttp3.HttpUrl
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -16,43 +17,45 @@ import java.net.URLDecoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
-class ServerManagement @Inject constructor() {
+class ServerManagement(private val httpUrl: HttpUrl) {
 
     private val logTag: String = this::class.java.simpleName
-    private var retroFit: Retrofit? = null
-    private var api: APIInterface? = null
+    private lateinit var retroFit: Retrofit
+    private lateinit var api: APIInterface
 
-    /**
-     * initServerCommunication: Initiate basic API/Retrofit
-     * Returns true if both retroFit/api is NOT-NULL,
-     * false when either of retrofit/api is null
-     */
-    fun initServerCommunication(
-        serverAddress: String = "192.168.0.46",
-        serverPort: String = "8080"
-    ): Boolean {
-        retroFit = try {
-            Retrofit.Builder()
-                .baseUrl("http://$serverAddress:$serverPort")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        } catch (e: IllegalArgumentException) {
-            // Log priority: Error[WTF is not allowed since it might terminate APP]
-            Log.e(logTag, "FATAL - SERVER INIT FAILED!!")
-            Log.e(logTag, e.stackTraceToString())
-            null
+    // Whether server connection is successful or not
+    private var isServerEnabled: Boolean = false
+
+    init {
+        isServerEnabled = initWholeServerClient()
+    }
+
+    fun initWholeServerClient(): Boolean {
+        var returnServerEnabled: Boolean = false
+        runCatching {
+            retroFit = initRetroFit()
+            api = initApiInterface()
+        }.onSuccess {
+            returnServerEnabled = true
+        }.onFailure {
+            Log.e(logTag, "Error occurred when connecting to server: ${it.message}")
+            Log.e(logTag, "Error Message: ${it.stackTraceToString()}")
+            returnServerEnabled = false
         }
 
-        api = retroFit?.create(APIInterface::class.java) ?: run {
-            Log.e(
-                logTag,
-                "Server is NOT initiated, therefore api will not be implemented."
-            )
-            null
-        }
+        return returnServerEnabled
+    }
 
-        return (retroFit != null && api != null)
+    // Might throw exceptions
+    private fun initRetroFit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(httpUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    private fun initApiInterface(): APIInterface {
+        return retroFit.create(APIInterface::class.java)
     }
 
     fun getRootToken(): String {
