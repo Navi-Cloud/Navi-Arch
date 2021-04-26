@@ -1,6 +1,7 @@
 package com.kangdroid.navi_arch.server
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.data.dto.response.ApiError
@@ -26,14 +27,16 @@ class ServerManagementTest {
         mockServer.url("")
     }
 
+    // Object Mapper
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
     // Server Management Object
     private val serverManagement: ServerManagement by lazy {
-        ServerManagement(baseUrl)
+        ServerManagement(
+            baseUrl
+        )
     }
-    
 
-    // Object Mapper
-    private val objectMapper: ObjectMapper = ObjectMapper()
 
     // Mock Objects
     private val mockRootToken: RootTokenResponseDto = RootTokenResponseDto("hello~")
