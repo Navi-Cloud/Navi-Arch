@@ -16,4 +16,7 @@ interface APIInterface {
     @Multipart
     @POST("/api/navi/fileUpload")
     fun upload(@PartMap par : HashMap<String,Any>, @Part files: MultipartBody.Part) : Call<ResponseBody>
+
+    @GET("api/navi/fileDownload/{token}")
+    fun download(@Path("token") token : String) : Call<ResponseBody>
 }

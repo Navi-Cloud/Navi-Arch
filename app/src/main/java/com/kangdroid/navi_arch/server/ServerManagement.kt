@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.server
 
+import android.os.Environment
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
 import okhttp3.MultipartBody
@@ -8,12 +9,17 @@ import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.URLDecoder
 
 object ServerManagement {
 
     private val logTag: String = this::class.java.simpleName
     private var retroFit: Retrofit? = null
     private var api: APIInterface? = null
+
     // Variable/Value Initiation Ends
 
     /**
@@ -94,5 +100,62 @@ object ServerManagement {
         }
 
         return response?.body()?.string() ?: ""
+    }
+
+    fun download(token: String) {
+        val downloading : Call<ResponseBody> ?= api?.download(token)
+        val response: Response<ResponseBody>?= runCatching {
+            downloading?.execute()
+        }.getOrElse {
+            Log.e(logTag, "Error when downloading File.")
+            Log.e(logTag, it.stackTraceToString())
+            null
+        }
+
+        if (response != null) {
+            // Get Content Name
+            val header : String = response.headers().get("Content-Disposition").apply {
+                // Since raw header is encoded with URL Scheme, decode it.
+                URLDecoder.decode(this,"UTF-8")
+            } ?: throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
+
+            // Get file Name from header
+            val fileName : String = header.replace("attachment; filename=\"", "").let {
+                it.substring(it.lastIndexOf("/")+1,it.length-1)
+            }
+            Log.e(logTag, "fileName : $fileName")
+            Log.e(logTag, "Content : ${response.body().toString()}")
+
+            if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+                val pa : String = Environment.getExternalStorageDirectory().toString() + "/Download"
+                val file = File(pa, fileName)
+                try{
+
+                    val fileReader = ByteArray(4096)
+                    val fileSize: Long ?= response.body()?.contentLength()
+                    var fileSizeDownloaded: Long = 0
+
+                    val inputStream : InputStream? = response.body()?.byteStream()
+                    val outputStream = FileOutputStream(file)
+
+                    while (true) {
+                        val read: Int ?= inputStream?.read(fileReader)
+                        if (read == -1) {
+                            break
+                        }
+                        if (read != null) {
+                            outputStream.write(fileReader, 0, read)
+                            Log.e(logTag, "OutputStream : $outputStream")
+                            fileSizeDownloaded += read.toLong()
+                        }
+                        Log.e("DOWNLOAD", "file download: $fileSizeDownloaded of $fileSize")
+                    }
+                    outputStream.flush()
+                }catch (e:Exception){
+                    Log.e("External Storage", "External Storage is not ready.")
+                    Log.e("External Storage", e.stackTraceToString())
+                }
+            }
+        }
     }
 }
