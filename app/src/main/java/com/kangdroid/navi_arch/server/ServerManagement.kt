@@ -13,14 +13,15 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URLDecoder
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object ServerManagement {
+@Singleton
+class ServerManagement @Inject constructor() {
 
     private val logTag: String = this::class.java.simpleName
     private var retroFit: Retrofit? = null
     private var api: APIInterface? = null
-
-    // Variable/Value Initiation Ends
 
     /**
      * initServerCommunication: Initiate basic API/Retrofit

@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -18,8 +19,13 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
+import javax.inject.Inject
 
-class UploadingViewModel(private val rawApplication: Application) : AndroidViewModel(rawApplication) {
+@HiltViewModel
+class UploadingViewModel @Inject constructor(
+        private val rawApplication: Application,
+        private val serverManagement: ServerManagement
+    ) : AndroidViewModel(rawApplication) {
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 
     private val logTag: String = this::class.java.simpleName
@@ -83,7 +89,7 @@ class UploadingViewModel(private val rawApplication: Application) : AndroidViewM
         }
 
         coroutineScope.launch {
-            ServerManagement.upload(param, uploadFile)
+            serverManagement.upload(param, uploadFile)
             withContext(Dispatchers.Main) {
                 actionAfterUpload()
             }

@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.CompoundButton
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -16,8 +17,10 @@ import com.kangdroid.navi_arch.pager.PagerAdapter
 import com.kangdroid.navi_arch.pager.PagerViewModel
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
 import com.kangdroid.navi_arch.uploading.UploadingViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 // The View
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     // View Binding
@@ -31,21 +34,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Pager ViewModel
-    private val pagerViewModel: PagerViewModel by lazy {
-        ViewModelProvider(
-            this,
-            ViewModelProvider.NewInstanceFactory()
-        ).get(PagerViewModel::class.java)
-    }
+    private val pagerViewModel: PagerViewModel by viewModels()
 
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model
-    private val uploadingViewModel: UploadingViewModel by lazy {
-        ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory(application)
-        ).get(UploadingViewModel::class.java)
-    }
+    private val uploadingViewModel: UploadingViewModel by viewModels()
 
     // Value for detecting this activity launched with normal activity or Upload Activity.
     private val uploadingIdentifier: String = "UPLOAD_ACTIVITY"

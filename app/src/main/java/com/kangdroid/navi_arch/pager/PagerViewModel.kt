@@ -7,9 +7,16 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
 import com.kangdroid.navi_arch.server.ServerManagement
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
-class PagerViewModel : ViewModel() {
+@HiltViewModel
+class PagerViewModel @Inject constructor(
+        private val serverManagement: ServerManagement
+    ): ViewModel() {
+
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 
     // Current Page List
@@ -23,6 +30,8 @@ class PagerViewModel : ViewModel() {
 
     // The data we are going to share with view[MainActivity]
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
+
+    // Server Management
 
     // For Sorting
     private var currentSortMode: FileSortingMode = FileSortingMode.TypedName
@@ -40,7 +49,7 @@ class PagerViewModel : ViewModel() {
     }
 
     init {
-        ServerManagement.initServerCommunication()
+        serverManagement.initServerCommunication()
     }
 
     // Sort
@@ -135,11 +144,11 @@ class PagerViewModel : ViewModel() {
         coroutineScope.launch {
             // If is root, fetch rootToken first
             if (isRoot) {
-                nextFolder.token = ServerManagement.getRootToken()
+                nextFolder.token = serverManagement.getRootToken()
             }
 
             // Get Data from server, and apply sort
-            val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
+            val exploredData: List<FileData> = serverManagement.getInsideFiles(nextFolder.token)
             val sortedData: List<FileData> = if (isReversed) {
                 exploredData.sortedWith(currentSortMode).asReversed()
             } else {

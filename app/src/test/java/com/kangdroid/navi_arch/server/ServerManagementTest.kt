@@ -23,6 +23,10 @@ class ServerManagementTest {
         mockServer.url("")
     }
 
+    // Server Management Object
+    private val serverManagement: ServerManagement = ServerManagement()
+    
+
     // Object Mapper
     private val objectMapper: ObjectMapper = ObjectMapper()
 
@@ -70,7 +74,7 @@ class ServerManagementTest {
     @Before
     fun init() {
         mockServer.start(8081)
-        ServerManagement.initServerCommunication(baseUrl.host, baseUrl.port.toString())
+        serverManagement.initServerCommunication(baseUrl.host, baseUrl.port.toString())
     }
 
     @After
@@ -81,13 +85,13 @@ class ServerManagementTest {
     // Init Test
     @Test
     fun is_initServerCommunication_works_well() {
-        assertThat(ServerManagement.initServerCommunication(baseUrl.host, baseUrl.port.toString()))
+        assertThat(serverManagement.initServerCommunication(baseUrl.host, baseUrl.port.toString()))
             .isEqualTo(true)
     }
 
     @Test
     fun is_initServerCommunication_fails_wrong_ip() {
-        assertThat(ServerManagement.initServerCommunication("", ""))
+        assertThat(serverManagement.initServerCommunication("", ""))
             .isEqualTo(false)
     }
 
@@ -100,7 +104,7 @@ class ServerManagementTest {
                 else -> MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
             }
         }
-        assertThat(ServerManagement.getRootToken()).isEqualTo(mockRootToken)
+        assertThat(serverManagement.getRootToken()).isEqualTo(mockRootToken)
     }
 
     @Test
@@ -111,7 +115,7 @@ class ServerManagementTest {
                 else -> MockResponse().setResponseCode(OK).setBody(mockRootToken)
             }
         }
-        assertThat(ServerManagement.getRootToken()).isEqualTo("")
+        assertThat(serverManagement.getRootToken()).isEqualTo("")
     }
 
     // Get Inside Files
@@ -126,7 +130,7 @@ class ServerManagementTest {
                 MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
             }
         }
-        val result: List<FileData> = ServerManagement.getInsideFiles("rootToken")
+        val result: List<FileData> = serverManagement.getInsideFiles("rootToken")
         assertThat(result.size).isEqualTo(mockInsideFilesResult.size)
     }
 
@@ -141,7 +145,7 @@ class ServerManagementTest {
                 )
             }
         }
-        val result: List<FileData> = ServerManagement.getInsideFiles("rootToken")
+        val result: List<FileData> = serverManagement.getInsideFiles("rootToken")
         assertThat(result.size).isEqualTo(0)
     }
 }
