@@ -18,6 +18,7 @@ import com.kangdroid.navi_arch.pager.PagerViewModel
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
 import com.kangdroid.navi_arch.uploading.UploadingViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 // The View
 @AndroidEntryPoint
@@ -28,13 +29,12 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    // Pager Adapter for ViewPager2
-    private val pageAdapter: PagerAdapter by lazy {
-        PagerAdapter()
-    }
-
     // Pager ViewModel
     private val pagerViewModel: PagerViewModel by viewModels()
+
+    // Pager Adapter[DI]
+    @Inject
+    lateinit var pageAdapter: PagerAdapter
 
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model

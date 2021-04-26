@@ -6,8 +6,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kangdroid.navi_arch.databinding.RecyclerFileListViewBinding
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
+import dagger.hilt.android.scopes.ActivityScoped
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PagerAdapter : RecyclerView.Adapter<PagerAdapter.PagerViewHolder>() {
+@Singleton
+class PagerAdapter @Inject constructor() : RecyclerView.Adapter<PagerAdapter.PagerViewHolder>() {
 
     var pageList: List<FileAdapter> = mutableListOf()
 
