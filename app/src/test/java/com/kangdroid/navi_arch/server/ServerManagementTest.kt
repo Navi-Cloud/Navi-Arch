@@ -33,7 +33,10 @@ class ServerManagementTest {
     // Server Management Object
     private val serverManagement: ServerManagement by lazy {
         ServerManagement(
-            baseUrl
+            baseUrl,
+            ServerManagementHelper(
+                objectMapper
+            )
         )
     }
 
@@ -101,7 +104,7 @@ class ServerManagementTest {
     fun is_getRootToken_works_well() {
         setDispatcherHandler {
             when (it.path) {
-                "/api/navi/rootToken" -> MockResponse().setResponseCode(OK)
+                "/api/navi/root-token" -> MockResponse().setResponseCode(OK)
                     .setBody(objectMapper.writeValueAsString(mockRootToken))
                 else -> fail("Ever reached target endpoint")
             }
@@ -113,7 +116,7 @@ class ServerManagementTest {
     fun is_getRootToken_throws_RuntimeException_500() {
         setDispatcherHandler {
             when (it.path) {
-                "/api/navi/rootToken" -> {
+                "/api/navi/root-token" -> {
                     MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
                         .setBody(
                             objectMapper.writeValueAsString(
@@ -142,7 +145,7 @@ class ServerManagementTest {
     fun is_getRootToken_throws_NoSuchFieldException_wrong_body() {
         setDispatcherHandler {
             when (it.path) {
-                "/api/navi/rootToken" -> MockResponse().setResponseCode(OK).setBody("null")
+                "/api/navi/root-token" -> MockResponse().setResponseCode(OK).setBody("null")
                 else -> fail("Ever reached target endpoint.")
             }
         }
@@ -161,7 +164,7 @@ class ServerManagementTest {
     @Test
     fun is_getInsideFiles_works_well() {
         setDispatcherHandler {
-            if (it.path?.contains("/api/navi/findInsideFiles/") == true) {
+            if (it.path?.contains("/api/navi/files/list/") == true) {
                 MockResponse().setResponseCode(OK).setBody(
                     objectMapper.writeValueAsString(mockInsideFilesResult)
                 )
@@ -176,7 +179,7 @@ class ServerManagementTest {
     @Test
     fun is_getInsideFiles_fails_wrong_ip() {
         setDispatcherHandler {
-            if (it.path?.contains("/api/navi/findInsideFiles/") == true) {
+            if (it.path?.contains("/api/navi/files/list//") == true) {
                 MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
             } else {
                 MockResponse().setResponseCode(OK).setBody(

@@ -11,13 +11,13 @@ interface APIInterface {
     @GET("/api/navi/root-token")
     fun getRootToken(): Call<RootTokenResponseDto>
 
-    @GET("/api/navi/findInsideFiles/{token}")
+    @GET("/api/navi/files/list/{token}")
     fun getInsideFiles(@Path("token") token: String): Call<List<FileData>>
 
     @Multipart
-    @POST("/api/navi/fileUpload")
+    @POST("/api/navi/files")
     fun upload(@PartMap par : HashMap<String,Any>, @Part files: MultipartBody.Part) : Call<ResponseBody>
 
-    @GET("api/navi/fileDownload/{token}")
+    @GET("/api/navi/files/{token}")
     fun download(@Path("token") token : String) : Call<ResponseBody>
 }
