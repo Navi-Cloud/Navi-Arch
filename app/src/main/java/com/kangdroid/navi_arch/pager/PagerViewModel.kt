@@ -55,7 +55,7 @@ class PagerViewModel : ViewModel() {
 
         // Sort them with Comparator
         pageList[pageNum].fileList = if (reverse) {
-             pageList[pageNum].fileList.sortedWith(mode).asReversed()
+            pageList[pageNum].fileList.sortedWith(mode).asReversed()
         } else {
             pageList[pageNum].fileList.sortedWith(mode)
         }
@@ -67,7 +67,11 @@ class PagerViewModel : ViewModel() {
         livePagerData.value = pageList
     }
 
-    private fun updatePageAndNotify(fileAdapter: FileAdapter, targetToken: String, addToCache: Boolean = false) {
+    private fun updatePageAndNotify(
+        fileAdapter: FileAdapter,
+        targetToken: String,
+        addToCache: Boolean = false
+    ) {
         // For Non-Automatic
         pageSet.add(targetToken)
 
@@ -86,29 +90,15 @@ class PagerViewModel : ViewModel() {
     // Create page
     fun createInitialRootPage() {
         // Network on other thread
-        coroutineScope.launch {
-            val rootToken: String = ServerManagement.getRootToken() // Get rootToken
-            val exploredData: List<FileData> = ServerManagement.getInsideFiles(rootToken) // Get Root Information
-
-            // Sort if needed
-            val sortedData: List<FileData> = if (isReversed) {
-                exploredData.sortedWith(currentSortMode).asReversed()
-            } else {
-                exploredData.sortedWith(currentSortMode)
-            }
-
-            // After getting data, update UI Information
-            withContext(Dispatchers.Main) {
-                val fileAdapter: FileAdapter = FileAdapter(
-                    recyclerOnClickListener,
-                    sortedData,
-                    pageList.size + 1,
-                    FileData (fileName = "/", fileType = "Folder", lastModifiedTime = System.currentTimeMillis(), token = rootToken)
-                )
-
-                updatePageAndNotify(fileAdapter, rootToken, false)
-            }
-        }
+        innerExplorePage(
+            FileData(
+                fileName = "/",
+                fileType = "Folder",
+                lastModifiedTime = System.currentTimeMillis(),
+                token = "rootToken"
+            ),
+            true
+        )
     }
 
     // Create Additional Page
@@ -131,27 +121,40 @@ class PagerViewModel : ViewModel() {
         if (!pageSet.contains(nextFolder.token)) {
             // Check for cache
             if (pageCache.contains(nextFolder.token)) {
+                // Use Cache
                 Log.d(this::class.java.simpleName, "Using Cache for ${nextFolder.token}")
                 updatePageAndNotify(pageCache[nextFolder.token]!!, nextFolder.token, false)
             } else {
                 // Not on cache
-                coroutineScope.launch {
-                    val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
-                    val sortedData: List<FileData> = if (isReversed) {
-                        exploredData.sortedWith(currentSortMode).asReversed()
-                    } else {
-                        exploredData.sortedWith(currentSortMode)
-                    }
-                    withContext(Dispatchers.Main) {
-                        val fileAdapter: FileAdapter = FileAdapter(
-                            recyclerOnClickListener,
-                            sortedData,
-                            pageList.size + 1,
-                            nextFolder
-                        )
-                        updatePageAndNotify(fileAdapter, nextFolder.token, true)
-                    }
-                }
+                innerExplorePage(nextFolder)
+            }
+        }
+    }
+
+    private fun innerExplorePage(nextFolder: FileData, isRoot: Boolean = false) {
+        coroutineScope.launch {
+            // If is root, fetch rootToken first
+            if (isRoot) {
+                nextFolder.token = ServerManagement.getRootToken()
+            }
+
+            // Get Data from server, and apply sort
+            val exploredData: List<FileData> = ServerManagement.getInsideFiles(nextFolder.token)
+            val sortedData: List<FileData> = if (isReversed) {
+                exploredData.sortedWith(currentSortMode).asReversed()
+            } else {
+                exploredData.sortedWith(currentSortMode)
+            }
+
+            // So in main thread..
+            withContext(Dispatchers.Main) {
+                val fileAdapter: FileAdapter = FileAdapter(
+                    recyclerOnClickListener,
+                    sortedData,
+                    pageList.size + 1,
+                    nextFolder
+                )
+                updatePageAndNotify(fileAdapter, nextFolder.token, true)
             }
         }
     }
