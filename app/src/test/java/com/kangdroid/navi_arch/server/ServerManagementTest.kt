@@ -179,7 +179,7 @@ class ServerManagementTest {
     @Test
     fun is_getInsideFiles_fails_wrong_ip() {
         setDispatcherHandler {
-            if (it.path?.contains("/api/navi/files/list//") == true) {
+            if (it.path?.contains("/api/navi/files/list/") == true) {
                 MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
             } else {
                 MockResponse().setResponseCode(OK).setBody(
