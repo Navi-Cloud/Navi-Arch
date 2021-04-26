@@ -11,6 +11,7 @@ import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
 import kotlinx.coroutines.*
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.io.BufferedReader
@@ -74,7 +75,7 @@ class UploadingViewModel(private val rawApplication: Application) : AndroidViewM
         Log.d(logTag,"File Contents: ${file.readText()}")
         Log.d(logTag,"File Name: $filename")
 
-        val requestBody : RequestBody = RequestBody.create(MediaType.parse("multipart/form-data"),file)
+        val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(),file)
         val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile",filename,requestBody)
         val param : HashMap<String,Any> = HashMap()
         with(param){
