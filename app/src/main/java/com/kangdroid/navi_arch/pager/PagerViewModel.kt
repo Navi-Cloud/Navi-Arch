@@ -140,7 +140,7 @@ class PagerViewModel @Inject constructor(
         coroutineScope.launch {
             // If is root, fetch rootToken first
             if (isRoot) {
-                nextFolder.token = serverManagement.getRootToken()
+                nextFolder.token = serverManagement.getRootToken().rootToken
             }
 
             // Get Data from server, and apply sort

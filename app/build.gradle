@@ -55,6 +55,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
     implementation 'com.squareup.okhttp3:okhttp:4.8.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.0'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+"
     implementation 'com.google.dagger:hilt-android:2.35'
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.3.1'
     implementation "androidx.fragment:fragment-ktx:1.3.3"

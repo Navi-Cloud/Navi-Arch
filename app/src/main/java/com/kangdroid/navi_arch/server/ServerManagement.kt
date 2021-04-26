@@ -2,7 +2,11 @@ package com.kangdroid.navi_arch.server
 
 import android.os.Environment
 import android.util.Log
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import okhttp3.HttpUrl
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
@@ -14,8 +18,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URLDecoder
-import javax.inject.Inject
-import javax.inject.Singleton
 
 class ServerManagement(private val httpUrl: HttpUrl) {
 
@@ -25,6 +27,8 @@ class ServerManagement(private val httpUrl: HttpUrl) {
 
     // Whether server connection is successful or not
     private var isServerEnabled: Boolean = false
+
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     init {
         isServerEnabled = initWholeServerClient()
@@ -58,16 +62,56 @@ class ServerManagement(private val httpUrl: HttpUrl) {
         return retroFit.create(APIInterface::class.java)
     }
 
-    fun getRootToken(): String {
-        val tokenFunction: Call<ResponseBody>? = api?.getRootToken()
-        val response: Response<ResponseBody>? = try {
-            tokenFunction?.execute()
-        } catch (e: Exception) {
+    /**
+     * reified T exchangeDataWithServer(apiFunction: Call<T>): Response<T>
+     * Exchange data with server.
+     *
+     * apiFunction: APIInterface function to execute
+     * returns: Response of data.
+     * Throws: Exception when network failed.
+     */
+    fun <T> exchangeDataWithServer(apiFunction: Call<T>): Response<T> {
+        return runCatching {
+            apiFunction.execute()
+        }.getOrElse {
             Log.e(logTag, "Error when getting root token from server.")
-            Log.e(logTag, e.stackTraceToString())
-            null
+            Log.e(logTag, it.stackTraceToString())
+            throw it
         }
-        return response?.body()?.string() ?: ""
+    }
+
+    /**
+     * fun <reified T> handleDataError(response: Response<T>)
+     *
+     * handle response error if needed[i.e error response]
+     */
+    fun <T> handleDataError(response: Response<T>) {
+        // If error body is null, something went wrong.
+        val errorBody: ResponseBody = response.errorBody()
+            ?: throw NoSuchFieldException("Response was failed, but no response body received.")
+
+        // Get error body as map, since spring's default error response was sent.
+        val errorBodyMap: Map<String, String> = objectMapper.readValue(errorBody.string())
+        if (errorBodyMap.contains("message")) { // Common about our error response and spring error response
+            throw RuntimeException("Server responded with: ${errorBodyMap["message"]}")
+        } else {
+            throw NoSuchFieldException("Error message was not found!! This should be reported to developers.")
+        }
+    }
+
+    fun getRootToken(): RootTokenResponseDto {
+        val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken()
+
+        // Get response, and throw if exception occurred.
+        val response: Response<RootTokenResponseDto> = exchangeDataWithServer(tokenFunction)
+
+        // Check for input response
+        if (!response.isSuccessful) {
+            handleDataError(response)
+        }
+
+        return response.body()
+            ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
 
     /**
