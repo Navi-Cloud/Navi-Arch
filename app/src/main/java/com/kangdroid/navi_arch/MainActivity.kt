@@ -1,6 +1,5 @@
 package com.kangdroid.navi_arch
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -11,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
-import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 import com.kangdroid.navi_arch.pager.FileSortingMode
 import com.kangdroid.navi_arch.pager.PagerAdapter
@@ -64,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         // If uploading is enabled, first select file to choose!
         if (isUploadingEnabled) {
-            val intent : Intent = Intent(Intent.ACTION_GET_CONTENT).apply{
+            val intent: Intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "*/*"
             }
             startActivityForResult(intent, getContentRequestCode)
@@ -85,8 +83,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if (isUploadingEnabled) {
+            // Enable Folder Check Button when launched with UploadActivity
             menuInflater.inflate(R.menu.uploading_action, menu)
         } else {
+            // Enable Uploading Button when launched with MainActivity
             menuInflater.inflate(R.menu.main_action, menu)
         }
         return true
@@ -94,6 +94,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            // Upload button when launched with MainActivity
             R.id.action_upload -> {
                 val intent: Intent = Intent(this, MainActivity::class.java).apply {
                     putExtra(uploadingIdentifier, uploadingEnabled)
@@ -101,6 +102,8 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 true
             }
+
+            // Check[Folder Check Button] when launched with UploadActivity
             R.id.action_select_path -> {
                 Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
                 // Upload it!
@@ -114,6 +117,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // For UploadActivity[For getting upload target file]
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == getContentRequestCode && resultCode == RESULT_OK) {
@@ -139,6 +143,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
+        // Set Data Observer for pageData
         pagerViewModel.livePagerData.observe(this, Observer<List<FileAdapter>> {
             Log.d(this::class.java.simpleName, "Observed, Setting changed page")
             pageAdapter.setNaviPageList(it)
@@ -160,7 +165,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Toggle Button INIT
-        with (activityMainBinding) {
+        with(activityMainBinding) {
             sortByNameOrLMT.setOnCheckedChangeListener(sortListener)
             sortByType.setOnCheckedChangeListener(sortListener)
             sortByAscendingOrDescending.setOnCheckedChangeListener(sortListener)
