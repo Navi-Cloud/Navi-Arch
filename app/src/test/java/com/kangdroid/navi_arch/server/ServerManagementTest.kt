@@ -177,4 +177,56 @@ class ServerManagementTest {
         val result: List<FileData> = serverManagement.getInsideFiles("rootToken")
         assertThat(result.size).isEqualTo(mockInsideFilesResult.size)
     }
+
+    @Test
+    fun is_getInsideFiles_throws_RuntimeException_500() {
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files/list/") == true) {
+                MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
+                    .setBody(
+                        objectMapper.writeValueAsString(
+                            ApiError(
+                                message = "Test Mocking Up",
+                                statusCode = "500",
+                                statusMessage = "Internal Server Error"
+                            )
+                        )
+                    )
+            } else {
+                fail("Test did not reached endpoint!")
+            }
+        }
+
+        runCatching {
+            serverManagement.getInsideFiles("rootToken")
+        }.onSuccess {
+            fail("We have internal server error, but request succeed?")
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+        }
+    }
+
+    @Test
+    fun is_getInsideFiles_throws_NoSuchFieldException() {
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files/list/") == true) {
+                MockResponse().setResponseCode(OK).setBody("null")
+            } else {
+                fail("Test did not reached endpoint!")
+            }
+        }
+
+        runCatching {
+            serverManagement.getInsideFiles("")
+        }.onSuccess {
+            fail("This should responded with 500 thus Runtime Exception.")
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is NoSuchFieldException).isEqualTo(true)
+            assertThat(it.message).isEqualTo("Response was OK, but wrong response body received.")
+        }
+
+    }
 }

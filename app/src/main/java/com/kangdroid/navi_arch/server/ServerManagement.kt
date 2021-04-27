@@ -90,6 +90,12 @@ class ServerManagement(
     fun getInsideFiles(requestToken: String): List<FileData> {
         val insiderFunction: Call<List<FileData>> = api.getInsideFiles(requestToken)
         val response: Response<List<FileData>> = serverManagementHelper.exchangeDataWithServer(insiderFunction)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
+
         return response.body()
             ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
