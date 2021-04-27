@@ -177,19 +177,4 @@ class ServerManagementTest {
         val result: List<FileData> = serverManagement.getInsideFiles("rootToken")
         assertThat(result.size).isEqualTo(mockInsideFilesResult.size)
     }
-
-    @Test
-    fun is_getInsideFiles_fails_wrong_ip() {
-        setDispatcherHandler {
-            if (it.path?.contains("/api/navi/files/list/") == true) {
-                MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
-            } else {
-                MockResponse().setResponseCode(OK).setBody(
-                    objectMapper.writeValueAsString(mockInsideFilesResult)
-                )
-            }
-        }
-        val result: List<FileData> = serverManagement.getInsideFiles("rootToken")
-        assertThat(result.size).isEqualTo(0)
-    }
 }
