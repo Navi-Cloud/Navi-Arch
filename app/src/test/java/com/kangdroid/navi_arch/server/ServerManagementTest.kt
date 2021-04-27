@@ -8,6 +8,9 @@ import com.kangdroid.navi_arch.data.dto.response.ApiError
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -16,6 +19,7 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 class ServerManagementTest {
 
@@ -227,6 +231,112 @@ class ServerManagementTest {
             assertThat(it is NoSuchFieldException).isEqualTo(true)
             assertThat(it.message).isEqualTo("Response was OK, but wrong response body received.")
         }
+    }
 
+    @Test
+    fun is_upload_works_well() {
+        val mockUploadPath: String = "somewhere_over_the_rainbow"
+        val mockFileContents: String = "Hello, World!"
+        val mockResults: String = "20"
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up",
+                statusCode = "500",
+                statusMessage = "Internal Server Error"
+            )
+        )
+        setDispatcherHandler {
+            when (it.path) {
+                "/api/navi/files" -> {
+                    val bodyString: String = it.body.readUtf8()
+                    if (it.method != "POST") {
+                        println("This method should be instantiated with post method.")
+                        MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(errorMessage)
+                    } else if (!bodyString.contains(mockUploadPath)) {
+                        println("Body does not have contents: $mockUploadPath")
+                        MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(errorMessage)
+                    } else if (!bodyString.contains(mockFileContents)) {
+                        println(bodyString)
+                        println("Body does not have file contents: $mockFileContents")
+                        MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(errorMessage)
+                    } else {
+                        MockResponse().setResponseCode(OK).setBody(mockResults)
+                    }
+                }
+                else -> fail("Test did not reached endpoint!")
+            }
+        }
+
+        // Tmp File
+        val file: File = File(System.getProperty("java.io.tmpdir"), "test.txt").apply {
+            writeText(mockFileContents)
+        }
+
+        val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(),file)
+        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile","test.txt",requestBody)
+        val param : HashMap<String,Any> = HashMap()
+        with(param){
+            put("uploadPath", mockUploadPath)
+        }
+
+        runCatching {
+            serverManagement.upload(param, uploadFile)
+        }.onFailure {
+            println(it.stackTraceToString())
+            fail("Something went wrong. This should be succeed.")
+        }.onSuccess {
+            assertThat(it).isEqualTo(mockResults)
+        }
+
+        // Cleanup
+        file.delete()
+    }
+
+    @Test
+    fun is_upload_throws_RuntimeError_500() {
+        val mockUploadPath: String = "somewhere_over_the_rainbow"
+        val mockFileContents: String = "Hello, World!"
+        val mockResults: String = "20"
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up",
+                statusCode = "500",
+                statusMessage = "Internal Server Error"
+            )
+        )
+
+        setDispatcherHandler {
+            when (it.path) {
+                "/api/navi/files" -> {
+                    MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(errorMessage)
+                }
+                else -> fail("Test did not reached endpoint!")
+            }
+        }
+
+        // Tmp File
+        val file: File = File(System.getProperty("java.io.tmpdir"), "test.txt").apply {
+            writeText(mockFileContents)
+        }
+
+        val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(),file)
+        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile","test.txt",requestBody)
+        val param : HashMap<String,Any> = HashMap()
+        with(param){
+            put("uploadPath", mockUploadPath)
+        }
+
+        runCatching {
+            serverManagement.upload(param, uploadFile)
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+        }.onSuccess {
+            fail("This should responded with 500 thus Runtime Exception.")
+        }
+
+        // Cleanup
+        file.delete()
     }
 }

@@ -101,21 +101,18 @@ class ServerManagement(
     }
 
     fun upload(Param : HashMap<String,Any>, file: MultipartBody.Part) : String {
-        val uploading: Call<ResponseBody>? = api?.upload(Param, file)
-        val response: Response<ResponseBody>? = try{
-            uploading?.execute()
-        }catch (e:Exception){
-            Log.e(logTag, "Error when uploading File.")
-            Log.e(logTag, e.stackTraceToString())
-            null
+        val uploading: Call<ResponseBody> = api.upload(Param, file)
+        val response: Response<ResponseBody> = serverManagementHelper.exchangeDataWithServer(uploading)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
         }
 
-        if (response?.isSuccessful == false) {
-            Log.e(logTag, "Upload did not successful")
-            Log.e(logTag, "Message: ${response.errorBody()?.string()}")
-        }
+        val responseBody: ResponseBody = response.body()
+            ?: throw NoSuchFieldException("Response was OK, but wrong response body received")
 
-        return response?.body()?.string() ?: ""
+        return responseBody.string()
     }
 
     fun download(token: String) {
