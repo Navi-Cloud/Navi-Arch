@@ -138,6 +138,7 @@ class ServerManagementTest {
             fail("This should responded with 500 thus Runtime Exception.")
         }.onFailure {
             assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
         }
     }
 
