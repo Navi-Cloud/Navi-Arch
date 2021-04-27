@@ -142,7 +142,7 @@ class ServerManagementTest {
     }
 
     @Test
-    fun is_getRootToken_throws_NoSuchFieldException_wrong_body() {
+    fun is_getRootToken_throws_NoSuchFieldException_null_body() {
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> MockResponse().setResponseCode(OK).setBody("null")
@@ -157,6 +157,7 @@ class ServerManagementTest {
         }.onFailure {
             println(it.stackTraceToString())
             assertThat(it is NoSuchFieldException).isEqualTo(true)
+            assertThat(it.message).isEqualTo("Response was OK, but wrong response body received.")
         }
     }
 
