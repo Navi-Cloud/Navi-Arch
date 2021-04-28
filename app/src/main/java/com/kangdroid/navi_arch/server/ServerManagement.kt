@@ -109,8 +109,7 @@ class ServerManagement(
             serverManagementHelper.handleDataError(response)
         }
 
-        val responseBody: ResponseBody = response.body()
-            ?: throw NoSuchFieldException("Response was OK, but wrong response body received")
+        val responseBody: ResponseBody = response.body()!!
 
         return responseBody.string()
     }
