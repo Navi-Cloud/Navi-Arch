@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.pager
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.kangdroid.navi_arch.bottom.FileBottomSheetFragment
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.recyclerview.FileAdapter
@@ -47,6 +48,9 @@ class PagerViewModel @Inject constructor(
             explorePage(it, pageNumber)
         }
     }
+
+    // Inner Recycler View onLongClickListener
+    var recyclerOnLongClickListener: ((FileData) -> Boolean)? = null
 
     // Sort
     fun sort(mode: FileSortingMode, reverse: Boolean, pageNum: Int) {
@@ -155,6 +159,7 @@ class PagerViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 val fileAdapter: FileAdapter = FileAdapter(
                     recyclerOnClickListener,
+                    recyclerOnLongClickListener,
                     sortedData,
                     pageList.size + 1,
                     nextFolder

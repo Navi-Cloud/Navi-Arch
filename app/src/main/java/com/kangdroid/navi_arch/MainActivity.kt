@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
+import com.kangdroid.navi_arch.bottom.FileBottomSheetFragment
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 import com.kangdroid.navi_arch.pager.FileSortingMode
 import com.kangdroid.navi_arch.pager.PagerAdapter
@@ -35,6 +36,10 @@ class MainActivity : AppCompatActivity() {
     // Pager Adapter[DI]
     @Inject
     lateinit var pageAdapter: PagerAdapter
+
+    // BottomSheetDialog[DI]
+    @Inject
+    lateinit var bottomSheetFragment: FileBottomSheetFragment
 
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model
@@ -151,6 +156,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
+        // Set onLongClickListener to viewModel
+        pagerViewModel.recyclerOnLongClickListener = {
+            bottomSheetFragment.targetFileData = it
+            bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
+            true
+        }
+
         // Set Data Observer for pageData
         pagerViewModel.livePagerData.observe(this, Observer<List<FileAdapter>> {
             Log.d(this::class.java.simpleName, "Observed, Setting changed page")

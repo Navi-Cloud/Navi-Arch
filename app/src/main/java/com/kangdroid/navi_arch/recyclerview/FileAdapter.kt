@@ -10,6 +10,7 @@ import com.kangdroid.navi_arch.databinding.ItemFileBinding
 
 class FileAdapter(
     val onClick: (FileData, Int) -> Unit,
+    val onLongClick: ((FileData) -> Boolean)?,
     var fileList: List<FileData>,
     val pageNumber: Int,
     val currentFolder: FileData
@@ -34,6 +35,11 @@ class FileAdapter(
             // When each row clicked
             itemFileBinding.root.setOnClickListener {
                 onClick(fileData, pageNumber)
+            }
+
+            // When each row long-clicked
+            itemFileBinding.root.setOnLongClickListener {
+                onLongClick?.invoke(fileData) ?: false
             }
         }
     }
