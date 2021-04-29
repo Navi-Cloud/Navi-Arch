@@ -60,7 +60,7 @@ class PagerViewModelTest {
 
     private fun<T> getFields(fieldName: String): T {
         // Get Page Set
-        val targetField: Field = this::class.java.getDeclaredField(fieldName).apply {
+        val targetField: Field = PagerViewModel::class.java.getDeclaredField(fieldName).apply {
             isAccessible = true
         }
 
@@ -69,7 +69,7 @@ class PagerViewModelTest {
     }
 
     private fun<T> setFields(fieldName: String, targetObject: T) {
-        this::class.java.getDeclaredField(fieldName).apply {
+        PagerViewModel::class.java.getDeclaredField(fieldName).apply {
             isAccessible = true
             set(pagerViewModel, targetObject)
         }
