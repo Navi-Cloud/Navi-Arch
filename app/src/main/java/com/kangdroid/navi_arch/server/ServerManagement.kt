@@ -1,10 +1,6 @@
 package com.kangdroid.navi_arch.server
 
-import android.os.Environment
 import android.util.Log
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import okhttp3.HttpUrl
@@ -14,11 +10,7 @@ import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
 import java.net.URLDecoder
-import javax.inject.Inject
 
 class ServerManagement(
     private val httpUrl: HttpUrl,
@@ -69,7 +61,8 @@ class ServerManagement(
         val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken()
 
         // Get response, and throw if exception occurred.
-        val response: Response<RootTokenResponseDto> = serverManagementHelper.exchangeDataWithServer(tokenFunction)
+        val response: Response<RootTokenResponseDto> =
+            serverManagementHelper.exchangeDataWithServer(tokenFunction)
 
         // Check for input response
         if (!response.isSuccessful) {
@@ -89,7 +82,8 @@ class ServerManagement(
      */
     fun getInsideFiles(requestToken: String): List<FileData> {
         val insiderFunction: Call<List<FileData>> = api.getInsideFiles(requestToken)
-        val response: Response<List<FileData>> = serverManagementHelper.exchangeDataWithServer(insiderFunction)
+        val response: Response<List<FileData>> =
+            serverManagementHelper.exchangeDataWithServer(insiderFunction)
 
         if (!response.isSuccessful) {
             Log.e(logTag, "${response.code()}")
@@ -100,9 +94,10 @@ class ServerManagement(
             ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
 
-    fun upload(Param : HashMap<String,Any>, file: MultipartBody.Part) : String {
+    fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
         val uploading: Call<ResponseBody> = api.upload(Param, file)
-        val response: Response<ResponseBody> = serverManagementHelper.exchangeDataWithServer(uploading)
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(uploading)
 
         if (!response.isSuccessful) {
             Log.e(logTag, "${response.code()}")
@@ -115,8 +110,9 @@ class ServerManagement(
     }
 
     fun download(token: String): DownloadResponse {
-        val downloadingApi : Call<ResponseBody> = api.download(token)
-        val response: Response<ResponseBody> = serverManagementHelper.exchangeDataWithServer(downloadingApi)
+        val downloadingApi: Call<ResponseBody> = api.download(token)
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(downloadingApi)
 
         if (!response.isSuccessful) {
             Log.e(logTag, "${response.code()}")
@@ -124,14 +120,14 @@ class ServerManagement(
         }
 
         // Get Content Name
-        val header : String = response.headers().get("Content-Disposition").apply {
+        val header: String = response.headers()["Content-Disposition"].apply {
             // Since raw header is encoded with URL Scheme, decode it.
-            URLDecoder.decode(this,"UTF-8")
+            URLDecoder.decode(this, "UTF-8")
         } ?: throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
 
         // Get file Name from header
-        val fileName : String = header.replace("attachment; filename=\"", "").let {
-            it.substring(it.lastIndexOf("/")+1,it.length-1)
+        val fileName: String = header.replace("attachment; filename=\"", "").let {
+            it.substring(it.lastIndexOf("/") + 1, it.length - 1)
         }
         Log.d(logTag, "fileName : $fileName")
         Log.d(logTag, "Content : ${response.body()?.string()}")
