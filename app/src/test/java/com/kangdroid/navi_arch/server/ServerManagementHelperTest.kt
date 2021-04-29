@@ -19,7 +19,6 @@ import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.EOFException
-import java.lang.RuntimeException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 

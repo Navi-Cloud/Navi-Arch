@@ -11,11 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kangdroid.navi_arch.R
-import com.kangdroid.navi_arch.databinding.ActivityMainBinding
-import com.kangdroid.navi_arch.data.FileSortingMode
-import com.kangdroid.navi_arch.adapter.PagerAdapter
-import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.adapter.FileAdapter
+import com.kangdroid.navi_arch.adapter.PagerAdapter
+import com.kangdroid.navi_arch.data.FileSortingMode
+import com.kangdroid.navi_arch.databinding.ActivityMainBinding
+import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.viewmodel.UploadingViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

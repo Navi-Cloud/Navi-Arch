@@ -8,10 +8,11 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.server.ServerInterface
-import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -20,6 +21,13 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import javax.inject.Inject
+import kotlin.Any
+import kotlin.String
+import kotlin.Unit
+import kotlin.getValue
+import kotlin.lazy
+import kotlin.run
+import kotlin.with
 
 @HiltViewModel
 class UploadingViewModel @Inject constructor(

@@ -4,14 +4,15 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kangdroid.navi_arch.data.FileData
-import com.kangdroid.navi_arch.data.FileType
-import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.adapter.FileAdapter
+import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileSortingMode
+import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.server.ServerInterface
-import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
