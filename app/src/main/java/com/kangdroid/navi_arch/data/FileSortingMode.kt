@@ -1,6 +1,4 @@
-package com.kangdroid.navi_arch.pager
-
-import com.kangdroid.navi_arch.data.FileData
+package com.kangdroid.navi_arch.data
 
 sealed class FileSortingMode : Comparator<FileData> {
     object TypedName : FileSortingMode(),

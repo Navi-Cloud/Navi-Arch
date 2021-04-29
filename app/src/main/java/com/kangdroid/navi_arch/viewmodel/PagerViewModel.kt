@@ -1,14 +1,13 @@
-package com.kangdroid.navi_arch.pager
+package com.kangdroid.navi_arch.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.kangdroid.navi_arch.bottom.FileBottomSheetFragment
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
-import com.kangdroid.navi_arch.recyclerview.FileAdapter
+import com.kangdroid.navi_arch.data.FileSortingMode
+import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.server.ServerManagement
-import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import javax.inject.Inject

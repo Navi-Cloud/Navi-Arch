@@ -1,4 +1,4 @@
-package com.kangdroid.navi_arch.recyclerview
+package com.kangdroid.navi_arch.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

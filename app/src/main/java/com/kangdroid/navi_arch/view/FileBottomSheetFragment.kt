@@ -1,4 +1,4 @@
-package com.kangdroid.navi_arch.bottom
+package com.kangdroid.navi_arch.view
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,9 +10,9 @@ import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.LayoutBottomBinding
+import com.kangdroid.navi_arch.viewmodel.FileBottomSheetViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import javax.inject.Singleton
 
 @AndroidEntryPoint
 class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment() {

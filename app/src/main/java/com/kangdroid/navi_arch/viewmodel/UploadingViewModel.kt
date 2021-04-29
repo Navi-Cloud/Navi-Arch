@@ -1,6 +1,5 @@
-package com.kangdroid.navi_arch.uploading
+package com.kangdroid.navi_arch.viewmodel
 
-import android.app.Activity
 import android.app.Application
 import android.content.ContentResolver
 import android.content.Context
@@ -11,7 +10,6 @@ import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody

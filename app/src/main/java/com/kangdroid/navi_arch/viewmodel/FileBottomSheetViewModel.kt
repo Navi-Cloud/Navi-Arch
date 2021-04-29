@@ -1,9 +1,9 @@
-package com.kangdroid.navi_arch.bottom
+package com.kangdroid.navi_arch.viewmodel
 
 import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.kangdroid.navi_arch.server.DownloadResponse
+import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*

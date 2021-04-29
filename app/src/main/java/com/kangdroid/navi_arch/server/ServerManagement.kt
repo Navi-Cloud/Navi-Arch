@@ -2,6 +2,7 @@ package com.kangdroid.navi_arch.server
 
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import okhttp3.HttpUrl
 import okhttp3.MultipartBody

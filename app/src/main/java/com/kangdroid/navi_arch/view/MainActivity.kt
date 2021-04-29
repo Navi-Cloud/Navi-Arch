@@ -1,4 +1,4 @@
-package com.kangdroid.navi_arch
+package com.kangdroid.navi_arch.view
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,15 +9,14 @@ import android.widget.CompoundButton
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
-import com.kangdroid.navi_arch.bottom.FileBottomSheetFragment
+import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
-import com.kangdroid.navi_arch.pager.FileSortingMode
-import com.kangdroid.navi_arch.pager.PagerAdapter
-import com.kangdroid.navi_arch.pager.PagerViewModel
-import com.kangdroid.navi_arch.recyclerview.FileAdapter
-import com.kangdroid.navi_arch.uploading.UploadingViewModel
+import com.kangdroid.navi_arch.data.FileSortingMode
+import com.kangdroid.navi_arch.adapter.PagerAdapter
+import com.kangdroid.navi_arch.viewmodel.PagerViewModel
+import com.kangdroid.navi_arch.adapter.FileAdapter
+import com.kangdroid.navi_arch.viewmodel.UploadingViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

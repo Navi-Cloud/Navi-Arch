@@ -1,12 +1,10 @@
-package com.kangdroid.navi_arch.pager
+package com.kangdroid.navi_arch.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kangdroid.navi_arch.databinding.RecyclerFileListViewBinding
-import com.kangdroid.navi_arch.recyclerview.FileAdapter
-import dagger.hilt.android.scopes.ActivityScoped
 import javax.inject.Inject
 import javax.inject.Singleton
 
