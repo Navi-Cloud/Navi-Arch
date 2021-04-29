@@ -64,11 +64,7 @@ class PagerViewModel @Inject constructor(
         pagerCacheUtils.invalidateCache(targetTokenEntry)
 
         // Sort them with Comparator
-        pageList[pageNum].fileList = if (reverse) {
-            pageList[pageNum].fileList.sortedWith(mode).asReversed()
-        } else {
-            pageList[pageNum].fileList.sortedWith(mode)
-        }
+        pageList[pageNum].fileList = sortList(pageList[pageNum].fileList)
 
         // Re-Enable cache
         pagerCacheUtils.createCache(targetTokenEntry, pageList[pageNum])
