@@ -1,9 +1,18 @@
 package com.kangdroid.navi_arch.view
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.kangdroid.navi_arch.R
@@ -16,6 +25,13 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment() {
+    // Log Tag
+    private val logTag: String = this::class.java.simpleName
+
+    // Permission Request
+    private var permissionGranted: Boolean = false
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
+
     // The target file data[For showing the information of file]
     var targetFileData: FileData? = null
 
@@ -30,6 +46,18 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // Add Launcher for Requesting Permissions
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            permissionGranted =
+                (it[Manifest.permission.READ_EXTERNAL_STORAGE] == true).or(it[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true)
+
+            if (!permissionGranted) {
+                Toast.makeText(context, R.string.file_storage_permission_denied, Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
+
+        // Layout Inflate
         layoutBottomBinding = LayoutBottomBinding.inflate(layoutInflater, container, false)
         return layoutBottomBinding?.root
     }
@@ -58,10 +86,24 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
                 targetFileData?.let { inputFileData ->
                     // TODO: Check Storage Permission First
                     it.bottomFileDownloadView.setOnClickListener { _ ->
-                        fileBottomSheetViewModel.downloadFile(inputFileData.token)
+                        checkPermission()
+                        if (permissionGranted) {
+                            fileBottomSheetViewModel.downloadFile(inputFileData.token)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun checkPermission() {
+        val isPermissionGrantedInternal: Int = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE).or(ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE))
+
+        if (isPermissionGrantedInternal == PackageManager.PERMISSION_DENIED) {
+            Log.d(logTag, "READ Permission is denied. Requesting permissions.")
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
+        } else if (isPermissionGrantedInternal == PackageManager.PERMISSION_GRANTED) {
+            permissionGranted = true
         }
     }
 }

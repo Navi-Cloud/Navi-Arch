@@ -21,4 +21,5 @@
     <!-- BottomSheet Related Strings -->
     <string name="bottom_sheet_default_filename">Default BottomSheet File Name</string>
     <string name="bottom_sheet_default_download">Download %1$s</string>
+    <string name="file_storage_permission_denied">File read permission is denied, thus cannot download file!</string>
 </resources>

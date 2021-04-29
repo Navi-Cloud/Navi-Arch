@@ -30,7 +30,7 @@ class FileBottomSheetViewModel @Inject constructor(
     }
 
     private fun saveDownloadedFile(downloadResponse: DownloadResponse) {
-        if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+        if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED) {
             throw IllegalStateException("Cannot save file ${downloadResponse.fileName}. Perhaps device does not have any SDCard?")
         }
 
