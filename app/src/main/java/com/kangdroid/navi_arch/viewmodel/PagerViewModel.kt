@@ -127,9 +127,7 @@ class PagerViewModel @Inject constructor(
         }
 
         // Remove preceding pages if required.
-        if (pageList.size > requestedPageNumber) {
-            removePrecedingPages(requestedPageNumber)
-        }
+        removePrecedingPages(requestedPageNumber)
 
         // Find whether token is on page.
         if (!pageSet.contains(nextFolder.token)) {
@@ -176,17 +174,19 @@ class PagerViewModel @Inject constructor(
     }
 
     private fun removePrecedingPages(requestedPageNumber: Int) {
-        val toCount: Int = (pageList.size) - (requestedPageNumber)
+        if (pageList.size > requestedPageNumber) {
+            val toCount: Int = (pageList.size) - (requestedPageNumber)
 
-        for (i in 0 until toCount) {
-            // Last Page
-            val lastPage: FileAdapter = pageList.last()
-            Log.d(this::class.java.simpleName, "Removing: ${lastPage.pageNumber}")
-            Log.d(this::class.java.simpleName, "Removed Token: ${lastPage.currentFolder.token}")
-            pageSet.removeIf {
-                it == lastPage.currentFolder.token
+            for (i in 0 until toCount) {
+                // Last Page
+                val lastPage: FileAdapter = pageList.last()
+                Log.d(this::class.java.simpleName, "Removing: ${lastPage.pageNumber}")
+                Log.d(this::class.java.simpleName, "Removed Token: ${lastPage.currentFolder.token}")
+                pageSet.removeIf {
+                    it == lastPage.currentFolder.token
+                }
+                pageList.removeLast()
             }
-            pageList.removeLast()
         }
     }
 

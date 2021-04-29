@@ -314,4 +314,20 @@ class PagerViewModelTest {
         // Assert
         assertThat(resultList.size).isEqualTo(1)
     }
+
+    @Test
+    fun is_removePrecedingPages_calculates_correctly_size_smaller() {
+        // do
+        getFunction("removePrecedingPages")
+            .call(
+                pagerViewModel,
+                10
+            )
+
+        // Get Results
+        val resultList: List<FileAdapter> = getFields("pageList")
+
+        // Assert
+        assertThat(resultList.size).isEqualTo(0)
+    }
 }
