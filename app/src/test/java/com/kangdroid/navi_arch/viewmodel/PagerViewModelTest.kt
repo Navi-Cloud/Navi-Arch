@@ -201,4 +201,117 @@ class PagerViewModelTest {
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
     }
+
+
+    @Test
+    fun is_sortList_works_well_normal() {
+        val mockInsideFilesResult: List<FileData> = listOf(
+            FileData(
+                id = 10,
+                fileName = "b",
+                fileType = FileType.File.toString(),
+                token = "/tmp/a.txt.token",
+                lastModifiedTime = System.currentTimeMillis()
+            ),
+            FileData(
+                id = 10,
+                fileName = "a",
+                fileType = FileType.File.toString(),
+                token = "/tmp/b.txt.token",
+                lastModifiedTime = System.currentTimeMillis()
+            ),
+            FileData(
+                id = 10,
+                fileName = "c",
+                fileType = FileType.File.toString(),
+                token = "/tmp/c.txt.token",
+                lastModifiedTime = System.currentTimeMillis()
+            ),
+            FileData(
+                id = 10,
+                fileName = "0",
+                fileType = FileType.Folder.toString(),
+                token = "/tmp/test.token",
+                lastModifiedTime = System.currentTimeMillis()
+            )
+        )
+
+        val sortedList: List<FileData> = getFunction("sortList").call(
+            pagerViewModel,
+            mockInsideFilesResult
+        ) as List<FileData>
+
+        assertThat(sortedList.size).isEqualTo(mockInsideFilesResult.size)
+        assertThat(sortedList[0].fileName).isEqualTo(mockInsideFilesResult[1].fileName)
+        assertThat(sortedList[sortedList.size-1].fileName).isEqualTo(mockInsideFilesResult[mockInsideFilesResult.size-1].fileName)
+    }
+
+    @Test
+    fun is_sortList_works_well_reversed() {
+        val mockInsideFilesResult: List<FileData> = listOf(
+            FileData(
+                id = 10,
+                fileName = "b",
+                fileType = FileType.File.toString(),
+                token = "/tmp/a.txt.token",
+                lastModifiedTime = System.currentTimeMillis()
+            ),
+            FileData(
+                id = 10,
+                fileName = "a",
+                fileType = FileType.File.toString(),
+                token = "/tmp/b.txt.token",
+                lastModifiedTime = System.currentTimeMillis()
+            ),
+            FileData(
+                id = 10,
+                fileName = "c",
+                fileType = FileType.File.toString(),
+                token = "/tmp/c.txt.token",
+                lastModifiedTime = System.currentTimeMillis()
+            ),
+            FileData(
+                id = 10,
+                fileName = "0",
+                fileType = FileType.Folder.toString(),
+                token = "/tmp/test.token",
+                lastModifiedTime = System.currentTimeMillis()
+            )
+        )
+
+        val sortedList: List<FileData> = getFunction("sortList").call(
+            pagerViewModel,
+            mockInsideFilesResult
+        ) as List<FileData>
+
+        assertThat(sortedList.size).isEqualTo(mockInsideFilesResult.size)
+        assertThat(sortedList[sortedList.size-1].fileName).isEqualTo(mockInsideFilesResult[mockInsideFilesResult.size-1].fileName)
+        assertThat(sortedList[0].fileName).isEqualTo(mockInsideFilesResult[1].fileName)
+    }
+
+    @Test
+    fun is_removePrecedingPages_calculates_correctly() {
+        val mockRequestPageNumber: Int = 1
+        val mockPageList: MutableList<FileAdapter> = mutableListOf(
+            fakeFileAdapter,
+            fakeFileAdapter,
+            fakeFileAdapter
+        )
+
+        // Set
+        setFields("pageList", mockPageList)
+
+        // do
+        getFunction("removePrecedingPages")
+            .call(
+                pagerViewModel,
+                mockRequestPageNumber
+            )
+
+        // Get Results
+        val resultList: List<FileAdapter> = getFields("pageList")
+
+        // Assert
+        assertThat(resultList.size).isEqualTo(1)
+    }
 }
