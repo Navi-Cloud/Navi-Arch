@@ -11,13 +11,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.lang.reflect.Field
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
 
 class PagerViewModelTest {
@@ -61,15 +60,12 @@ class PagerViewModelTest {
 
     private fun<T> getFields(fieldName: String): T {
         // Get Page Set
-        val tmpSet: KProperty1<PagerViewModel, *> =
-            PagerViewModel::class.declaredMemberProperties.find {
-                it.name == fieldName
-            }!!.apply {
-                isAccessible = true
-            }
+        val targetField: Field = this::class.java.getDeclaredField(fieldName).apply {
+            isAccessible = true
+        }
 
         @Suppress("UNCHECKED_CAST")
-        return tmpSet.get(pagerViewModel) as T
+        return targetField.get(pagerViewModel) as T
     }
 
     private fun getFunction(functionName: String): KFunction<*> {
