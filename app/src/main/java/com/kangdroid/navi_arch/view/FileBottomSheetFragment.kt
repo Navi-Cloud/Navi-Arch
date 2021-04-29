@@ -89,6 +89,7 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
                         checkPermission()
                         if (permissionGranted) {
                             fileBottomSheetViewModel.downloadFile(inputFileData.token)
+                            this.dismiss() // dismiss this fragment after download completed.
                         }
                     }
                 }
