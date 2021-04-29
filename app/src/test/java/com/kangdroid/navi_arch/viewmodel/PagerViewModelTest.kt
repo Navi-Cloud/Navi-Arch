@@ -6,6 +6,7 @@ import androidx.lifecycle.Observer
 import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
+import com.kangdroid.navi_arch.utils.PagerCacheUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -105,7 +106,7 @@ class PagerViewModelTest {
 
     @Before
     fun createViewModel() {
-        pagerViewModel = PagerViewModel(fakeServerManagement)
+        pagerViewModel = PagerViewModel(fakeServerManagement, PagerCacheUtils())
     }
 
     @Test
@@ -136,10 +137,6 @@ class PagerViewModelTest {
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.token).isEqualTo("/tmp.token")
         assertThat(pageList[0].fileList.size).isEqualTo(1)
-
-        // Page Cache - should be null
-        val pageCache: HashMap<String, FileAdapter> = getFields("pageCache")
-        assertThat(pageCache.size).isEqualTo(0)
     }
 
     @Test
@@ -169,12 +166,6 @@ class PagerViewModelTest {
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.token).isEqualTo("/tmp.token")
         assertThat(pageList[0].fileList.size).isEqualTo(1)
-
-        // Page Cache - should be null
-        val pageCache: HashMap<String, FileAdapter> = getFields("pageCache")
-        assertThat(pageCache.size).isEqualTo(1)
-        assertThat(pageCache["test_token"]).isNotEqualTo(null)
-        assertThat(pageCache["test_token"]!!.pageNumber).isEqualTo(fakeFileAdapter.pageNumber)
     }
 
     @Test
@@ -201,14 +192,10 @@ class PagerViewModelTest {
         // Page List
         val pageList: MutableList<FileAdapter> = getFields("pageList")
 
-        // Page Cache
-        val pageCache: HashMap<String, FileAdapter> = getFields("pageCache")
-
         assertThat(livePagerData).isNotEqualTo(null)
         assertThat(livePagerData!!.size).isEqualTo(1)
         assertThat(pageSet.contains("TestToken")).isEqualTo(true)
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
-        assertThat(pageCache.contains("TestToken")).isEqualTo(true)
     }
 }

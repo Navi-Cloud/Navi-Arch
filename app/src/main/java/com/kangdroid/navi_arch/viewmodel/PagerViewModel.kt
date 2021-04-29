@@ -9,6 +9,7 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.server.ServerInterface
+import com.kangdroid.navi_arch.utils.PagerCacheUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PagerViewModel @Inject constructor(
-        private val serverManagement: ServerInterface
+        private val serverManagement: ServerInterface,
+        private val pagerCacheUtils: PagerCacheUtils
     ): ViewModel() {
 
     // Current Page List
@@ -25,9 +27,6 @@ class PagerViewModel @Inject constructor(
 
     // Set of pages for preventing same page is spammed.
     private val pageSet: MutableSet<String> = mutableSetOf()
-
-    // Cache Related - Only remove cache when upload method is defined.
-    private val pageCache: HashMap<String, FileAdapter> = HashMap()
 
     // The data we are going to share with view[MainActivity]
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
@@ -54,13 +53,15 @@ class PagerViewModel @Inject constructor(
 
     // Sort
     fun sort(mode: FileSortingMode, reverse: Boolean, pageNum: Int) {
-        // Update Fields
+        // Update
         currentSortMode = mode
         isReversed = reverse
 
+        // Target Token
+        val targetTokenEntry: String = pageList[pageNum].currentFolder.token
 
         // Invalidate current cache
-        pageCache.remove(pageList[pageNum].currentFolder.token)
+        pagerCacheUtils.invalidateCache(targetTokenEntry)
 
         // Sort them with Comparator
         pageList[pageNum].fileList = if (reverse) {
@@ -70,7 +71,7 @@ class PagerViewModel @Inject constructor(
         }
 
         // Re-Enable cache
-        pageCache[pageList[pageNum].currentFolder.token] = pageList[pageNum]
+        pagerCacheUtils.createCache(targetTokenEntry, pageList[pageNum])
 
         // Notify Live Pager Data
         livePagerData.value = pageList
@@ -86,7 +87,11 @@ class PagerViewModel @Inject constructor(
 
         // Update Cache - Always add cache when requesting root
         if (addToCache) {
-            pageCache[targetToken] = fileAdapter
+            // Invalidate cache first
+            pagerCacheUtils.invalidateCache(targetToken)
+
+            // Create Cache
+            pagerCacheUtils.createCache(targetToken, fileAdapter)
         }
 
         // Add to pageList
@@ -115,7 +120,7 @@ class PagerViewModel @Inject constructor(
         // Invalidate all cache, set, pageList to cleanup[New-Fetch]
         if (cleanUp) {
             pageSet.remove(nextFolder.token)
-            pageCache.remove(nextFolder.token)
+            pagerCacheUtils.invalidateCache(nextFolder.token)
             pageList.removeIf {
                 it.currentFolder.token == nextFolder.token
             }
@@ -129,12 +134,15 @@ class PagerViewModel @Inject constructor(
         // Find whether token is on page.
         if (!pageSet.contains(nextFolder.token)) {
             // Check for cache
-            if (pageCache.contains(nextFolder.token)) {
-                // Use Cache
+            runCatching {
+                pagerCacheUtils.getCacheContent(nextFolder.token)
+            }.onSuccess {
                 Log.d(this::class.java.simpleName, "Using Cache for ${nextFolder.token}")
-                updatePageAndNotify(pageCache[nextFolder.token]!!, nextFolder.token, false)
-            } else {
+                updatePageAndNotify(it, nextFolder.token, false)
+            }.onFailure {
                 // Not on cache
+                Log.d(this::class.java.simpleName, it.stackTraceToString())
+                Log.d(this::class.java.simpleName, "Reloading fetching folder data from server..")
                 innerExplorePage(nextFolder)
             }
         }
@@ -148,12 +156,7 @@ class PagerViewModel @Inject constructor(
             }
 
             // Get Data from server, and apply sort
-            val exploredData: List<FileData> = serverManagement.getInsideFiles(nextFolder.token)
-            val sortedData: List<FileData> = if (isReversed) {
-                exploredData.sortedWith(currentSortMode).asReversed()
-            } else {
-                exploredData.sortedWith(currentSortMode)
-            }
+            val sortedData: List<FileData> = sortList(nextFolder)
 
             // So in main thread..
             withContext(Dispatchers.Main) {
@@ -181,6 +184,17 @@ class PagerViewModel @Inject constructor(
                 it == lastPage.currentFolder.token
             }
             pageList.removeLast()
+        }
+    }
+
+    private fun sortList(nextFolder: FileData): List<FileData> {
+        // Get Data from server, and apply sort
+        return serverManagement.getInsideFiles(nextFolder.token).let {
+            if (isReversed) {
+                it.sortedWith(currentSortMode).asReversed()
+            } else {
+                it.sortedWith(currentSortMode)
+            }
         }
     }
 }
