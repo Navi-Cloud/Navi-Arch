@@ -68,6 +68,13 @@ class PagerViewModelTest {
         return targetField.get(pagerViewModel) as T
     }
 
+    private fun<T> setFields(fieldName: String, targetObject: T) {
+        this::class.java.getDeclaredField(fieldName).apply {
+            isAccessible = true
+            set(pagerViewModel, targetObject)
+        }
+    }
+
     private fun getFunction(functionName: String): KFunction<*> {
         // Private Method testing
         return PagerViewModel::class.declaredMemberFunctions.find {
