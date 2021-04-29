@@ -48,13 +48,18 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
 
             // Set Corresponding texts
             it.bottomFileName.text = targetFileData?.fileName
-            it.bottomFileDownload.text = resources.getString(R.string.bottom_sheet_default_download, targetFileData?.fileName)
+            if (targetFileData?.fileType == FileType.Folder.toString()) {
+                // Disable Download when folder is long-clicked
+                it.bottomFileDownloadView.visibility = View.GONE
+            } else {
+                it.bottomFileDownload.text = resources.getString(R.string.bottom_sheet_default_download, targetFileData?.fileName)
 
-            // Set On Click Listener for download
-            targetFileData?.let { inputFileData ->
-                // TODO: Check Storage Permission First
-                it.bottomFileDownloadView.setOnClickListener { _ ->
-                    fileBottomSheetViewModel.downloadFile(inputFileData.token)
+                // Set On Click Listener for download
+                targetFileData?.let { inputFileData ->
+                    // TODO: Check Storage Permission First
+                    it.bottomFileDownloadView.setOnClickListener { _ ->
+                        fileBottomSheetViewModel.downloadFile(inputFileData.token)
+                    }
                 }
             }
         }
