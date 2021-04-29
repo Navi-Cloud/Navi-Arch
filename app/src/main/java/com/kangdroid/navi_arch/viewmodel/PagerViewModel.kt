@@ -7,6 +7,7 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.adapter.FileAdapter
+import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PagerViewModel @Inject constructor(
-        private val serverManagement: ServerManagement
+        private val serverManagement: ServerInterface
     ): ViewModel() {
 
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)

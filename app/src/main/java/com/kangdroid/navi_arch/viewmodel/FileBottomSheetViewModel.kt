@@ -4,6 +4,7 @@ import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
+import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FileBottomSheetViewModel @Inject constructor(
-    private val serverManagement: ServerManagement
+    private val serverManagement: ServerInterface
 ): ViewModel() {
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 

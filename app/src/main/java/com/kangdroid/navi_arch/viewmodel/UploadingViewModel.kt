@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UploadingViewModel @Inject constructor(
         private val rawApplication: Application,
-        private val serverManagement: ServerManagement
+        private val serverManagement: ServerInterface
     ) : AndroidViewModel(rawApplication) {
     private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 

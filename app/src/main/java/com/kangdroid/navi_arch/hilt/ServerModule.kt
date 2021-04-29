@@ -2,6 +2,7 @@ package com.kangdroid.navi_arch.hilt
 
 import android.util.Log
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.server.ServerManagementHelper
 import dagger.Module
@@ -20,7 +21,7 @@ class ServerModule {
     }
 
     @Provides
-    fun provideServerManagement(serverManagementHelper: ServerManagementHelper): ServerManagement {
+    fun provideServerManagement(serverManagementHelper: ServerManagementHelper): ServerInterface {
         Log.d(this::class.java.simpleName, "Creating Server Management!")
         val defaultHttpUrl: HttpUrl = HttpUrl.Builder()
             .scheme("http")

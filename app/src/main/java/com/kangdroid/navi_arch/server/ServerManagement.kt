@@ -16,7 +16,7 @@ import java.net.URLDecoder
 class ServerManagement(
     private val httpUrl: HttpUrl,
     private val serverManagementHelper: ServerManagementHelper
-) {
+): ServerInterface {
 
     private val logTag: String = this::class.java.simpleName
     private lateinit var retroFit: Retrofit
@@ -29,7 +29,7 @@ class ServerManagement(
         isServerEnabled = initWholeServerClient()
     }
 
-    fun initWholeServerClient(): Boolean {
+    override fun initWholeServerClient(): Boolean {
         var returnServerEnabled: Boolean = false
         runCatching {
             retroFit = initRetroFit()
@@ -58,7 +58,7 @@ class ServerManagement(
     }
 
 
-    fun getRootToken(): RootTokenResponseDto {
+    override fun getRootToken(): RootTokenResponseDto {
         val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken()
 
         // Get response, and throw if exception occurred.
@@ -81,7 +81,7 @@ class ServerManagement(
      * Returns: List of FileResponseDTO[The Response] - could be empty.
      * Returns: NULL when error occurred.
      */
-    fun getInsideFiles(requestToken: String): List<FileData> {
+    override fun getInsideFiles(requestToken: String): List<FileData> {
         val insiderFunction: Call<List<FileData>> = api.getInsideFiles(requestToken)
         val response: Response<List<FileData>> =
             serverManagementHelper.exchangeDataWithServer(insiderFunction)
@@ -95,7 +95,7 @@ class ServerManagement(
             ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
 
-    fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
+    override fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
         val uploading: Call<ResponseBody> = api.upload(Param, file)
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(uploading)
@@ -110,7 +110,7 @@ class ServerManagement(
         return responseBody.string()
     }
 
-    fun download(token: String): DownloadResponse {
+    override fun download(token: String): DownloadResponse {
         val downloadingApi: Call<ResponseBody> = api.download(token)
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(downloadingApi)
