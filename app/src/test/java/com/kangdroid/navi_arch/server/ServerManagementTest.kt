@@ -20,6 +20,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.net.URLEncoder
 
 class ServerManagementTest {
 
@@ -338,5 +339,57 @@ class ServerManagementTest {
 
         // Cleanup
         file.delete()
+    }
+
+    @Test
+    fun is_download_works_well() {
+        val mockFileName: String = "TestFileName"
+        val mockFileContent: String = "Whatever"
+        val fileHeader: String = String.format("attachment; filename=\"%s\"", URLEncoder.encode(mockFileName, "UTF-8"))
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files/") == true) {
+                MockResponse().setResponseCode(OK)
+                    .setHeader("Content-Disposition", fileHeader)
+                    .setBody(mockFileContent)
+            } else {
+                MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
+            }
+        }
+
+        runCatching {
+            serverManagement.download("TestToken")
+        }.onFailure {
+            fail("This test should passed since we mocked our server to be succeed.")
+        }.onSuccess {
+            assertThat(it.fileName).isEqualTo(mockFileName)
+        }
+    }
+
+    @Test
+    fun is_download_throws_RuntimeError_500() {
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up",
+                statusCode = "500",
+                statusMessage = "Internal Server Error"
+            )
+        )
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files/") == true) {
+                MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(errorMessage)
+            } else {
+                MockResponse().setResponseCode(OK)
+            }
+        }
+
+        runCatching {
+            serverManagement.download("TestToken")
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+        }.onSuccess {
+            fail("This test should be failed since we mocked our server to be failed")
+        }
     }
 }
