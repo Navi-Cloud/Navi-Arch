@@ -96,7 +96,9 @@ class UploadingViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            serverManagement.upload(param, uploadFile)
+            withContext(Dispatchers.IO) {
+                serverManagement.upload(param, uploadFile)
+            }
             withContext(Dispatchers.Main) {
                 actionAfterUpload()
             }

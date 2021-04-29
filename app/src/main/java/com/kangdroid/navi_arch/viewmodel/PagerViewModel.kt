@@ -150,13 +150,16 @@ class PagerViewModel @Inject constructor(
 
     private fun innerExplorePage(nextFolder: FileData, isRoot: Boolean = false) {
         viewModelScope.launch {
-            // If is root, fetch rootToken first
-            if (isRoot) {
-                nextFolder.token = serverManagement.getRootToken().rootToken
-            }
+            lateinit var sortedData: List<FileData>
+            withContext(Dispatchers.IO) {
+                // If is root, fetch rootToken first
+                if (isRoot) {
+                    nextFolder.token = serverManagement.getRootToken().rootToken
+                }
 
-            // Get Data from server, and apply sort
-            val sortedData: List<FileData> = sortList(serverManagement.getInsideFiles(nextFolder.token))
+                // Get Data from server, and apply sort
+                sortedData = sortList(serverManagement.getInsideFiles(nextFolder.token))
+            }
 
             // So in main thread..
             withContext(Dispatchers.Main) {
