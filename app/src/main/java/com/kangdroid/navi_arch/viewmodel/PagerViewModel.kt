@@ -156,7 +156,7 @@ class PagerViewModel @Inject constructor(
             }
 
             // Get Data from server, and apply sort
-            val sortedData: List<FileData> = sortList(nextFolder)
+            val sortedData: List<FileData> = sortList(serverManagement.getInsideFiles(nextFolder.token))
 
             // So in main thread..
             withContext(Dispatchers.Main) {
@@ -187,14 +187,12 @@ class PagerViewModel @Inject constructor(
         }
     }
 
-    private fun sortList(nextFolder: FileData): List<FileData> {
+    private fun sortList(fileList: List<FileData>): List<FileData> {
         // Get Data from server, and apply sort
-        return serverManagement.getInsideFiles(nextFolder.token).let {
-            if (isReversed) {
-                it.sortedWith(currentSortMode).asReversed()
-            } else {
-                it.sortedWith(currentSortMode)
-            }
+        return if (isReversed) {
+            fileList.sortedWith(currentSortMode).asReversed()
+        } else {
+            fileList.sortedWith(currentSortMode)
         }
     }
 }
