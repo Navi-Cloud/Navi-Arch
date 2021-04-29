@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.viewmodel
 import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
@@ -17,11 +18,10 @@ import javax.inject.Inject
 class FileBottomSheetViewModel @Inject constructor(
     private val serverManagement: ServerInterface
 ): ViewModel() {
-    private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 
     // TODO: Dismiss Dialog when download is done.
     fun downloadFile(targetToken: String) {
-        coroutineScope.launch {
+        viewModelScope.launch {
             val downloadedResponse: DownloadResponse = serverManagement.download(targetToken)
 
             withContext(Dispatchers.Main) {
