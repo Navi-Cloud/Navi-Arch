@@ -31,6 +31,9 @@ class PagerViewModel @Inject constructor(
     // The data we are going to share with view[MainActivity]
     val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
 
+    // Error Data in case of server connection issues
+    val liveErrorData: MutableLiveData<Throwable> = MutableLiveData()
+
     // Server Management
 
     // For Sorting
@@ -143,16 +146,34 @@ class PagerViewModel @Inject constructor(
     }
 
     private fun innerExplorePage(nextFolder: FileData, isRoot: Boolean = false) {
+        var throwable: Throwable? = null
         viewModelScope.launch {
             lateinit var sortedData: List<FileData>
             withContext(Dispatchers.IO) {
                 // If is root, fetch rootToken first
                 if (isRoot) {
-                    nextFolder.token = serverManagement.getRootToken().rootToken
+                    nextFolder.token = runCatching {
+                        serverManagement.getRootToken().rootToken
+                    }.getOrElse {
+                        throwable = it
+                        return@withContext
+                    }
                 }
 
                 // Get Data from server, and apply sort
-                sortedData = sortList(serverManagement.getInsideFiles(nextFolder.token))
+                val tmpList: List<FileData> = runCatching {
+                    serverManagement.getInsideFiles(nextFolder.token)
+                }.getOrElse {
+                    throwable = it
+                    return@withContext
+                }
+                sortedData = sortList(tmpList)
+            }
+
+            // Check for error
+            if (throwable != null) {
+                liveErrorData.value = throwable
+                return@launch
             }
 
             // So in main thread..

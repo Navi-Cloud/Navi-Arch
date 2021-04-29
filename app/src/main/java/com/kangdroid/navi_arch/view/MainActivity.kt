@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.CompoundButton
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -51,6 +53,9 @@ class MainActivity : AppCompatActivity() {
     private val getUploadingActivityRequestCode: Int = 20
     private var isUploadingEnabled: Boolean = false
 
+    // Menu for dynamically hide - show
+    private lateinit var dynamicMenu: Menu
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
@@ -86,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // Enable Uploading Button when launched with MainActivity
             menuInflater.inflate(R.menu.main_action, menu)
+            dynamicMenu = menu!!
         }
         return true
     }
@@ -168,6 +174,14 @@ class MainActivity : AppCompatActivity() {
             pageAdapter.setNaviPageList(it)
             activityMainBinding.viewPager.currentItem = it.lastIndex
         })
+
+        // Set Error Message Observer
+        pagerViewModel.liveErrorData.observe(this) {
+            Log.e(this::class.java.simpleName, "Error Message Observed")
+            Log.e(this::class.java.simpleName, it.stackTraceToString())
+            Toast.makeText(this, "Error: ${it.message}", Toast.LENGTH_LONG).show()
+            dynamicMenu.findItem(R.id.action_upload).isVisible = false
+        }
     }
 
     private fun initToggleButton() {
