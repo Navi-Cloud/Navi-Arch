@@ -176,4 +176,39 @@ class PagerViewModelTest {
         assertThat(pageCache["test_token"]).isNotEqualTo(null)
         assertThat(pageCache["test_token"]!!.pageNumber).isEqualTo(fakeFileAdapter.pageNumber)
     }
+
+    @Test
+    fun is_innerExplorePage_works_well_non_root() {
+        getFunction("innerExplorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = "TestToken",
+                    lastModifiedTime = System.currentTimeMillis()
+                ),
+                false
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        // Page Cache
+        val pageCache: HashMap<String, FileAdapter> = getFields("pageCache")
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+        assertThat(pageSet.contains("TestToken")).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        assertThat(pageCache.contains("TestToken")).isEqualTo(true)
+    }
 }
