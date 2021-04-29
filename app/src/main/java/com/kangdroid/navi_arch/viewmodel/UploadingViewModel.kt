@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
@@ -25,7 +26,6 @@ class UploadingViewModel @Inject constructor(
         private val rawApplication: Application,
         private val serverManagement: ServerInterface
     ) : AndroidViewModel(rawApplication) {
-    private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
 
     private val logTag: String = this::class.java.simpleName
 
@@ -87,7 +87,7 @@ class UploadingViewModel @Inject constructor(
             put("uploadPath", uploadPath)
         }
 
-        coroutineScope.launch {
+        viewModelScope.launch {
             serverManagement.upload(param, uploadFile)
             withContext(Dispatchers.Main) {
                 actionAfterUpload()
