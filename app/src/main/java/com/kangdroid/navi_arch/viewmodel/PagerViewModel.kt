@@ -19,8 +19,6 @@ class PagerViewModel @Inject constructor(
         private val serverManagement: ServerInterface
     ): ViewModel() {
 
-    private val coroutineScope: CoroutineScope = CoroutineScope(Job() + Dispatchers.IO)
-
     // Current Page List
     private val pageList: MutableList<FileAdapter> = mutableListOf()
 
@@ -142,7 +140,7 @@ class PagerViewModel @Inject constructor(
     }
 
     private fun innerExplorePage(nextFolder: FileData, isRoot: Boolean = false) {
-        coroutineScope.launch {
+        viewModelScope.launch {
             // If is root, fetch rootToken first
             if (isRoot) {
                 nextFolder.token = serverManagement.getRootToken().rootToken
