@@ -240,7 +240,6 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="30dp"
                 android:backgroundTint="@color/sky_blue"
-                android:enabled="false"
                 android:iconTint="@color/sky_blue"
                 android:text="확인"
                 android:textColor="@color/dark_navy"
