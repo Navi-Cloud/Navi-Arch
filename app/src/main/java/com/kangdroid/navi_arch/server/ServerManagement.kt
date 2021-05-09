@@ -2,8 +2,12 @@ package com.kangdroid.navi_arch.server
 
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.LoginRequest
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
+import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
+import com.kangdroid.navi_arch.data.dto.response.UserRegisterResponse
 import okhttp3.HttpUrl
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
@@ -134,5 +138,48 @@ class ServerManagement(
         Log.d(logTag, "Content : ${response.body()?.string()}")
 
         return DownloadResponse(fileName, response.body()!!)
+    }
+
+    override fun loginUser(userLoginRequest: LoginRequest): LoginResponse {
+        val loginUserRequest: Call<ResponseBody> = api.loginUser(userLoginRequest)
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(loginUserRequest)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
+
+        // For get userToken, parsing
+        val responseArray = response.body().toString()
+            .replace(Regex("[\"{} ]"), "")
+            .split(Regex("[:,]"))
+        val userToken: String = responseArray[responseArray.indexOf("userToken")+1]
+
+        return LoginResponse(userToken = userToken)
+    }
+
+    override fun register(userRegisterRequest: RegisterRequest): UserRegisterResponse {
+        val registerUserRequest : Call<ResponseBody> = api.register(userRegisterRequest)
+
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(registerUserRequest)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
+
+        // For get userToken, parsing
+        val responseArray = response.body().toString()
+            .replace(Regex("[\"{} ]"), "")
+            .split(Regex("[:,]"))
+        val userId: String = responseArray[responseArray.indexOf("registeredId")+1]
+        val userEmail: String = responseArray[responseArray.indexOf("registeredEmail")+1]
+
+        return UserRegisterResponse(
+            registeredId = userId,
+            registeredEmail = userEmail
+        )
     }
 }

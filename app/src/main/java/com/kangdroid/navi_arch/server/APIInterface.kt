@@ -1,7 +1,9 @@
 package com.kangdroid.navi_arch.server
 
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -20,4 +22,11 @@ interface APIInterface {
 
     @GET("/api/navi/files/{token}")
     fun download(@Path("token") token : String) : Call<ResponseBody>
+
+    @POST("/api/navi/login")
+    fun loginUser( @Body userLoginRequest : LoginRequest): Call<ResponseBody>
+
+    @POST("/api/navi/join")
+    fun register( @Body userRegisterRequest : RegisterRequest) : Call<ResponseBody>
+
 }
