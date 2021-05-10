@@ -30,26 +30,29 @@ class UserViewModel @Inject constructor(
     }
 
     fun login(userId : String,
-              userPassword : String): String {
-        var response: LoginResponse? = null
+              userPassword : String,
+              afterLoginSuccess: (()-> Unit)) {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                serverManagement.loginUser(
+                val response: LoginResponse = serverManagement.loginUser(
                     LoginRequest(
                         userId = userId,
                         userPassword = userPassword
                     )
                 )
             }
+            withContext(Dispatchers.Main){
+                afterLoginSuccess()
+            }
         }
-        return response?.userToken ?: ""
+
     }
 
     fun register(userId : String,
                  userName : String,
                  userEmail : String,
-                 userPassword : String): Boolean {
-
+                 userPassword : String,
+                 afterRegisterSuccess: (() -> Unit)) {
         // TODO id/email check
         viewModelScope.launch {
             withContext(Dispatchers.IO){
@@ -62,7 +65,9 @@ class UserViewModel @Inject constructor(
                     )
                 )
             }
+            withContext(Dispatchers.Main){
+                afterRegisterSuccess()
+            }
         }
-        return true
     }
 }

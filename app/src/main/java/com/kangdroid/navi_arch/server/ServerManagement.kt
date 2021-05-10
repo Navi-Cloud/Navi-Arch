@@ -29,6 +29,9 @@ class ServerManagement(
     // Whether server connection is successful or not
     private var isServerEnabled: Boolean = false
 
+    // User Token
+    private var userToken: String? = null
+
     init {
         isServerEnabled = initWholeServerClient()
     }
@@ -155,6 +158,9 @@ class ServerManagement(
             .replace(Regex("[\"{} ]"), "")
             .split(Regex("[:,]"))
         val userToken: String = responseArray[responseArray.indexOf("userToken")+1]
+
+        // Save userToken
+        this.userToken = userToken
 
         return LoginResponse(userToken = userToken)
     }
