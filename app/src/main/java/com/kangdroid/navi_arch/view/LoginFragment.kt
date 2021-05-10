@@ -38,20 +38,25 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Login Button
         loginBinding!!.button.setOnClickListener {
             val userId: String = loginBinding!!.idLogin.text.toString()
             val userPassword: String = loginBinding!!.pwLogin.text.toString()
 
-            Log.i(logTag, "$userId+$userPassword")
+            Log.i(logTag, "$userId , $userPassword")
 
-            val userToken = userViewModel.login(
+            userViewModel.login(
                 userId = userId,
                 userPassword = userPassword
-            )
-            // TODO -> MainActivity
-            Log.i(logTag, "userToken: $userToken")
+            ) {
+                // After login success, go MainActivity
+                val parentActivity = activity as StartActivity
+                parentActivity.switchActivityToMain()
+            }
+
         }
 
+        // Join [Register] Button
         loginBinding!!.textView2.setOnClickListener {
             // fragment translation to Register Fragment
             val parentActivity = activity as StartActivity

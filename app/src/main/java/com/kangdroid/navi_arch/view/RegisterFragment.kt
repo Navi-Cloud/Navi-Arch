@@ -45,12 +45,7 @@ class RegisterFragment : Fragment() {
             }
 
             button2.setOnClickListener {
-                // First, check Privacy Policy is checked
-                if(!this.checkbox.isChecked) {
-                    Toast.makeText(context, "약관 동의를 하지 않았습니다.", Toast.LENGTH_SHORT).show()
-                }
-
-                // Second, check all args are OK
+                // Check all args are OK
                 val isRegisterArgsAllOk = checkRegisterArgs()
 
                 // Then register!
@@ -60,11 +55,11 @@ class RegisterFragment : Fragment() {
                         userId = this.TextId.text.toString(),
                         userEmail = this.Email.text.toString(),
                         userPassword = this.Textpassword.text.toString()
-                    )
-
-                    // After register, finish this fragment
-                    val parentActivity = activity as StartActivity
-                    parentActivity.removeFragment(this@RegisterFragment)
+                    ){
+                        // After register, finish this fragment
+                        val parentActivity = activity as StartActivity
+                        parentActivity.removeFragment(this@RegisterFragment)
+                    }
                 }
             }
         }
@@ -75,6 +70,12 @@ class RegisterFragment : Fragment() {
     // [return value] true: success, false: fail
     private fun checkRegisterArgs(): Boolean {
         registerBinding!!.apply {
+            // First, check Privacy Policy is checked
+            if(!this.checkbox.isChecked) {
+                Toast.makeText(context, "약관 동의를 하지 않았습니다.", Toast.LENGTH_SHORT).show()
+                return false
+            }
+
             val userPassword: String = this.Textpassword.text.toString()
             val userPasswordForCheck: String = this.passwordRe.text.toString()
             val userEmail: String = this.Email.text.toString()

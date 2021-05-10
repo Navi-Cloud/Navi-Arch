@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.view
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -20,6 +21,12 @@ class StartActivity : AppCompatActivity() {
         setContentView(startBinding.root)
 
         replaceFragment(LoginFragment())
+    }
+
+    // If login success, switch to MainActivity
+    fun switchActivityToMain(){
+        val intent: Intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
     }
 
     // for fragment by fragment transaction
