@@ -10,7 +10,7 @@ import com.kangdroid.navi_arch.databinding.ActivityStartBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class StartActivity : AppCompatActivity() {
+class StartActivity : AppCompatActivity(), FragmentCallBack {
     // View binding
     private val startBinding: ActivityStartBinding by lazy {
         ActivityStartBinding.inflate(layoutInflater)
@@ -24,14 +24,14 @@ class StartActivity : AppCompatActivity() {
     }
 
     // If login success, switch to MainActivity
-    fun switchActivityToMain(){
+    override fun switchActivity(){
         val intent: Intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
     }
 
     // for fragment by fragment transaction
     // default: addToBackStack
-    fun replaceFragment(fragment: Fragment){
+    override fun replaceFragment(fragment: Fragment){
         val transaction: FragmentTransaction =
             supportFragmentManager.beginTransaction().replace(R.id.startActivityContainer, fragment)
         transaction.addToBackStack(null)
@@ -39,8 +39,19 @@ class StartActivity : AppCompatActivity() {
     }
 
     // for fragment by fragment transaction
-    fun removeFragment(fragment: Fragment){
+    override fun removeFragment(fragment: Fragment){
         supportFragmentManager.beginTransaction().remove(fragment).commit()
         supportFragmentManager.popBackStack()
     }
+
+}
+
+/*
+ * [interface] FragmentCallBack
+ * Manage fragment-Activity-fragment switching
+ */
+interface FragmentCallBack {
+    fun replaceFragment(fragment: Fragment)
+    fun removeFragment(fragment: Fragment)
+    fun switchActivity()
 }

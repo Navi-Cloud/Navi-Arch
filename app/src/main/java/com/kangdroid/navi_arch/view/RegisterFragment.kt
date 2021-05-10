@@ -27,10 +27,17 @@ class RegisterFragment : Fragment() {
     // View Model for Login/Register
     private val userViewModel: UserViewModel by viewModels()
 
+    // For fragment switching
+    var parentActivity: FragmentCallBack? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // init parent activity
+        // for now, activity is ALWAYS FragmentCallBack
+        if(activity is FragmentCallBack) parentActivity = activity as FragmentCallBack
+
         registerBinding = FragmentRegisterBinding.inflate(layoutInflater, container, false)
         return registerBinding?.root
     }
@@ -57,8 +64,7 @@ class RegisterFragment : Fragment() {
                         userPassword = this.Textpassword.text.toString()
                     ){
                         // After register, finish this fragment
-                        val parentActivity = activity as StartActivity
-                        parentActivity.removeFragment(this@RegisterFragment)
+                        parentActivity!!.removeFragment(this@RegisterFragment)
                     }
                 }
             }
@@ -109,5 +115,6 @@ class RegisterFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         registerBinding = null
+        parentActivity = null
     }
 }

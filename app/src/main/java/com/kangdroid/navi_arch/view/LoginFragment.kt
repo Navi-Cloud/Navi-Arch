@@ -27,10 +27,17 @@ class LoginFragment : Fragment() {
     // View Model for Login/Register
     private val userViewModel: UserViewModel by viewModels()
 
+    // For fragment switching
+    var parentActivity: FragmentCallBack? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // init parent activity
+        // for now, activity is ALWAYS FragmentCallBack
+        if(activity is FragmentCallBack) parentActivity = activity as FragmentCallBack
+
         loginBinding = FragmentLoginBinding.inflate(layoutInflater, container, false)
         return loginBinding?.root
     }
@@ -50,8 +57,7 @@ class LoginFragment : Fragment() {
                 userPassword = userPassword
             ) {
                 // After login success, go MainActivity
-                val parentActivity = activity as StartActivity
-                parentActivity.switchActivityToMain()
+                parentActivity!!.switchActivity()
             }
 
         }
@@ -59,13 +65,13 @@ class LoginFragment : Fragment() {
         // Join [Register] Button
         loginBinding!!.textView2.setOnClickListener {
             // fragment translation to Register Fragment
-            val parentActivity = activity as StartActivity
-            parentActivity.replaceFragment(RegisterFragment())
+            parentActivity!!.replaceFragment(RegisterFragment())
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         loginBinding = null
+        parentActivity = null
     }
 }
