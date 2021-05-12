@@ -68,8 +68,8 @@ class ServerManagement(
     override fun getRootToken(): RootTokenResponseDto {
         // Set headers
         // for now, set userToken
-        val headers : HashMap<String, Any> = HashMap()
-        headers["X-AUTH-TOKEN"] = userToken!!
+        val headers : HashMap<String, Any?> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken
 
         val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken(headers)
 
@@ -96,8 +96,8 @@ class ServerManagement(
     override fun getInsideFiles(requestToken: String): List<FileData> {
         // Set headers
         // for now, set userToken
-        val headers : HashMap<String, Any> = HashMap()
-        headers["X-AUTH-TOKEN"] = userToken!!
+        val headers : HashMap<String, Any?> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken
 
         val insiderFunction: Call<List<FileData>> = api.getInsideFiles(headers, requestToken)
         val response: Response<List<FileData>> =
@@ -115,8 +115,8 @@ class ServerManagement(
     override fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
         // Set headers
         // for now, set userToken
-        val headers : HashMap<String, Any> = HashMap()
-        headers["X-AUTH-TOKEN"] = userToken!!
+        val headers : HashMap<String, Any?> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken
 
         val uploading: Call<ResponseBody> = api.upload(headers, Param, file)
         val response: Response<ResponseBody> =
@@ -135,8 +135,8 @@ class ServerManagement(
     override fun download(token: String): DownloadResponse {
         // Set headers
         // for now, set userToken
-        val headers : HashMap<String, Any> = HashMap()
-        headers["X-AUTH-TOKEN"] = userToken ?: ""
+        val headers : HashMap<String, Any?> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken
 
         val downloadingApi: Call<ResponseBody> = api.download(headers, token)
         val response: Response<ResponseBody> =

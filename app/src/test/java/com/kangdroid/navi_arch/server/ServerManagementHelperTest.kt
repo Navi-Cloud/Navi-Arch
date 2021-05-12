@@ -35,7 +35,7 @@ class ServerManagementHelperTest {
     // Mock Object
     private val mockUserToken: LoginResponse = LoginResponse("world")
     private val mockRootToken: RootTokenResponseDto = RootTokenResponseDto("hello~")
-    private val mockHeaders: HashMap<String, Any> = HashMap()
+    private val mockHeaders: HashMap<String, Any?> = HashMap()
     init {
         mockHeaders["X-AUTH-TOKEN"] = mockUserToken.userToken
     }
