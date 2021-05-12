@@ -66,7 +66,12 @@ class ServerManagement(
 
 
     override fun getRootToken(): RootTokenResponseDto {
-        val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken()
+        // Set headers
+        // for now, set userToken
+        val headers : HashMap<String, Any> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken!!
+
+        val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken(headers)
 
         // Get response, and throw if exception occurred.
         val response: Response<RootTokenResponseDto> =
@@ -89,7 +94,12 @@ class ServerManagement(
      * Returns: NULL when error occurred.
      */
     override fun getInsideFiles(requestToken: String): List<FileData> {
-        val insiderFunction: Call<List<FileData>> = api.getInsideFiles(requestToken)
+        // Set headers
+        // for now, set userToken
+        val headers : HashMap<String, Any> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken!!
+
+        val insiderFunction: Call<List<FileData>> = api.getInsideFiles(headers, requestToken)
         val response: Response<List<FileData>> =
             serverManagementHelper.exchangeDataWithServer(insiderFunction)
 
@@ -103,7 +113,12 @@ class ServerManagement(
     }
 
     override fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
-        val uploading: Call<ResponseBody> = api.upload(Param, file)
+        // Set headers
+        // for now, set userToken
+        val headers : HashMap<String, Any> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken!!
+
+        val uploading: Call<ResponseBody> = api.upload(headers, Param, file)
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(uploading)
 
@@ -118,7 +133,12 @@ class ServerManagement(
     }
 
     override fun download(token: String): DownloadResponse {
-        val downloadingApi: Call<ResponseBody> = api.download(token)
+        // Set headers
+        // for now, set userToken
+        val headers : HashMap<String, Any> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken ?: ""
+
+        val downloadingApi: Call<ResponseBody> = api.download(headers, token)
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(downloadingApi)
 

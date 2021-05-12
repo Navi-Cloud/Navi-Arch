@@ -11,17 +11,17 @@ import retrofit2.http.*
 
 interface APIInterface {
     @GET("/api/navi/root-token")
-    fun getRootToken(): Call<RootTokenResponseDto>
+    fun getRootToken(@HeaderMap headerMap: HashMap<String, Any>): Call<RootTokenResponseDto>
 
     @GET("/api/navi/files/list/{token}")
-    fun getInsideFiles(@Path("token") token: String): Call<List<FileData>>
+    fun getInsideFiles(@HeaderMap headerMap: HashMap<String, Any>, @Path("token") token: String): Call<List<FileData>>
 
     @Multipart
     @POST("/api/navi/files")
-    fun upload(@PartMap par : HashMap<String,Any>, @Part files: MultipartBody.Part) : Call<ResponseBody>
+    fun upload(@HeaderMap headerMap: HashMap<String, Any>, @PartMap par : HashMap<String,Any>, @Part files: MultipartBody.Part) : Call<ResponseBody>
 
     @GET("/api/navi/files/{token}")
-    fun download(@Path("token") token : String) : Call<ResponseBody>
+    fun download(@HeaderMap headerMap: HashMap<String, Any>, @Path("token") token : String) : Call<ResponseBody>
 
     @POST("/api/navi/login")
     fun loginUser( @Body userLoginRequest : LoginRequest): Call<ResponseBody>
