@@ -174,15 +174,16 @@ class ServerManagement(
         }
 
         // For get userToken, parsing
-        val responseArray = response.body().toString()
+        val responseArray = response.body()!!.string()
             .replace(Regex("[\"{} ]"), "")
             .split(Regex("[:,]"))
-        val userToken: String = responseArray[responseArray.indexOf("userToken")+1]
+        val userTokenResponse: String = responseArray[responseArray.indexOf("userToken")+1]
 
         // Save userToken
-        this.userToken = userToken
+        userToken = userTokenResponse
+        Log.d(logTag, "userToken---> $userToken")
 
-        return LoginResponse(userToken = userToken)
+        return LoginResponse(userToken = userTokenResponse)
     }
 
     override fun register(userRegisterRequest: RegisterRequest): UserRegisterResponse {
@@ -197,11 +198,14 @@ class ServerManagement(
         }
 
         // For get userToken, parsing
-        val responseArray = response.body().toString()
+        val responseArray = response.body()!!.string()
             .replace(Regex("[\"{} ]"), "")
             .split(Regex("[:,]"))
         val userId: String = responseArray[responseArray.indexOf("registeredId")+1]
         val userEmail: String = responseArray[responseArray.indexOf("registeredEmail")+1]
+
+        Log.d(logTag, "registeredId---> $userId")
+        Log.d(logTag, "registeredEmail---> $userEmail")
 
         return UserRegisterResponse(
             registeredId = userId,
