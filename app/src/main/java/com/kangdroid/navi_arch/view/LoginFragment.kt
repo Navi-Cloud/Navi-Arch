@@ -46,6 +46,10 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initBinding()
+    }
+
+    private fun initBinding() {
         // Login Button
         loginBinding!!.button.setOnClickListener {
             val userId: String = loginBinding!!.idLogin.text.toString()
@@ -60,6 +64,18 @@ class LoginFragment : Fragment() {
                 if(userViewModel.liveErrorData.value == null){
                     // After login success, go MainActivity
                     parentActivity!!.switchActivity()
+                } else {
+                    // If login success, make Toast Message and clear livErrorData
+                    val throwable: Throwable = userViewModel.liveErrorData.value!!
+                    Log.e(logTag, "Error Message Observed")
+                    Log.e(logTag, throwable.stackTraceToString())
+                    Toast.makeText(context, "Login Error: ${throwable.message}", Toast.LENGTH_LONG).show()
+
+                    userViewModel.liveErrorData.value = null
+
+                    // Clear edit text
+                    loginBinding!!.idLogin.setText("")
+                    loginBinding!!.pwLogin.setText("")
                 }
             }
         }
@@ -68,22 +84,6 @@ class LoginFragment : Fragment() {
         loginBinding!!.textView2.setOnClickListener {
             // fragment translation to Register Fragment
             parentActivity!!.replaceFragment(RegisterFragment())
-        }
-
-        initViewModel()
-    }
-
-    private fun initViewModel() {
-        userViewModel.liveErrorData.observe(viewLifecycleOwner) {
-            if(it != null) {
-                Log.e(logTag, "Error Message Observed")
-                Log.e(logTag, it.stackTraceToString())
-                Toast.makeText(context, "Login Error: ${it.message}", Toast.LENGTH_LONG).show()
-
-                // on Error, Clear edit text
-                loginBinding!!.idLogin.setText("")
-                loginBinding!!.pwLogin.setText("")
-            }
         }
     }
 
