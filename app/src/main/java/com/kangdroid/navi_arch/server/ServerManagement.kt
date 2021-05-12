@@ -30,7 +30,7 @@ class ServerManagement(
     private var isServerEnabled: Boolean = false
 
     // User Token
-    private var userToken: String? = null
+    var userToken: String? = null
 
     init {
         isServerEnabled = initWholeServerClient()
