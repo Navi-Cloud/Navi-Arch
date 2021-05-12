@@ -1,24 +1,20 @@
 package com.kangdroid.navi_arch.view
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.viewModels
-import com.kangdroid.navi_arch.R
-import com.kangdroid.navi_arch.data.dto.request.LoginRequest
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.kangdroid.navi_arch.databinding.FragmentLoginBinding
-import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class LoginFragment : Fragment() {
+class LoginFragment @Inject constructor(): Fragment() {
     // Log Tag
     private val logTag: String = this::class.java.simpleName
 
@@ -26,19 +22,12 @@ class LoginFragment : Fragment() {
     var loginBinding: FragmentLoginBinding? = null
 
     // View Model for Login/Register
-    private val userViewModel: UserViewModel by viewModels()
-
-    // For fragment switching
-    var parentActivity: FragmentCallBack? = null
+    private val userViewModel: UserViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // init parent activity
-        // for now, activity is ALWAYS FragmentCallBack
-        if(activity is FragmentCallBack) parentActivity = activity as FragmentCallBack
-
         loginBinding = FragmentLoginBinding.inflate(layoutInflater, container, false)
         return loginBinding?.root
     }
@@ -47,6 +36,24 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initBinding()
+
+        initObserver()
+    }
+
+    private fun initObserver() {
+        userViewModel.loginErrorData.observe(viewLifecycleOwner) {
+            if (it != null) {
+                // If login success, make Toast Message and clear livErrorData
+                Log.e(logTag, "Error Message Observed")
+                Log.e(logTag, it.stackTraceToString())
+                Toast.makeText(context, "Login Error: ${it.message}", Toast.LENGTH_LONG)
+                    .show()
+
+                // Clear edit text
+                loginBinding!!.idLogin.setText("")
+                loginBinding!!.pwLogin.setText("")
+            }
+        }
     }
 
     private fun initBinding() {
@@ -60,36 +67,19 @@ class LoginFragment : Fragment() {
             userViewModel.login(
                 userId = userId,
                 userPassword = userPassword
-            ) {
-                if(userViewModel.liveErrorData.value == null){
-                    // After login success, go MainActivity
-                    parentActivity!!.switchActivity()
-                } else {
-                    // If login success, make Toast Message and clear livErrorData
-                    val throwable: Throwable = userViewModel.liveErrorData.value!!
-                    Log.e(logTag, "Error Message Observed")
-                    Log.e(logTag, throwable.stackTraceToString())
-                    Toast.makeText(context, "Login Error: ${throwable.message}", Toast.LENGTH_LONG).show()
-
-                    userViewModel.liveErrorData.value = null
-
-                    // Clear edit text
-                    loginBinding!!.idLogin.setText("")
-                    loginBinding!!.pwLogin.setText("")
-                }
-            }
+            )
         }
 
         // Join [Register] Button
         loginBinding!!.textView2.setOnClickListener {
             // fragment translation to Register Fragment
-            parentActivity!!.replaceFragment(RegisterFragment())
+            userViewModel.requestRegisterPage()
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        userViewModel.clearErrorData()
         loginBinding = null
-        parentActivity = null
     }
 }

@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.view
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -7,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
@@ -15,9 +18,10 @@ import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class RegisterFragment : Fragment() {
+class RegisterFragment @Inject constructor() : Fragment() {
     // Log Tag
     private val logTag: String = this::class.java.simpleName
 
@@ -25,19 +29,12 @@ class RegisterFragment : Fragment() {
     var registerBinding: FragmentRegisterBinding? = null
 
     // View Model for Login/Register
-    private val userViewModel: UserViewModel by viewModels()
-
-    // For fragment switching
-    var parentActivity: FragmentCallBack? = null
+    private val userViewModel: UserViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // init parent activity
-        // for now, activity is ALWAYS FragmentCallBack
-        if(activity is FragmentCallBack) parentActivity = activity as FragmentCallBack
-
         registerBinding = FragmentRegisterBinding.inflate(layoutInflater, container, false)
         return registerBinding?.root
     }
@@ -62,14 +59,17 @@ class RegisterFragment : Fragment() {
                         userId = this.TextId.text.toString(),
                         userEmail = this.Email.text.toString(),
                         userPassword = this.Textpassword.text.toString()
-                    ){
-                        // After register, finish this fragment
-                        parentActivity!!.removeFragment(this@RegisterFragment)
-                    }
+                    )
                 }
             }
         }
+    }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        requireActivity().onBackPressedDispatcher.addCallback {
+            userViewModel.requestLoginPage()
+        }
     }
 
     // Check all args OK
@@ -115,6 +115,5 @@ class RegisterFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         registerBinding = null
-        parentActivity = null
     }
 }

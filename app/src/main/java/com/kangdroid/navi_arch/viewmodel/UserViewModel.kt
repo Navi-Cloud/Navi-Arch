@@ -1,13 +1,10 @@
 package com.kangdroid.navi_arch.viewmodel
 
-import android.app.Application
-import android.content.Context
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
-import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.UserRegisterResponse
 import com.kangdroid.navi_arch.server.ServerInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,30 +13,46 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+enum class PageRequest {
+    REQUEST_LOGIN, REQUEST_REGISTER, REQUEST_MAIN
+}
+
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val rawApplication: Application,
     private val serverManagement: ServerInterface
-) : AndroidViewModel(rawApplication) {
+) : ViewModel() {
 
     // TAG
     private val logTag: String = this::class.java.simpleName
 
-    // Application Context
-    private val context: Context by lazy {
-        rawApplication.applicationContext
+    // Live data for login error
+    val loginErrorData: MutableLiveData<Throwable> = MutableLiveData()
+
+    // Register Request
+    val pageRequest: MutableLiveData<PageRequest> = MutableLiveData()
+
+    // Request Register Page
+    fun requestRegisterPage() {
+        pageRequest.value = PageRequest.REQUEST_REGISTER
     }
 
-    // Live data for login error
-    val liveErrorData: MutableLiveData<Throwable> = MutableLiveData()
+    // Request Login Page
+    fun requestLoginPage() {
+        pageRequest.value = PageRequest.REQUEST_LOGIN
+    }
 
-    fun login(userId : String,
-              userPassword : String,
-              afterLoginSuccess: (()-> Unit)) {
-        var throwable: Throwable? = null
+    // Request Main Page
+    private fun requestMainPage() {
+        pageRequest.value = PageRequest.REQUEST_MAIN
+    }
 
+    fun clearErrorData() {
+        loginErrorData.value = null
+    }
+
+    fun login(userId: String, userPassword: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO) {
                 runCatching {
                     serverManagement.loginUser(
                         LoginRequest(
@@ -48,24 +61,35 @@ class UserViewModel @Inject constructor(
                         )
                     )
                 }.onFailure {
-                    throwable = it
+                    onLoginFailed(it)
+                }.onSuccess {
+                    onLoginSucceed()
                 }
-            }
-            withContext(Dispatchers.Main){
-                liveErrorData.value = throwable
-                afterLoginSuccess()
             }
         }
     }
 
-    fun register(userId : String,
-                 userName : String,
-                 userEmail : String,
-                 userPassword : String,
-                 afterRegisterSuccess: (() -> Unit)) {
+    private suspend fun onLoginSucceed() {
+        withContext(Dispatchers.Main) {
+            requestMainPage()
+        }
+    }
+
+    private suspend fun onLoginFailed(throwable: Throwable) {
+        withContext(Dispatchers.Main) {
+            loginErrorData.value = throwable
+        }
+    }
+
+    fun register(
+        userId: String,
+        userName: String,
+        userEmail: String,
+        userPassword: String
+    ) {
         // TODO id/email check
         viewModelScope.launch {
-            withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO) {
                 val response: UserRegisterResponse = serverManagement.register(
                     RegisterRequest(
                         userId = userId,
@@ -75,8 +99,8 @@ class UserViewModel @Inject constructor(
                     )
                 )
             }
-            withContext(Dispatchers.Main){
-                afterRegisterSuccess()
+            withContext(Dispatchers.Main) {
+                requestLoginPage()
             }
         }
     }
