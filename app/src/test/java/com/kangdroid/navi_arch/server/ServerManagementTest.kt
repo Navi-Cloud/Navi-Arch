@@ -29,6 +29,7 @@ class ServerManagementTest {
     private val mockServer: MockWebServer = MockWebServer()
     private val OK: Int = 200
     private val INTERNAL_SERVER_ERROR: Int = 500
+    private val NOT_FOUND_ERROR: Int = 404
     private val baseUrl: HttpUrl by lazy {
         mockServer.url("")
     }
@@ -113,7 +114,7 @@ class ServerManagementTest {
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> MockResponse().setResponseCode(OK)
-                    .setBody(objectMapper.writeValueAsString(mockRootToken))
+                        .setBody(objectMapper.writeValueAsString(mockRootToken))
                 else -> fail("Ever reached target endpoint")
             }
         }
@@ -169,6 +170,43 @@ class ServerManagementTest {
             println(it.stackTraceToString())
             assertThat(it is NoSuchFieldException).isEqualTo(true)
             assertThat(it.message).isEqualTo("Response was OK, but wrong response body received.")
+        }
+    }
+
+    @Test
+    fun is_getRootToken_throws_NotFoundException_404() {
+        serverManagement.userToken = "Wrong User Token"
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up: NOT FOUND",
+                statusCode = "404",
+                statusMessage = "Not Found Error"
+            )
+        )
+        setDispatcherHandler {
+            when (it.path) {
+                "/api/navi/root-token" -> {
+                    if(it.headers["X-AUTH-TOKEN"] == mockUserToken.userToken){
+                        MockResponse().setResponseCode(OK)
+                            .setBody(objectMapper.writeValueAsString(mockRootToken))
+                    }
+                    else {
+                        MockResponse().setResponseCode(NOT_FOUND_ERROR)
+                            .setBody(errorMessage)
+                    }
+                }
+                else -> fail("Ever reached target endpoint.")
+            }
+        }
+
+        runCatching {
+            serverManagement.getRootToken()
+        }.onSuccess {
+            fail("This should responded with 404 thus NotFound Exception.")
+        }.onFailure {
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+            assertThat(it.message).contains("NOT FOUND")
         }
     }
 
@@ -239,6 +277,41 @@ class ServerManagementTest {
             println(it.stackTraceToString())
             assertThat(it is NoSuchFieldException).isEqualTo(true)
             assertThat(it.message).isEqualTo("Response was OK, but wrong response body received.")
+        }
+    }
+
+    @Test
+    fun is_getInsideFiles_throws_NotFoundException_404() {
+        serverManagement.userToken = "Wrong User Token"
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up: NOT FOUND",
+                statusCode = "404",
+                statusMessage = "Not Found Error"
+            )
+        )
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files/list/") == true) {
+                if(it.headers["X-AUTH-TOKEN"] == mockUserToken.userToken) {
+                    MockResponse().setResponseCode(OK)
+                        .setBody(objectMapper.writeValueAsString(mockRootToken))
+                } else {
+                    MockResponse().setResponseCode(NOT_FOUND_ERROR).setBody(errorMessage)
+                }
+            } else {
+                fail("Test did not reached endpoint!")
+            }
+        }
+
+        runCatching {
+            serverManagement.getInsideFiles("rootToken")
+        }.onSuccess {
+            fail("We have internal server error, but request succeed?")
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+            assertThat(it.message).contains("NOT FOUND")
         }
     }
 
@@ -352,6 +425,61 @@ class ServerManagementTest {
     }
 
     @Test
+    fun is_upload_throws_NotFoundException_404() {
+        serverManagement.userToken = "Wrong User Token"
+        val mockUploadPath: String = "somewhere_over_the_rainbow"
+        val mockFileContents: String = "Hello, World!"
+        val mockResults: String = "20"
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up: NOT FOUND",
+                statusCode = "404",
+                statusMessage = "Not Found Error"
+            )
+        )
+
+        setDispatcherHandler {
+            when (it.path) {
+                "/api/navi/files" -> {
+                    if(it.headers["X-AUTH-TOKEN"] == mockUserToken.userToken) {
+                        MockResponse().setResponseCode(OK)
+                            .setBody(objectMapper.writeValueAsString(mockRootToken))
+                    } else {
+                        MockResponse().setResponseCode(NOT_FOUND_ERROR).setBody(errorMessage)
+                    }
+                }
+                else -> fail("Test did not reached endpoint!")
+            }
+        }
+
+        // Tmp File
+        val file: File = File(System.getProperty("java.io.tmpdir"), "test.txt").apply {
+            writeText(mockFileContents)
+        }
+
+        val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(),file)
+        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile","test.txt",requestBody)
+        val param : HashMap<String,Any> = HashMap()
+        with(param){
+            put("uploadPath", mockUploadPath)
+        }
+
+        runCatching {
+            serverManagement.upload(param, uploadFile)
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+            assertThat(it.message).contains("NOT FOUND")
+        }.onSuccess {
+            fail("This should responded with 500 thus Runtime Exception.")
+        }
+
+        // Cleanup
+        file.delete()
+    }
+
+    @Test
     fun is_download_works_well() {
         serverManagement.userToken = mockUserToken.userToken
         val mockFileName: String = "TestFileName"
@@ -400,6 +528,41 @@ class ServerManagementTest {
             println(it.stackTraceToString())
             assertThat(it is RuntimeException).isEqualTo(true)
             assertThat(it.message).contains("Server responded with:")
+        }.onSuccess {
+            fail("This test should be failed since we mocked our server to be failed")
+        }
+    }
+
+    @Test
+    fun is_download_throws_NotFoundException_404() {
+        serverManagement.userToken = "Wrong User Token"
+        val errorMessage: String = objectMapper.writeValueAsString(
+            ApiError(
+                message = "Test Mocking Up: NOT FOUND",
+                statusCode = "404",
+                statusMessage = "Not Found Error"
+            )
+        )
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files/") == true) {
+                if(it.headers["X-AUTH-TOKEN"] == mockUserToken.userToken) {
+                    MockResponse().setResponseCode(OK)
+                        .setBody(objectMapper.writeValueAsString(mockRootToken))
+                } else {
+                    MockResponse().setResponseCode(NOT_FOUND_ERROR).setBody(errorMessage)
+                }
+            } else {
+                MockResponse().setResponseCode(OK)
+            }
+        }
+
+        runCatching {
+            serverManagement.download("TestToken")
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it.message).contains("Server responded with:")
+            assertThat(it.message).contains("NOT FOUND")
         }.onSuccess {
             fail("This test should be failed since we mocked our server to be failed")
         }
