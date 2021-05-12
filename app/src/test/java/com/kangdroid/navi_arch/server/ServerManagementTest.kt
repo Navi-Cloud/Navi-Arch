@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.data.dto.response.ApiError
+import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -47,6 +48,7 @@ class ServerManagementTest {
 
 
     // Mock Objects
+    private val mockUserToken: LoginResponse = LoginResponse("world")
     private val mockRootToken: RootTokenResponseDto = RootTokenResponseDto("hello~")
     private val mockInsideFilesResult: List<FileData> = listOf(
         FileData(
@@ -107,6 +109,7 @@ class ServerManagementTest {
     // Root Token Test
     @Test
     fun is_getRootToken_works_well() {
+        serverManagement.userToken = mockUserToken.userToken
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> MockResponse().setResponseCode(OK)
@@ -119,6 +122,7 @@ class ServerManagementTest {
 
     @Test
     fun is_getRootToken_throws_RuntimeException_500() {
+        serverManagement.userToken = mockUserToken.userToken
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> {
@@ -149,6 +153,7 @@ class ServerManagementTest {
 
     @Test
     fun is_getRootToken_throws_NoSuchFieldException_null_body() {
+        serverManagement.userToken = mockUserToken.userToken
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> MockResponse().setResponseCode(OK).setBody("null")
@@ -170,6 +175,7 @@ class ServerManagementTest {
     // Get Inside Files
     @Test
     fun is_getInsideFiles_works_well() {
+        serverManagement.userToken = mockUserToken.userToken
         setDispatcherHandler {
             if (it.path?.contains("/api/navi/files/list/") == true) {
                 MockResponse().setResponseCode(OK).setBody(
@@ -185,6 +191,7 @@ class ServerManagementTest {
 
     @Test
     fun is_getInsideFiles_throws_RuntimeException_500() {
+        serverManagement.userToken = mockUserToken.userToken
         setDispatcherHandler {
             if (it.path?.contains("/api/navi/files/list/") == true) {
                 MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
@@ -215,6 +222,7 @@ class ServerManagementTest {
 
     @Test
     fun is_getInsideFiles_throws_NoSuchFieldException() {
+        serverManagement.userToken = mockUserToken.userToken
         setDispatcherHandler {
             if (it.path?.contains("/api/navi/files/list/") == true) {
                 MockResponse().setResponseCode(OK).setBody("null")
@@ -236,6 +244,7 @@ class ServerManagementTest {
 
     @Test
     fun is_upload_works_well() {
+        serverManagement.userToken = mockUserToken.userToken
         val mockUploadPath: String = "somewhere_over_the_rainbow"
         val mockFileContents: String = "Hello, World!"
         val mockResults: String = "20"
@@ -295,6 +304,7 @@ class ServerManagementTest {
 
     @Test
     fun is_upload_throws_RuntimeError_500() {
+        serverManagement.userToken = mockUserToken.userToken
         val mockUploadPath: String = "somewhere_over_the_rainbow"
         val mockFileContents: String = "Hello, World!"
         val mockResults: String = "20"
@@ -343,6 +353,7 @@ class ServerManagementTest {
 
     @Test
     fun is_download_works_well() {
+        serverManagement.userToken = mockUserToken.userToken
         val mockFileName: String = "TestFileName"
         val mockFileContent: String = "Whatever"
         val fileHeader: String = String.format("attachment; filename=\"%s\"", URLEncoder.encode(mockFileName, "UTF-8"))
@@ -367,6 +378,7 @@ class ServerManagementTest {
 
     @Test
     fun is_download_throws_RuntimeError_500() {
+        serverManagement.userToken = mockUserToken.userToken
         val errorMessage: String = objectMapper.writeValueAsString(
             ApiError(
                 message = "Test Mocking Up",
