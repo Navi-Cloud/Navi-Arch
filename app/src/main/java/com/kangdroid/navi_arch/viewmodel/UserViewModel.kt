@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.viewmodel
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
@@ -29,23 +30,32 @@ class UserViewModel @Inject constructor(
         rawApplication.applicationContext
     }
 
+    // Live data for login error
+    val liveErrorData: MutableLiveData<Throwable> = MutableLiveData()
+
     fun login(userId : String,
               userPassword : String,
               afterLoginSuccess: (()-> Unit)) {
+        var throwable: Throwable? = null
+
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                val response: LoginResponse = serverManagement.loginUser(
-                    LoginRequest(
-                        userId = userId,
-                        userPassword = userPassword
+                runCatching {
+                    serverManagement.loginUser(
+                        LoginRequest(
+                            userId = userId,
+                            userPassword = userPassword
+                        )
                     )
-                )
+                }.onFailure {
+                    throwable = it
+                }
             }
             withContext(Dispatchers.Main){
+                liveErrorData.value = throwable
                 afterLoginSuccess()
             }
         }
-
     }
 
     fun register(userId : String,

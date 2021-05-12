@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
@@ -56,16 +57,33 @@ class LoginFragment : Fragment() {
                 userId = userId,
                 userPassword = userPassword
             ) {
-                // After login success, go MainActivity
-                parentActivity!!.switchActivity()
+                if(userViewModel.liveErrorData.value == null){
+                    // After login success, go MainActivity
+                    parentActivity!!.switchActivity()
+                }
             }
-
         }
 
         // Join [Register] Button
         loginBinding!!.textView2.setOnClickListener {
             // fragment translation to Register Fragment
             parentActivity!!.replaceFragment(RegisterFragment())
+        }
+
+        initViewModel()
+    }
+
+    private fun initViewModel() {
+        userViewModel.liveErrorData.observe(viewLifecycleOwner) {
+            if(it != null) {
+                Log.e(logTag, "Error Message Observed")
+                Log.e(logTag, it.stackTraceToString())
+                Toast.makeText(context, "Login Error: ${it.message}", Toast.LENGTH_LONG).show()
+
+                // on Error, Clear edit text
+                loginBinding!!.idLogin.setText("")
+                loginBinding!!.pwLogin.setText("")
+            }
         }
     }
 
