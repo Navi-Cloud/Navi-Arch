@@ -10,16 +10,19 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.HttpUrl
+import javax.inject.Singleton
 
 @Module(includes = [ObjectMapperModule::class])
 @InstallIn(SingletonComponent::class)
 class ServerModule {
 
+    @Singleton
     @Provides
     fun provideServerManagementHelper(objectMapper: ObjectMapper): ServerManagementHelper {
         return ServerManagementHelper(objectMapper)
     }
 
+    @Singleton
     @Provides
     fun provideServerManagement(serverManagementHelper: ServerManagementHelper): ServerInterface {
         Log.d(this::class.java.simpleName, "Creating Server Management!")
