@@ -1,6 +1,6 @@
 package com.kangdroid.navi_arch.data.dto.response
 
-class UserRegisterResponse (
+class RegisterResponse (
     val registeredId: String,
     val registeredEmail: String
 )

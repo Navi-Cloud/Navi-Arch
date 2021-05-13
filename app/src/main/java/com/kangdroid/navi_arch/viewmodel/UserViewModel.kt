@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
-import com.kangdroid.navi_arch.data.dto.response.UserRegisterResponse
+import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
 import com.kangdroid.navi_arch.server.ServerInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -90,7 +90,7 @@ class UserViewModel @Inject constructor(
         // TODO id/email check
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val response: UserRegisterResponse = serverManagement.register(
+                val response: RegisterResponse = serverManagement.register(
                     RegisterRequest(
                         userId = userId,
                         userName = userName,

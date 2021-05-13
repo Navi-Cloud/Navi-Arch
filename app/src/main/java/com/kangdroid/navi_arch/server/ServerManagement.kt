@@ -7,7 +7,7 @@ import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
-import com.kangdroid.navi_arch.data.dto.response.UserRegisterResponse
+import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
 import okhttp3.HttpUrl
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
@@ -179,10 +179,10 @@ class ServerManagement(
         return response.body()!!
     }
 
-    override fun register(userRegisterRequest: RegisterRequest): UserRegisterResponse {
-        val registerUserRequest : Call<UserRegisterResponse> = api.register(userRegisterRequest)
+    override fun register(userRegisterRequest: RegisterRequest): RegisterResponse {
+        val registerUserRequest : Call<RegisterResponse> = api.register(userRegisterRequest)
 
-        val response: Response<UserRegisterResponse> =
+        val response: Response<RegisterResponse> =
             serverManagementHelper.exchangeDataWithServer(registerUserRequest)
 
         if (!response.isSuccessful) {

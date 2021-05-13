@@ -6,7 +6,7 @@ import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
-import com.kangdroid.navi_arch.data.dto.response.UserRegisterResponse
+import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
 import okhttp3.MultipartBody
 
 interface ServerInterface {
@@ -16,5 +16,5 @@ interface ServerInterface {
     fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String
     fun download(token: String): DownloadResponse
     fun loginUser(userLoginRequest : LoginRequest): LoginResponse
-    fun register(userRegisterRequest : RegisterRequest) : UserRegisterResponse
+    fun register(userRegisterRequest : RegisterRequest) : RegisterResponse
 }
