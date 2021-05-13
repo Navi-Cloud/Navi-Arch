@@ -164,8 +164,8 @@ class ServerManagement(
     }
 
     override fun loginUser(userLoginRequest: LoginRequest): LoginResponse {
-        val loginUserRequest: Call<ResponseBody> = api.loginUser(userLoginRequest)
-        val response: Response<ResponseBody> =
+        val loginUserRequest: Call<LoginResponse> = api.loginUser(userLoginRequest)
+        val response: Response<LoginResponse> =
             serverManagementHelper.exchangeDataWithServer(loginUserRequest)
 
         if (!response.isSuccessful) {
@@ -173,23 +173,16 @@ class ServerManagement(
             serverManagementHelper.handleDataError(response)
         }
 
-        // For get userToken, parsing
-        val responseArray = response.body()!!.string()
-            .replace(Regex("[\"{} ]"), "")
-            .split(Regex("[:,]"))
-        val userTokenResponse: String = responseArray[responseArray.indexOf("userToken")+1]
-
-        // Save userToken
-        userToken = userTokenResponse
+        userToken = response.body()!!.userToken
         Log.d(logTag, "userToken---> $userToken")
 
-        return LoginResponse(userToken = userTokenResponse)
+        return response.body()!!
     }
 
     override fun register(userRegisterRequest: RegisterRequest): UserRegisterResponse {
-        val registerUserRequest : Call<ResponseBody> = api.register(userRegisterRequest)
+        val registerUserRequest : Call<UserRegisterResponse> = api.register(userRegisterRequest)
 
-        val response: Response<ResponseBody> =
+        val response: Response<UserRegisterResponse> =
             serverManagementHelper.exchangeDataWithServer(registerUserRequest)
 
         if (!response.isSuccessful) {
@@ -197,19 +190,6 @@ class ServerManagement(
             serverManagementHelper.handleDataError(response)
         }
 
-        // For get userToken, parsing
-        val responseArray = response.body()!!.string()
-            .replace(Regex("[\"{} ]"), "")
-            .split(Regex("[:,]"))
-        val userId: String = responseArray[responseArray.indexOf("registeredId")+1]
-        val userEmail: String = responseArray[responseArray.indexOf("registeredEmail")+1]
-
-        Log.d(logTag, "registeredId---> $userId")
-        Log.d(logTag, "registeredEmail---> $userEmail")
-
-        return UserRegisterResponse(
-            registeredId = userId,
-            registeredEmail = userEmail
-        )
+        return response.body()!!
     }
 }
