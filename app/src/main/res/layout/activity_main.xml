@@ -14,6 +14,7 @@
         android:layout_height="70dp"
         app:tabGravity="start"
         app:tabMode="scrollable"
+        app:tabTextColor="@color/dark_navy"
         app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget" />
 
     <LinearLayout

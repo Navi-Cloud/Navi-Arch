@@ -15,10 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NaviArch"
         android:usesCleartextTraffic="true">
-        <activity android:name=".view.StartActivity">
+        <activity android:name=".view.StartActivity"
+            android:theme="@style/Theme.NaviArch.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
