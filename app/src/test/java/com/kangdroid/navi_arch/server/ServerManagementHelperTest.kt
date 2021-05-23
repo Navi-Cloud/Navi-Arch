@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kangdroid.navi_arch.data.dto.response.ApiError
+import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -32,7 +33,12 @@ class ServerManagementHelperTest {
     }
 
     // Mock Object
+    private val mockUserToken: LoginResponse = LoginResponse("world")
     private val mockRootToken: RootTokenResponseDto = RootTokenResponseDto("hello~")
+    private val mockHeaders: HashMap<String, Any?> = HashMap()
+    init {
+        mockHeaders["X-AUTH-TOKEN"] = mockUserToken.userToken
+    }
 
     // Mock Retrofit[API]
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
@@ -77,7 +83,7 @@ class ServerManagementHelperTest {
     @Test
     fun is_exchangeDataWithServer_throws_network_error_no_server() {
         runCatching {
-            serverManagementHelper.exchangeDataWithServer(api.getRootToken())
+            serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
         }.onSuccess {
             fail("exchangeDataWithServer should fail because server is OFF now.")
         }.onFailure {
@@ -96,7 +102,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.exchangeDataWithServer(api.getRootToken())
+            serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
         }.onSuccess {
             fail("This should not be fine because")
         }.onFailure {
@@ -117,7 +123,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.exchangeDataWithServer(api.getRootToken())
+            serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
         }.onSuccess {
             assertThat(it.code()).isEqualTo(OK)
         }.onFailure {
@@ -138,7 +144,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken()))
+            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
             assertThat(it is JsonParseException).isEqualTo(true)
@@ -165,10 +171,10 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken()))
+            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
-            assertThat(it is RuntimeException).isEqualTo(true)
+            assertThat(it is SocketTimeoutException).isEqualTo(true) // Is this OK??
         }.onSuccess {
             fail("This should result in fail, because we are using wrong json string.")
         }
@@ -191,7 +197,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken()))
+            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
             assertThat(it is NoSuchFieldException).isEqualTo(true)

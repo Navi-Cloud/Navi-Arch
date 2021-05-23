@@ -2,8 +2,12 @@ package com.kangdroid.navi_arch.server
 
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.LoginRequest
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
+import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
+import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
 import okhttp3.HttpUrl
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
@@ -24,6 +28,18 @@ class ServerManagement(
 
     // Whether server connection is successful or not
     private var isServerEnabled: Boolean = false
+
+    // User Token
+    var userToken: String? = null
+
+    // Headers
+    private fun getHeaders(): HashMap<String, Any?>{
+        // Set headers
+        // for now, set userToken
+        val headers : HashMap<String, Any?> = HashMap()
+        headers["X-AUTH-TOKEN"] = userToken
+        return headers
+    }
 
     init {
         isServerEnabled = initWholeServerClient()
@@ -59,7 +75,9 @@ class ServerManagement(
 
 
     override fun getRootToken(): RootTokenResponseDto {
-        val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken()
+        val tokenFunction: Call<RootTokenResponseDto> = api.getRootToken(
+            headerMap = getHeaders()
+        )
 
         // Get response, and throw if exception occurred.
         val response: Response<RootTokenResponseDto> =
@@ -82,7 +100,10 @@ class ServerManagement(
      * Returns: NULL when error occurred.
      */
     override fun getInsideFiles(requestToken: String): List<FileData> {
-        val insiderFunction: Call<List<FileData>> = api.getInsideFiles(requestToken)
+        val insiderFunction: Call<List<FileData>> = api.getInsideFiles(
+            headerMap = getHeaders(),
+            token = requestToken)
+
         val response: Response<List<FileData>> =
             serverManagementHelper.exchangeDataWithServer(insiderFunction)
 
@@ -96,7 +117,11 @@ class ServerManagement(
     }
 
     override fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
-        val uploading: Call<ResponseBody> = api.upload(Param, file)
+        val uploading: Call<ResponseBody> = api.upload(
+            headerMap = getHeaders(),
+            par = Param,
+            files = file)
+
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(uploading)
 
@@ -111,7 +136,10 @@ class ServerManagement(
     }
 
     override fun download(token: String): DownloadResponse {
-        val downloadingApi: Call<ResponseBody> = api.download(token)
+        val downloadingApi: Call<ResponseBody> = api.download(
+            headerMap = getHeaders(),
+            token = token)
+
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(downloadingApi)
 
@@ -134,5 +162,35 @@ class ServerManagement(
         Log.d(logTag, "Content : ${response.body()?.string()}")
 
         return DownloadResponse(fileName, response.body()!!)
+    }
+
+    override fun loginUser(userLoginRequest: LoginRequest): LoginResponse {
+        val loginUserRequest: Call<LoginResponse> = api.loginUser(userLoginRequest)
+        val response: Response<LoginResponse> =
+            serverManagementHelper.exchangeDataWithServer(loginUserRequest)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
+
+        userToken = response.body()!!.userToken
+        Log.d(logTag, "userToken---> $userToken")
+
+        return response.body()!!
+    }
+
+    override fun register(userRegisterRequest: RegisterRequest): RegisterResponse {
+        val registerUserRequest : Call<RegisterResponse> = api.register(userRegisterRequest)
+
+        val response: Response<RegisterResponse> =
+            serverManagementHelper.exchangeDataWithServer(registerUserRequest)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
+
+        return response.body()!!
     }
 }
