@@ -6,13 +6,14 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
+import android.provider.MediaStore
 import android.util.Log
 
 object NaviFileUtils {
     private val NAVI_FU_TAG: String = "NaviFileUtils"
     private val PRIMARY_STORAGE: String = "primary"
     val ERROR_GETTING_FILENAME: String = "ERROR"
-    fun getPathFromUri(context: Context, uri: Uri): String {
+    fun getPathFromUri(context: Context, uri: Uri): String? {
         if (DocumentsContract.isDocumentUri(context, uri)) {
             when (uri.authority) {
                 "com.android.externalstorage.documents" -> {
@@ -45,6 +46,25 @@ object NaviFileUtils {
                     )
                     return accessContentProviderDb(context, contentUri, null, null)
                         ?: ERROR_GETTING_FILENAME
+                }
+
+                "com.android.providers.media.documents" -> {
+
+                    val documentId: String = DocumentsContract.getDocumentId(uri)
+                    val documentIdSplited: List<String> = documentId.split(":")
+                    val type = documentIdSplited[0]
+                    var contentUri: Uri? = null
+                    if ("image" == type) {
+                        contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    } else if ("video" == type) {
+                        contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    } else if ("audio" == type) {
+                        contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    }
+                    val selection : String = "_id=?"
+                    val selectionArgs : Array<String> = arrayOf(documentIdSplited[1])
+                    return accessContentProviderDb(context, contentUri!!, selection, selectionArgs)
+
                 }
             }
         }

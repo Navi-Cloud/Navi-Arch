@@ -63,7 +63,7 @@ class UploadingViewModel @Inject constructor(
 
         // Set bufferedReader
         bufferedReader = BufferedReader(InputStreamReader(inputStream))
-        fileUri = NaviFileUtils.getPathFromUri(context, uri)
+        fileUri = NaviFileUtils.getPathFromUri(context, uri).toString()
 
         if (fileUri == NaviFileUtils.ERROR_GETTING_FILENAME) {
             fileUri = ""
