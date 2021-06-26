@@ -14,6 +14,7 @@
     <string name="sort_type_not">유형 혼합</string>
 
     <!-- Uploading Related Strings -->
+    <string name="action_add_folder">폴더 만들기</string>
     <string name="action_upload">업로드</string>
     <string name="action_select_path">위치 선택</string>
     <string name="title_upload">파일 업로드 위치 선택</string>

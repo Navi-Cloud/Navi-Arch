@@ -1,12 +1,15 @@
 package com.kangdroid.navi_arch.view
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.CompoundButton
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -104,6 +107,33 @@ class MainActivity : AppCompatActivity() {
                     putExtra(uploadingIdentifier, uploadingEnabled)
                 }
                 startActivityForResult(intent, getUploadingActivityRequestCode)
+                true
+            }
+            R.id.action_add_folder -> {
+                val builder = AlertDialog.Builder(this)
+                val dialogView = layoutInflater.inflate(R.layout.dialog_add, null)
+                //button event
+                val btn_make_folder = dialogView.findViewById<LinearLayout>(R.id.layout_make_folder)
+                btn_make_folder.setOnClickListener {
+                    val builder2 = AlertDialog.Builder(this)
+                    val dialogView2 = layoutInflater.inflate(R.layout.dialog_add_folder, null)
+                    builder2.setView(dialogView2)
+                        .setPositiveButton("확인"){
+                            _, _ ->
+                        }
+                        .setNegativeButton("취소"){
+                            _, _ ->
+                        }
+                        .show()
+                }
+
+                builder.setView(dialogView)
+                val alertDialog = builder.create()
+                val window = alertDialog.window
+                window?.setGravity(Gravity.BOTTOM)
+                window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                window?.attributes?.width = WindowManager.LayoutParams.MATCH_PARENT
+                alertDialog.show()
                 true
             }
 
