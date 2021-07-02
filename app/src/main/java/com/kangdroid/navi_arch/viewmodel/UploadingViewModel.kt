@@ -74,19 +74,11 @@ class UploadingViewModel @Inject constructor(
         Log.d(logTag, "Upload Path: $uploadPath")
 
         val filename : String = fileUri.substring(fileUri.lastIndexOf("/")+1)
-        Log.d(logTag, "File Name: $filename")
 
-        val file : File = File.createTempFile(filename,null, context.cacheDir)
+        val file : File = File(fileUri)
 
-        var strReader: String? = null
-        while (true) {
-            strReader = bufferedReader.readLine()
-            if (strReader == null) break
-            file.appendText(strReader+"\n")
-        }
-
-        Log.d(logTag,"File Contents: ${file.readText()}")
         Log.d(logTag,"File Name: $filename")
+
 
         val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(),file)
         val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile",filename,requestBody)
