@@ -22,12 +22,12 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
     private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
 
     // TODO: Dismiss Dialog when download is done.
-    fun downloadFile(targetToken: String) {
+    fun downloadFile(targetToken: String, prevToken: String) {
         viewModelScope.launch {
             lateinit var downloadedResponse: DownloadResponse
 
             withContext(Dispatchers.IO) {
-                serverManagement.download(targetToken)
+                serverManagement.download(targetToken, prevToken)
             }
 
             withContext(Dispatchers.Main) {

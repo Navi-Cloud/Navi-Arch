@@ -14,7 +14,7 @@ interface ServerInterface {
     fun getRootToken(): RootTokenResponseDto
     fun getInsideFiles(requestToken: String): List<FileData>
     fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String
-    fun download(token: String): DownloadResponse
+    fun download(token: String, prevToken: String): DownloadResponse
     fun loginUser(userLoginRequest : LoginRequest): LoginResponse
     fun register(userRegisterRequest : RegisterRequest) : RegisterResponse
 }

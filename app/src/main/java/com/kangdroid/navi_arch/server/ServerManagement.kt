@@ -153,16 +153,19 @@ class ServerManagement(
         return responseBody.string()
     }
 
-    override fun download(token: String): DownloadResponse {
+    override fun download(token: String, prevToken: String): DownloadResponse {
         val downloadingApi: Call<ResponseBody> = api.download(
             headerMap = getHeaders(),
-            token = token)
+            token = token,
+            prevToken = prevToken
+        )
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(downloadingApi)
 
         if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
+            Log.e(logTag, "Token: $token , Prev: $prevToken")
+            Log.e(logTag, "Error: ${response.code()}")
             serverManagementHelper.handleDataError(response)
         }
 
