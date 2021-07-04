@@ -4,12 +4,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 data class FileData(
-    var id: Long = 0,
+    var userId: String,
+    var token: String,
+    var prevToken: String,
     var fileName: String,
     var fileType: String,
-    var token: String,
-    var lastModifiedTime: Long
 ) {
+    var lastModifiedTime: Long = 1000
 
     fun getBriefName(): String {
         val toSplit: Char = if (this.fileName.contains('\\')) {
