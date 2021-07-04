@@ -180,7 +180,6 @@ class ServerManagement(
             it.substring(it.lastIndexOf("/") + 1, it.length - 1)
         }
         Log.d(logTag, "fileName : $fileName")
-        Log.d(logTag, "Content : ${response.body()?.string()}")
 
         return DownloadResponse(fileName, response.body()!!)
     }

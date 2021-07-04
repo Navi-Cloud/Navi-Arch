@@ -23,20 +23,20 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
 
     // TODO: Dismiss Dialog when download is done.
     fun downloadFile(targetToken: String, prevToken: String) {
+        Log.d(this::class.java.simpleName, "Accessing downloadFile")
         viewModelScope.launch {
-            lateinit var downloadedResponse: DownloadResponse
-
             withContext(Dispatchers.IO) {
-                serverManagement.download(targetToken, prevToken)
-            }
-
-            withContext(Dispatchers.Main) {
-                saveDownloadedFile(downloadedResponse)
+                runCatching {
+                    serverManagement.download(targetToken, prevToken)
+                }.onSuccess {
+                    saveDownloadedFile(it)
+                }
             }
         }
     }
 
     private fun saveDownloadedFile(downloadResponse: DownloadResponse) {
+        Log.d(this::class.java.simpleName, "Accessing saveDownloadedFile")
         if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED) {
             throw IllegalStateException("Cannot save file ${downloadResponse.fileName}. Perhaps device does not have any SDCard?")
         }
