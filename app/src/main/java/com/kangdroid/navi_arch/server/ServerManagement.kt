@@ -16,13 +16,31 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.URLDecoder
+import javax.inject.Singleton
 
 class ServerManagement(
-    private val httpUrl: HttpUrl,
-    private val serverManagementHelper: ServerManagementHelper
+    private val httpUrl: HttpUrl
 ): ServerInterface {
 
-    private val logTag: String = this::class.java.simpleName
+    companion object {
+        private var serverManagement: ServerManagement? = null
+        private val logTag: String = this::class.java.simpleName
+
+        fun getServerManagement(): ServerManagement {
+            if (serverManagement == null) {
+                Log.d(logTag, "Creating Server Management!")
+                val defaultHttpUrl: HttpUrl = HttpUrl.Builder()
+                    .scheme("http")
+                    .host("192.168.0.46")
+                    .port(8080)
+                    .build()
+                serverManagement = ServerManagement(defaultHttpUrl)
+            }
+            return serverManagement!!
+        }
+    }
+    private val serverManagementHelper: ServerManagementHelper = ServerManagementHelper
+
     private lateinit var retroFit: Retrofit
     private lateinit var api: APIInterface
 

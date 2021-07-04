@@ -9,6 +9,7 @@ import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
 import com.kangdroid.navi_arch.server.ServerInterface
+import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,9 +22,7 @@ enum class PageRequest {
 }
 
 @HiltViewModel
-class UserViewModel @Inject constructor(
-    private val serverManagement: ServerInterface
-) : ViewModel() {
+class UserViewModel @Inject constructor(): ViewModel() {
 
     // TAG
     private val logTag: String = this::class.java.simpleName
@@ -33,6 +32,8 @@ class UserViewModel @Inject constructor(
 
     // Register Request
     val pageRequest: MutableLiveData<PageRequest> = MutableLiveData()
+
+    private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
 
     var loginresponse : LoginResponse ?= null
 

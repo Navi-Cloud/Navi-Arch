@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.server.ServerInterface
+import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.NaviFileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -31,13 +32,14 @@ import kotlin.with
 
 @HiltViewModel
 class UploadingViewModel @Inject constructor(
-        private val rawApplication: Application,
-        private val serverManagement: ServerInterface
+        private val rawApplication: Application
     ) : AndroidViewModel(rawApplication) {
 
     private val logTag: String = this::class.java.simpleName
 
     private lateinit var bufferedReader: BufferedReader
+
+    private val serverManagement: ServerManagement = ServerManagement.getServerManagement()
 
     // Application Context
     private val context: Context by lazy {

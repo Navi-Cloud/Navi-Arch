@@ -2,16 +2,15 @@ package com.kangdroid.navi_arch.server
 
 import android.util.Log
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
 import javax.inject.Singleton
 
-@Singleton
-class ServerManagementHelper(
-    private val objectMapper: ObjectMapper
-){
+object ServerManagementHelper {
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
     private val logTag: String = this::class.java.simpleName
 
     /**

@@ -9,6 +9,7 @@ import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.server.ServerInterface
+import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.PagerCacheUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PagerViewModel @Inject constructor(
-        private val serverManagement: ServerInterface,
         private val pagerCacheUtils: PagerCacheUtils
     ): ViewModel() {
 
@@ -35,6 +35,7 @@ class PagerViewModel @Inject constructor(
     val liveErrorData: MutableLiveData<Throwable> = MutableLiveData()
 
     // Server Management
+    private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
 
     // For Sorting
     private var currentSortMode: FileSortingMode = FileSortingMode.TypedName

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.server.ServerInterface
+import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,9 +17,9 @@ import java.io.InputStream
 import javax.inject.Inject
 
 @HiltViewModel
-class FileBottomSheetViewModel @Inject constructor(
-    private val serverManagement: ServerInterface
-): ViewModel() {
+class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
+
+    private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
 
     // TODO: Dismiss Dialog when download is done.
     fun downloadFile(targetToken: String) {

@@ -20,9 +20,11 @@ import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.adapter.PagerAdapter
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
+import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.viewmodel.UploadingViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import okhttp3.HttpUrl
 import javax.inject.Inject
 
 // The View
@@ -62,7 +64,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
-
         // Check whether this is launched with uploadingIdentifier.
         isUploadingEnabled = (intent.getStringExtra(uploadingIdentifier) == uploadingEnabled)
 
