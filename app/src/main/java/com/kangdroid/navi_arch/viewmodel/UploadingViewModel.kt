@@ -3,7 +3,9 @@ package com.kangdroid.navi_arch.viewmodel
 import android.app.Application
 import android.content.ContentResolver
 import android.content.Context
+import android.database.Cursor
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -51,8 +53,29 @@ class UploadingViewModel @Inject constructor(
         rawApplication.applicationContext.contentResolver
     }
 
-    // File TMP URI in String
-    private var fileUri: String = ""
+    private lateinit var fileContentArray: ByteArray
+    private lateinit var fileName: String
+
+    private fun getFileName(uri: Uri): String {
+        var targetString: String? = null
+        if (uri.scheme == "content") {
+            val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                targetString = cursor.getString(
+                    cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                )
+            }
+            cursor?.close()
+        }
+
+        if (targetString == null) {
+            val splitList: List<String> = uri.path?.split("/")!!
+            targetString = splitList[splitList.size-1]
+        }
+
+        Log.d(this::class.java.simpleName, "Final file name: $targetString")
+        return targetString
+    }
 
     fun createFileUri(uri: Uri) {
         Log.d(logTag, "Uri input: $uri")
@@ -63,27 +86,21 @@ class UploadingViewModel @Inject constructor(
             return
         }
 
-        // Set bufferedReader
-        bufferedReader = BufferedReader(InputStreamReader(inputStream))
-        fileUri = NaviFileUtils.getPathFromUri(context, uri).toString()
-
-        if (fileUri == NaviFileUtils.ERROR_GETTING_FILENAME) {
-            fileUri = ""
-        }
+        fileContentArray = inputStream.readBytes()
+        fileName = getFileName(uri)
     }
 
     fun upload(uploadPath: String, actionAfterUpload: (() -> Unit)) {
         Log.d(logTag, "Upload Path: $uploadPath")
 
-        val filename : String = fileUri.substring(fileUri.lastIndexOf("/")+1)
+        Log.d(logTag,"File Name: $fileName")
 
-        val file : File = File(fileUri)
-
-        Log.d(logTag,"File Name: $filename")
-
-
-        val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(),file)
-        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile",filename,requestBody)
+        // RequestBody.create(,file)
+        val requestBody : RequestBody = RequestBody.create(
+            contentType = "multipart/form-data".toMediaTypeOrNull(),
+            content = fileContentArray
+        )
+        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile",fileName,requestBody)
         val param : HashMap<String,Any> = HashMap()
         with(param){
             put("uploadPath", uploadPath)
