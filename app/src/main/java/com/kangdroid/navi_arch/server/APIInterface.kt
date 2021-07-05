@@ -1,11 +1,13 @@
 package com.kangdroid.navi_arch.server
 
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.LoginResponse
 import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
+import com.kangdroid.navi_arch.view.FolderNameDialog
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -30,5 +32,8 @@ interface APIInterface {
 
     @POST("/api/navi/join")
     fun register( @Body userRegisterRequest : RegisterRequest) : Call<RegisterResponse>
+
+    @POST("/api/navi/folder")
+    fun createNewFolder(@HeaderMap headerMap: HashMap<String, Any?>, @Body createFolderRequestDTO: CreateFolderRequestDTO): Call<ResponseBody>
 
 }

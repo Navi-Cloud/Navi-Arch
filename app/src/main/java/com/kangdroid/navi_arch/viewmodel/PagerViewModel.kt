@@ -23,7 +23,7 @@ class PagerViewModel @Inject constructor(
     ): ViewModel() {
 
     // Current Page List
-    private val pageList: MutableList<FileAdapter> = mutableListOf()
+    val pageList: MutableList<FileAdapter> = mutableListOf()
 
     // Set of pages for preventing same page is spammed.
     private val pageSet: MutableSet<String> = mutableSetOf()

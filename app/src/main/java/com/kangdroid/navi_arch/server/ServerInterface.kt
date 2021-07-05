@@ -1,6 +1,7 @@
 package com.kangdroid.navi_arch.server
 
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
@@ -17,4 +18,5 @@ interface ServerInterface {
     fun download(token: String, prevToken: String): DownloadResponse
     fun loginUser(userLoginRequest : LoginRequest): LoginResponse
     fun register(userRegisterRequest : RegisterRequest) : RegisterResponse
+    fun createFolder(createFolderRequestDTO: CreateFolderRequestDTO)
 }

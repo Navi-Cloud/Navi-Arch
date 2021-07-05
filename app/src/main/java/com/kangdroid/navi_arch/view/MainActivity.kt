@@ -114,7 +114,9 @@ class MainActivity : AppCompatActivity() {
                 startActivityForResult(intent, getUploadingActivityRequestCode)
                 true
             }
-            R.id.action_add_folder -> { menuBottomSheetFragment.show(supportFragmentManager, menuBottomSheetFragment.tag)
+            R.id.action_add_folder -> {
+                menuBottomSheetFragment.currentFolderToken = pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder.token
+                menuBottomSheetFragment.show(supportFragmentManager, menuBottomSheetFragment.tag)
 //                val builder = AlertDialog.Builder(this)
 //                val dialogView = layoutInflater.inflate(R.layout.dialog_add, null)
 //                //button event
