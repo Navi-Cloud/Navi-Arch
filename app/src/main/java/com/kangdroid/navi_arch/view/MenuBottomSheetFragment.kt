@@ -11,7 +11,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MenuBottomSheetFragment @Inject constructor() : BottomSheetDialogFragment() {
-
     private var _dialogAddBinding: DialogAddBinding? = null
     private val dialogAddBinding: DialogAddBinding get() = _dialogAddBinding!!
 
@@ -26,6 +25,11 @@ class MenuBottomSheetFragment @Inject constructor() : BottomSheetDialogFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        dialogAddBinding.makeFolderLayout.setOnClickListener {
+            val folderNameDialog: FolderNameDialog = FolderNameDialog(requireContext())
+            folderNameDialog.show()
+        }
     }
 
     override fun onDestroyView() {
