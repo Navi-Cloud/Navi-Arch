@@ -47,10 +47,6 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var bottomSheetFragment: FileBottomSheetFragment
 
-    // BottomSheetDialog[Menu]
-    @Inject
-    lateinit var menuBottomSheetFragment: MenuBottomSheetFragment
-
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model
     private val uploadingViewModel: UploadingViewModel by viewModels()
@@ -115,32 +111,18 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_add_folder -> {
-                menuBottomSheetFragment.currentFolderToken = pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder.token
+                val menuBottomSheetFragment: MenuBottomSheetFragment = MenuBottomSheetFragment(
+                    currentFolderToken = pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder.token,
+                    refreshPage = {
+                        pagerViewModel.explorePage(
+                            pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder,
+                            activityMainBinding.viewPager.currentItem,
+                            true
+                        )
+                    }
+                )
+
                 menuBottomSheetFragment.show(supportFragmentManager, menuBottomSheetFragment.tag)
-//                val builder = AlertDialog.Builder(this)
-//                val dialogView = layoutInflater.inflate(R.layout.dialog_add, null)
-//                //button event
-//                val btn_make_folder = dialogView.findViewById<LinearLayout>(R.id.layout_make_folder)
-//                btn_make_folder.setOnClickListener {
-//                    val builder2 = AlertDialog.Builder(this)
-//                    val dialogView2 = layoutInflater.inflate(R.layout.dialog_add_folder, null)
-//                    builder2.setView(dialogView2)
-//                        .setPositiveButton("확인"){
-//                            _, _ ->
-//                        }
-//                        .setNegativeButton("취소"){
-//                            _, _ ->
-//                        }
-//                        .show()
-//                }
-//
-//                builder.setView(dialogView)
-//                val alertDialog = builder.create()
-//                val window = alertDialog.window
-//                window?.setGravity(Gravity.BOTTOM)
-//                window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-//                window?.attributes?.width = WindowManager.LayoutParams.MATCH_PARENT
-//                alertDialog.show()
                 true
             }
 

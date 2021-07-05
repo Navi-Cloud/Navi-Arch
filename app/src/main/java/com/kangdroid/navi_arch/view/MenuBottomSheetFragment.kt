@@ -11,21 +11,15 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.databinding.DialogAddBinding
 import com.kangdroid.navi_arch.viewmodel.MenuBottomSheetViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
-@AndroidEntryPoint
-class MenuBottomSheetFragment @Inject constructor() : BottomSheetDialogFragment() {
+class MenuBottomSheetFragment(
+    val currentFolderToken: String,
+    val refreshPage: () -> Unit
+) : BottomSheetDialogFragment() {
     private val logTag: String = this::class.java.simpleName
     private var _dialogAddBinding: DialogAddBinding? = null
     private val dialogAddBinding: DialogAddBinding get() = _dialogAddBinding!!
     private val menuBottomSheetViewModel: MenuBottomSheetViewModel by viewModels()
-
-    var currentFolderToken: String = ""
-        set(value) {
-            Log.d(logTag, "Setting currentFolderToken as $value")
-            field = value
-        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,8 +45,10 @@ class MenuBottomSheetFragment @Inject constructor() : BottomSheetDialogFragment(
                         onSuccess = {
                             Log.d(logTag, "Successfully created folder $it")
                             // Probably need to refresh
+                            refreshPage()
                         },
                         onFailure = {
+                            Log.e(logTag, "Cannot create folder: ${it.message}")
                             Toast.makeText(requireContext(), "Cannot create folder: ${it.message}", Toast.LENGTH_SHORT)
                                 .show()
                         }
