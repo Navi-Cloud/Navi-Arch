@@ -23,6 +23,9 @@ class UploadingActivity: PagerActivity() {
             it.data?.data?.also { finalUri ->
                 uploadingViewModel.createFileUri(finalUri)
             }
+        } else {
+            setResult(RESULT_CANCELED)
+            finish()
         }
     }
 
