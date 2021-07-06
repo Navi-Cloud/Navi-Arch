@@ -42,6 +42,13 @@ class MainActivity : PagerActivity() {
 
     override val recyclerOnLongClickListener: (FileData) -> Boolean = {
         bottomSheetFragment.targetFileData = it
+        bottomSheetFragment.refreshPageLambda = {
+            pagerViewModel.explorePage(
+                pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder,
+                activityMainBinding.viewPager.currentItem,
+                true
+            )
+        }
         bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
         true
     }

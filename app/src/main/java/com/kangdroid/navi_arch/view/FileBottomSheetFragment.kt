@@ -39,6 +39,8 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
     // View Model for File Bottom Sheet[DI]
     private val fileBottomSheetViewModel: FileBottomSheetViewModel by viewModels()
 
+    var refreshPageLambda: () -> Unit = {}
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -102,6 +104,7 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
                     onSuccess = {
                         Toast.makeText(requireContext(), "Successfully removed target ${targetFileData?.fileName}", Toast.LENGTH_SHORT)
                             .show()
+                        refreshPageLambda()
                     },
                     onFailure = {
                         Toast.makeText(requireContext(), "Cannot remove ${targetFileData?.fileName}", Toast.LENGTH_SHORT)
