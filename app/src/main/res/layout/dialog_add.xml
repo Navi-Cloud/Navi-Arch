@@ -48,11 +48,13 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/uploadLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/box2"
         android:orientation="horizontal"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true">
 
         <ImageView
             android:id="@+id/img_upload"
@@ -68,6 +70,11 @@
             android:layout_gravity="center"
             android:text="업로드" />
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@android:color/white" />
 
     <TextView
         android:layout_width="match_parent"

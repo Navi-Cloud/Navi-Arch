@@ -3,11 +3,14 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.360054347826087" />
         <entry key="app/src/main/res/layout/activity_start.xml" value="0.360054347826087" />
         <entry key="app/src/main/res/layout/dialog_add.xml" value="0.360054347826087" />
         <entry key="app/src/main/res/layout/dialog_add_bottom.xml" value="0.360054347826087" />
         <entry key="app/src/main/res/layout/dialog_add_folder.xml" value="0.360054347826087" />
         <entry key="app/src/main/res/layout/layout_bottom.xml" value="0.360054347826087" />
+        <entry key="app/src/main/res/menu/main_action.xml" value="0.4244791666666667" />
+        <entry key="app/src/main/res/menu/uploading_action.xml" value="0.4244791666666667" />
       </map>
     </option>
   </component>

@@ -40,19 +40,6 @@ class MainActivity : PagerActivity() {
     // Menu for dynamically hide - show
     private var dynamicMenu: Menu? = null
 
-    // UploadingActivity Results Callback
-    private val afterUploadingActivityFinishes: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) {
-                // Update view since file is uploaded
-                pagerViewModel.explorePage(
-                    pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder,
-                    activityMainBinding.viewPager.currentItem,
-                    true
-                )
-            }
-        }
-
     override val recyclerOnLongClickListener: (FileData) -> Boolean = {
         bottomSheetFragment.targetFileData = it
         bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
@@ -60,25 +47,18 @@ class MainActivity : PagerActivity() {
     }
 
     override val errorObserverCallback: ((Throwable) -> Unit) = {
-        dynamicMenu?.findItem(R.id.action_upload)?.isVisible = false
+        dynamicMenu?.findItem(R.id.action_add_folder)?.isVisible = false
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         // Enable Uploading Button when launched with MainActivity
         menuInflater.inflate(R.menu.main_action, menu)
-        dynamicMenu = menu!!
+        dynamicMenu = menu
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            // Upload button when launched with MainActivity
-            R.id.action_upload -> {
-                afterUploadingActivityFinishes.launch(
-                    Intent(this, UploadingActivity::class.java)
-                )
-                true
-            }
             R.id.action_add_folder -> {
                 val menuBottomSheetFragment: MenuBottomSheetFragment = MenuBottomSheetFragment(
                     currentFolderToken = pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder.token,

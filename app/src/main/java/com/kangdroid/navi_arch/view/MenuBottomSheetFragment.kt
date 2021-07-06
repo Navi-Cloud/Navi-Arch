@@ -1,11 +1,15 @@
 package com.kangdroid.navi_arch.view
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
@@ -20,6 +24,16 @@ class MenuBottomSheetFragment(
     private var _dialogAddBinding: DialogAddBinding? = null
     private val dialogAddBinding: DialogAddBinding get() = _dialogAddBinding!!
     private val menuBottomSheetViewModel: MenuBottomSheetViewModel by viewModels()
+
+    // UploadingActivity Results Callback
+    private val afterUploadingActivityFinishes: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == AppCompatActivity.RESULT_OK) {
+                // Update view since file is uploaded
+                refreshPage()
+                dismiss()
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,6 +70,12 @@ class MenuBottomSheetFragment(
                 }
             )
             folderNameDialog.show()
+        }
+
+        dialogAddBinding.uploadLayout.setOnClickListener {
+            afterUploadingActivityFinishes.launch(
+                Intent(requireContext(), UploadingActivity::class.java)
+            )
         }
     }
 
