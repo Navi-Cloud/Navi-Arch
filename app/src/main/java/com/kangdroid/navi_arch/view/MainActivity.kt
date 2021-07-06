@@ -11,6 +11,8 @@ import android.view.*
 import android.widget.CompoundButton
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -31,20 +33,25 @@ import javax.inject.Inject
 // The View
 @AndroidEntryPoint
 class MainActivity : PagerActivity() {
-
-    // Pager Adapter[DI]
-    @Inject
-    lateinit var pageAdapter: PagerAdapter
-
     // BottomSheetDialog[DI]
     @Inject
     lateinit var bottomSheetFragment: FileBottomSheetFragment
 
-    // Value for detecting this activity launched with normal activity or Upload Activity.
-    private val getUploadingActivityRequestCode: Int = 20
-
     // Menu for dynamically hide - show
     private lateinit var dynamicMenu: Menu
+
+    // UploadingActivity Results Callback
+    private val afterUploadingActivityFinishes: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                // Update view since file is uploaded
+                pagerViewModel.explorePage(
+                    pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder,
+                    activityMainBinding.viewPager.currentItem,
+                    true
+                )
+            }
+        }
 
     override val recyclerOnLongClickListener: (FileData) -> Boolean = {
         bottomSheetFragment.targetFileData = it
@@ -67,8 +74,9 @@ class MainActivity : PagerActivity() {
         return when (item.itemId) {
             // Upload button when launched with MainActivity
             R.id.action_upload -> {
-                val intent: Intent = Intent(this, UploadingActivity::class.java)
-                startActivityForResult(intent, getUploadingActivityRequestCode)
+                afterUploadingActivityFinishes.launch(
+                    Intent(this, UploadingActivity::class.java)
+                )
                 true
             }
             R.id.action_add_folder -> {
@@ -87,20 +95,6 @@ class MainActivity : PagerActivity() {
                 true
             }
             else -> false
-        }
-    }
-
-    // For UploadActivity[For getting upload target file]
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == getUploadingActivityRequestCode && resultCode == RESULT_OK) {
-            // Update view since file is uploaded
-            val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
-            pagerViewModel.explorePage(
-                currentPageList[activityMainBinding.viewPager.currentItem].currentFolder,
-                activityMainBinding.viewPager.currentItem,
-                true
-            )
         }
     }
 }
