@@ -16,8 +16,8 @@
             android:layout_height="30dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
             android:src="@drawable/ic_common_file_24" />
 
         <TextView
@@ -43,8 +43,8 @@
             android:layout_height="30dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
             android:src="@drawable/ic_interact_download" />
 
         <TextView
