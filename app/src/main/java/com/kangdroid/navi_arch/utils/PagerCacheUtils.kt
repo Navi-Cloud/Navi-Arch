@@ -5,8 +5,7 @@ import com.kangdroid.navi_arch.adapter.FileAdapter
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton
-class PagerCacheUtils @Inject constructor() {
+class PagerCacheUtils {
     // Cache Related - Only remove cache when upload method is defined.
     private val pageCache: HashMap<String, FileAdapter> = HashMap()
 

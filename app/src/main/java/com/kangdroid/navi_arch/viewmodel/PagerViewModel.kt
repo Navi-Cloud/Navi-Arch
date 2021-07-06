@@ -18,9 +18,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class PagerViewModel @Inject constructor(
-        private val pagerCacheUtils: PagerCacheUtils
-    ): ViewModel() {
+class PagerViewModel @Inject constructor(): ViewModel() {
+
+    // Need to re-create pagerCacheUtils every time, because uploading activity might cause cache collision.
+    private val pagerCacheUtils: PagerCacheUtils = PagerCacheUtils()
 
     // Current Page List
     val pageList: MutableList<FileAdapter> = mutableListOf()
