@@ -33,14 +33,11 @@ import javax.inject.Inject
 // The View
 @AndroidEntryPoint
 class MainActivity : PagerActivity() {
-    // BottomSheetDialog[DI]
-    @Inject
-    lateinit var bottomSheetFragment: FileBottomSheetFragment
-
     // Menu for dynamically hide - show
     private var dynamicMenu: Menu? = null
 
     override val recyclerOnLongClickListener: (FileData) -> Boolean = {
+        val bottomSheetFragment: FileBottomSheetFragment = FileBottomSheetFragment()
         bottomSheetFragment.targetFileData = it
         bottomSheetFragment.refreshPageLambda = {
             pagerViewModel.explorePage(

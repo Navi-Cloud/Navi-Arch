@@ -21,8 +21,7 @@ import com.kangdroid.navi_arch.viewmodel.FileBottomSheetViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-@AndroidEntryPoint
-class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment() {
+class FileBottomSheetFragment : BottomSheetDialogFragment() {
     // Log Tag
     private val logTag: String = this::class.java.simpleName
 
