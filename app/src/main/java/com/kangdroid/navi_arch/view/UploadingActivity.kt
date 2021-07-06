@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.adapter.FileAdapter
@@ -15,7 +17,14 @@ class UploadingActivity: PagerActivity() {
     // in case of code growing for uploading, leave it as View Model
     private val uploadingViewModel: UploadingViewModel by viewModels()
 
-    private val getContentRequestCode: Int = 10
+    // Result Callback[StartActivityForResult]
+    private val resultCallbackLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == RESULT_OK) {
+            it.data?.data?.also { finalUri ->
+                uploadingViewModel.createFileUri(finalUri)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         getContentActivity()
@@ -50,20 +59,12 @@ class UploadingActivity: PagerActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == getContentRequestCode && resultCode == RESULT_OK) {
-            data?.data?.also {
-                uploadingViewModel.createFileUri(it)
-            }
-        }
-    }
-
     private fun getContentActivity() {
         // Call for getting content itself
-        val intent: Intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "*/*"
-        }
-        startActivityForResult(intent, getContentRequestCode)
+        resultCallbackLauncher.launch(
+            Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "*/*"
+            }
+        )
     }
 }
