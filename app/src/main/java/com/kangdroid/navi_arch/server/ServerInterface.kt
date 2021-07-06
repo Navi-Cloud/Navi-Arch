@@ -19,4 +19,5 @@ interface ServerInterface {
     fun loginUser(userLoginRequest : LoginRequest): LoginResponse
     fun register(userRegisterRequest : RegisterRequest) : RegisterResponse
     fun createFolder(createFolderRequestDTO: CreateFolderRequestDTO)
+    fun removeFile(prevToken: String, targetToken: String)
 }

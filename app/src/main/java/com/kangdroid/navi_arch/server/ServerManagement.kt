@@ -32,7 +32,7 @@ class ServerManagement(
                 Log.d(logTag, "Creating Server Management!")
                 val defaultHttpUrl: HttpUrl = HttpUrl.Builder()
                     .scheme("http")
-                    .host("192.168.0.46")
+                    .host("172.30.1.26")
                     .port(8080)
                     .build()
                 serverManagement = ServerManagement(defaultHttpUrl)
@@ -220,6 +220,18 @@ class ServerManagement(
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(createFolderRequest)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
+    }
+
+    override fun removeFile(prevToken: String, targetToken: String) {
+        val removeRequest: Call<ResponseBody> = api.removeFile(getHeaders(), prevToken, targetToken)
+
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(removeRequest)
 
         if (!response.isSuccessful) {
             Log.e(logTag, "${response.code()}")

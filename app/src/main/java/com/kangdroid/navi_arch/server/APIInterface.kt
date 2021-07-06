@@ -36,4 +36,7 @@ interface APIInterface {
     @POST("/api/navi/folder")
     fun createNewFolder(@HeaderMap headerMap: HashMap<String, Any?>, @Body createFolderRequestDTO: CreateFolderRequestDTO): Call<ResponseBody>
 
+    @DELETE("/api/navi/files/{prevToken}/{targetToken}")
+    fun removeFile(@HeaderMap headerMap: HashMap<String, Any?>, @Path("prevToken") prevToken: String, @Path("targetToken") targetToken: String): Call<ResponseBody>
+
 }

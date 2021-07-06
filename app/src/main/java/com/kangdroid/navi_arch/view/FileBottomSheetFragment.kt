@@ -92,6 +92,23 @@ class FileBottomSheetFragment @Inject constructor(): BottomSheetDialogFragment()
                     }
                 }
             }
+
+            // Set Remove Text
+            it.bottomFileRemove.text = resources.getString(R.string.bottom_sheet_default_remove, targetFileData?.fileName)
+            it.bottomFileDeleteView.setOnClickListener {
+                fileBottomSheetViewModel.removeFile(
+                    prevToken = targetFileData!!.prevToken,
+                    targetToken = targetFileData!!.token,
+                    onSuccess = {
+                        Toast.makeText(requireContext(), "Successfully removed target ${targetFileData?.fileName}", Toast.LENGTH_SHORT)
+                            .show()
+                    },
+                    onFailure = {
+                        Toast.makeText(requireContext(), "Cannot remove ${targetFileData?.fileName}", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                )
+            }
         }
     }
 

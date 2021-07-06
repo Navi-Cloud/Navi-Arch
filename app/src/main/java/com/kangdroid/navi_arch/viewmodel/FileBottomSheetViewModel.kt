@@ -35,6 +35,27 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
         }
     }
 
+    fun removeFile(prevToken: String, targetToken: String, onSuccess: (String)->Unit, onFailure: (Throwable) -> Unit) {
+        Log.d(this::class.java.simpleName, "Removing Target")
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    serverManagement.removeFile(prevToken, targetToken)
+                }.onSuccess {
+                    handleData(onSuccess, "")
+                }.onFailure {
+                    handleData(onFailure, it)
+                }
+            }
+        }
+    }
+
+    private suspend fun<T> handleData(handler: (T) -> Unit, inputVariable: T) {
+        withContext(Dispatchers.Main) {
+            handler(inputVariable)
+        }
+    }
+
     private fun saveDownloadedFile(downloadResponse: DownloadResponse) {
         Log.d(this::class.java.simpleName, "Accessing saveDownloadedFile")
         if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED) {
