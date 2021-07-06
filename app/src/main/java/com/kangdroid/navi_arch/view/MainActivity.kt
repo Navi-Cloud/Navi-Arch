@@ -38,7 +38,7 @@ class MainActivity : PagerActivity() {
     lateinit var bottomSheetFragment: FileBottomSheetFragment
 
     // Menu for dynamically hide - show
-    private lateinit var dynamicMenu: Menu
+    private var dynamicMenu: Menu? = null
 
     // UploadingActivity Results Callback
     private val afterUploadingActivityFinishes: ActivityResultLauncher<Intent> =
@@ -60,7 +60,7 @@ class MainActivity : PagerActivity() {
     }
 
     override val errorObserverCallback: ((Throwable) -> Unit) = {
-        dynamicMenu.findItem(R.id.action_upload).isVisible = false
+        dynamicMenu?.findItem(R.id.action_upload)?.isVisible = false
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
