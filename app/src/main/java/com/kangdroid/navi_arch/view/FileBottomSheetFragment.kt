@@ -21,7 +21,11 @@ import com.kangdroid.navi_arch.viewmodel.FileBottomSheetViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
-class FileBottomSheetFragment : BottomSheetDialogFragment() {
+class FileBottomSheetFragment(
+    private val targetFileData: FileData,
+    private val refreshPageLambda: () -> Unit
+
+) : BottomSheetDialogFragment() {
     // Log Tag
     private val logTag: String = this::class.java.simpleName
 
@@ -29,17 +33,11 @@ class FileBottomSheetFragment : BottomSheetDialogFragment() {
     private var permissionGranted: Boolean = false
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
-    // The target file data[For showing the information of file]
-    var targetFileData: FileData? = null
-
     // Layout Binding
     private var layoutBottomBinding: LayoutBottomBinding? = null
 
     // View Model for File Bottom Sheet[DI]
     private val fileBottomSheetViewModel: FileBottomSheetViewModel by viewModels()
-
-    var refreshPageLambda: () -> Unit = {}
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -66,7 +64,7 @@ class FileBottomSheetFragment : BottomSheetDialogFragment() {
         layoutBottomBinding?.let {
             // Set Image File/Folder
             it.bottomFileType.setImageResource(
-                when (targetFileData?.fileType) {
+                when (targetFileData.fileType) {
                     FileType.Folder.toString() -> R.drawable.ic_common_folder_24
                     FileType.File.toString() -> R.drawable.ic_common_file_24
                     else -> R.drawable.ic_common_file_24
@@ -74,15 +72,15 @@ class FileBottomSheetFragment : BottomSheetDialogFragment() {
             )
 
             // Set Corresponding texts
-            it.bottomFileName.text = targetFileData?.fileName
-            if (targetFileData?.fileType == FileType.Folder.toString()) {
+            it.bottomFileName.text = targetFileData.fileName
+            if (targetFileData.fileType == FileType.Folder.toString()) {
                 // Disable Download when folder is long-clicked
                 it.bottomFileDownloadView.visibility = View.GONE
             } else {
-                it.bottomFileDownload.text = resources.getString(R.string.bottom_sheet_default_download, targetFileData?.fileName)
+                it.bottomFileDownload.text = resources.getString(R.string.bottom_sheet_default_download, targetFileData.fileName)
 
                 // Set On Click Listener for download
-                targetFileData?.let { inputFileData ->
+                targetFileData.let { inputFileData ->
                     // TODO: Check Storage Permission First
                     it.bottomFileDownloadView.setOnClickListener { _ ->
                         checkPermission()
@@ -95,18 +93,18 @@ class FileBottomSheetFragment : BottomSheetDialogFragment() {
             }
 
             // Set Remove Text
-            it.bottomFileRemove.text = resources.getString(R.string.bottom_sheet_default_remove, targetFileData?.fileName)
+            it.bottomFileRemove.text = resources.getString(R.string.bottom_sheet_default_remove, targetFileData.fileName)
             it.bottomFileDeleteView.setOnClickListener {
                 fileBottomSheetViewModel.removeFile(
                     prevToken = targetFileData!!.prevToken,
                     targetToken = targetFileData!!.token,
                     onSuccess = {
-                        Toast.makeText(requireContext(), "Successfully removed target ${targetFileData?.fileName}", Toast.LENGTH_SHORT)
+                        Toast.makeText(requireContext(), "Successfully removed target ${targetFileData.fileName}", Toast.LENGTH_SHORT)
                             .show()
                         refreshPageLambda()
                     },
                     onFailure = {
-                        Toast.makeText(requireContext(), "Cannot remove ${targetFileData?.fileName}", Toast.LENGTH_SHORT)
+                        Toast.makeText(requireContext(), "Cannot remove ${targetFileData.fileName}", Toast.LENGTH_SHORT)
                             .show()
                     }
                 )

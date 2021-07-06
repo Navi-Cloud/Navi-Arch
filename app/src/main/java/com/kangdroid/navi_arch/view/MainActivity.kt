@@ -37,15 +37,16 @@ class MainActivity : PagerActivity() {
     private var dynamicMenu: Menu? = null
 
     override val recyclerOnLongClickListener: (FileData) -> Boolean = {
-        val bottomSheetFragment: FileBottomSheetFragment = FileBottomSheetFragment()
-        bottomSheetFragment.targetFileData = it
-        bottomSheetFragment.refreshPageLambda = {
-            pagerViewModel.explorePage(
-                pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder,
-                activityMainBinding.viewPager.currentItem,
-                true
-            )
-        }
+        val bottomSheetFragment: FileBottomSheetFragment = FileBottomSheetFragment(
+            targetFileData = it,
+            refreshPageLambda = {
+                pagerViewModel.explorePage(
+                    pagerViewModel.pageList[activityMainBinding.viewPager.currentItem].currentFolder,
+                    activityMainBinding.viewPager.currentItem,
+                    true
+                )
+            }
+        )
         bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
         true
     }
