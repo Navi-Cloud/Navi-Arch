@@ -46,11 +46,7 @@ class UploadingActivity: PagerActivity() {
                 val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
                 uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token) {
                     // Set UploadingActivity Result as RESULT_OK
-                    val intent: Intent = Intent().apply {
-                        setResult(RESULT_OK)
-                    }
-
-                    // Finish Activity
+                    setResult(RESULT_OK)
                     finish()
                 }
                 true
