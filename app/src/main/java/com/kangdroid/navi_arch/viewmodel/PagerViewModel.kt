@@ -23,17 +23,8 @@ class PagerViewModel @Inject constructor(): ViewModel() {
     // Need to re-create pagerCacheUtils every time, because uploading activity might cause cache collision.
     private val pagerCacheUtils: PagerCacheUtils = PagerCacheUtils()
 
-    // Current Page List
-    val pageList: MutableList<FileAdapter> = mutableListOf()
-
     // Set of pages for preventing same page is spammed.
     private val pageSet: MutableSet<String> = mutableSetOf()
-
-    // The data we are going to share with view[MainActivity]
-    val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
-
-    // Error Data in case of server connection issues
-    val liveErrorData: MutableLiveData<Throwable> = MutableLiveData()
 
     // Server Management
     private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
@@ -55,6 +46,15 @@ class PagerViewModel @Inject constructor(): ViewModel() {
 
     // Inner Recycler View onLongClickListener
     var recyclerOnLongClickListener: ((FileData) -> Boolean)? = null
+
+    // The data we are going to share with view[MainActivity]
+    val livePagerData: MutableLiveData<MutableList<FileAdapter>> = MutableLiveData()
+
+    // Error Data in case of server connection issues
+    val liveErrorData: MutableLiveData<Throwable> = MutableLiveData()
+
+    // Current Page List
+    val pageList: MutableList<FileAdapter> = mutableListOf()
 
     // Sort
     fun sort(mode: FileSortingMode, reverse: Boolean, pageNum: Int) {
@@ -78,30 +78,6 @@ class PagerViewModel @Inject constructor(): ViewModel() {
         livePagerData.value = pageList
     }
 
-    private fun updatePageAndNotify(
-        fileAdapter: FileAdapter,
-        targetToken: String,
-        addToCache: Boolean = false
-    ) {
-        // For Non-Automatic
-        pageSet.add(targetToken)
-
-        // Update Cache - Always add cache when requesting root
-        if (addToCache) {
-            // Invalidate cache first
-            pagerCacheUtils.invalidateCache(targetToken)
-
-            // Create Cache
-            pagerCacheUtils.createCache(targetToken, fileAdapter)
-        }
-
-        // Add to pageList
-        pageList.add(fileAdapter)
-
-        // Notify live pager data
-        livePagerData.value = pageList
-    }
-
     // Create page
     fun createInitialRootPage() {
         // Network on other thread
@@ -120,6 +96,46 @@ class PagerViewModel @Inject constructor(): ViewModel() {
     // Create Additional Page
     fun explorePage(nextFolder: FileData, requestedPageNumber: Int, cleanUp: Boolean = false) {
         // Invalidate all cache, set, pageList to cleanup[New-Fetch]
+        cleanUpListCache(nextFolder, cleanUp)
+
+        // Remove preceding pages if required.
+        removePrecedingPages(requestedPageNumber)
+
+        // Request Page - if we have page on cache, use it, or we request from server.
+        requestPageWithCache(nextFolder)
+    }
+
+    // Update Cache Contents
+    private fun updateCacheContents(fileAdapter: FileAdapter, targetToken: String, addToCache: Boolean) {
+        // Update Cache - Always add cache when requesting root
+        if (addToCache) {
+            // Invalidate cache first
+            pagerCacheUtils.invalidateCache(targetToken)
+
+            // Create Cache
+            pagerCacheUtils.createCache(targetToken, fileAdapter)
+        }
+    }
+
+    private fun updatePageAndNotify(
+        fileAdapter: FileAdapter,
+        targetToken: String,
+        addToCache: Boolean = false
+    ) {
+        // For Non-Automatic
+        pageSet.add(targetToken)
+
+        // Update cache if addToCache is true.
+        updateCacheContents(fileAdapter, targetToken, addToCache)
+
+        // Add to pageList
+        pageList.add(fileAdapter)
+
+        // Notify live pager data
+        livePagerData.value = pageList
+    }
+
+    private fun cleanUpListCache(nextFolder: FileData, cleanUp: Boolean) {
         if (cleanUp) {
             pageSet.remove(nextFolder.token)
             pagerCacheUtils.invalidateCache(nextFolder.token)
@@ -127,10 +143,9 @@ class PagerViewModel @Inject constructor(): ViewModel() {
                 it.currentFolder.token == nextFolder.token
             }
         }
+    }
 
-        // Remove preceding pages if required.
-        removePrecedingPages(requestedPageNumber)
-
+    private fun requestPageWithCache(nextFolder: FileData) {
         // Find whether token is on page.
         if (!pageSet.contains(nextFolder.token)) {
             // Check for cache
