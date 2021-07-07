@@ -151,7 +151,7 @@ class ServerManagementHelperTest {
     }
 
     @Test
-    fun is_handleDataError_throws_RuntimeException_correct_errorcode() {
+    fun is_handleDataError_throws_RuntimeException() {
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(
@@ -171,7 +171,7 @@ class ServerManagementHelperTest {
             ServerManagementHelper.handleDataError(ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
-            assertThat(it is SocketTimeoutException).isEqualTo(true) // Is this OK??
+            assertThat(it is RuntimeException).isEqualTo(true)
         }.onSuccess {
             fail("This should result in fail, because we are using wrong json string.")
         }
