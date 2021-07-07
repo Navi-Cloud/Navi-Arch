@@ -20,9 +20,8 @@ import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class PagerViewModelTest {
-
-    // Fake Server
-    private val fakeServerManagement: FakeServerManagement = FakeServerManagement()
+    // Mock User
+    private val mockUserId: String = "je"
 
     // Target
     private lateinit var pagerViewModel: PagerViewModel
@@ -85,31 +84,32 @@ class PagerViewModelTest {
     }
 
     // Fake adapter
+    private val fakePrevToken: String = "/tmp.token"
     private val fakeFileAdapter: FileAdapter = FileAdapter(
         onClick = { _, _ -> },
         onLongClick = { true },
         fileList = listOf(
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "/tmp/a.txt",
                 fileType = FileType.File.toString(),
                 token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
         ),
         pageNumber = 10,
         currentFolder = FileData(
-            id = 1,
+            userId = mockUserId,
             fileName = "/tmp",
             fileType = FileType.File.toString(),
-            token = "/tmp.token",
-            lastModifiedTime = System.currentTimeMillis()
+            token = fakePrevToken,
+            prevToken = "root"
         )
     )
 
     @Before
     fun createViewModel() {
-        pagerViewModel = PagerViewModel(fakeServerManagement, PagerCacheUtils())
+        pagerViewModel = PagerViewModel(PagerCacheUtils())
     }
 
     @Test
@@ -177,10 +177,11 @@ class PagerViewModelTest {
             .call(
                 pagerViewModel,
                 FileData(
+                    userId = mockUserId,
                     fileName = "testFileName",
                     fileType = "Folder",
                     token = "TestToken",
-                    lastModifiedTime = System.currentTimeMillis()
+                    prevToken = "TestPrevToken"
                 ),
                 false
             )
@@ -207,32 +208,32 @@ class PagerViewModelTest {
     fun is_sortList_works_well_normal() {
         val mockInsideFilesResult: List<FileData> = listOf(
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "b",
                 fileType = FileType.File.toString(),
                 token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "a",
                 fileType = FileType.File.toString(),
                 token = "/tmp/b.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "c",
                 fileType = FileType.File.toString(),
                 token = "/tmp/c.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "0",
                 fileType = FileType.Folder.toString(),
                 token = "/tmp/test.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             )
         )
 
@@ -250,32 +251,32 @@ class PagerViewModelTest {
     fun is_sortList_works_well_reversed() {
         val mockInsideFilesResult: List<FileData> = listOf(
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "b",
                 fileType = FileType.File.toString(),
                 token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "a",
                 fileType = FileType.File.toString(),
                 token = "/tmp/b.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "c",
                 fileType = FileType.File.toString(),
                 token = "/tmp/c.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             ),
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "0",
                 fileType = FileType.Folder.toString(),
                 token = "/tmp/test.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = fakePrevToken
             )
         )
 
