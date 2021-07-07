@@ -170,13 +170,22 @@ class ServerManagement(
         }
 
         // Get Content Name
-        val header: String = response.headers()["Content-Disposition"].apply {
-            // Since raw header is encoded with URL Scheme, decode it.
-            URLDecoder.decode(this, "UTF-8")
-        } ?: throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
+        var header: String? = null
+        runCatching {
+            response.headers()["Content-Disposition"].apply {
+                // Since raw header is encoded with URL Scheme, decode it.
+                URLDecoder.decode(this, "UTF-8")
+            }
+        }.onSuccess {
+            header = it!!
+        }.onFailure {
+            // If header "Content-Disposition" is not exist, URLDecoder.decode throw NPE
+            // If character encoding is not supported, URLDecoder.decode throw UnsupportedEncodingException
+            throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
+        }
 
         // Get file Name from header
-        val fileName: String = header.replace("attachment; filename=\"", "").let {
+        val fileName: String = header!!.replace("attachment; filename=\"", "").let {
             it.substring(it.lastIndexOf("/") + 1, it.length - 1)
         }
         Log.d(logTag, "fileName : $fileName")
