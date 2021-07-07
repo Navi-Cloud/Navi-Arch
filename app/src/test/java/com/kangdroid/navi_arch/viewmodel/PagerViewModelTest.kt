@@ -127,7 +127,7 @@ class PagerViewModelTest {
         setDispatcherHandler {
             when {
                 it.path == "/api/navi/root-token" -> MockResponse().setResponseCode(OK).setBody(
-                    objectMapper.writeValueAsString(RootTokenResponseDto("Token")))
+                    objectMapper.writeValueAsString(RootTokenResponseDto(mockRootToken)))
                 it.path!!.contains("/api/navi/files/list/") -> MockResponse().setResponseCode(OK).setBody(
                     objectMapper.writeValueAsString(mockInsideFilesResult)
                 )
@@ -167,6 +167,7 @@ class PagerViewModelTest {
             prevToken = "root"
         )
     )
+    private val mockRootToken: String = "RootToken"
     private val mockInsideFilesResult: List<FileData> = listOf(
         FileData(
             userId = mockUserId,
@@ -253,7 +254,6 @@ class PagerViewModelTest {
         // Mock Server init
         initServerManagement()
 
-
         getFunction("innerExplorePage")
             .call(
                 pagerViewModel,
@@ -285,6 +285,109 @@ class PagerViewModelTest {
         assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
     }
 
+    @Test
+    fun is_innerExplorePage_works_well_root() {
+        // Mock Server init
+        initServerManagement()
+
+        getFunction("innerExplorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = "TestToken",
+                    prevToken = "TestPrevToken"
+                ),
+                true
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+        assertThat(pageSet.contains(mockRootToken)).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
+    }
+
+    @Test
+    fun is_innerExplorePage_throw_error_when_fail_getRootToken() {
+        // Mock Server init
+        initServerManagement()
+        setDispatcherHandler {  MockResponse().setResponseCode(INTERNAL_SERVER_ERROR) }
+
+        getFunction("innerExplorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = "TestToken",
+                    prevToken = "TestPrevToken"
+                ),
+                true
+            )
+
+        // Get Live Data
+        val liveErrorData: Throwable? =
+            pagerViewModel.liveErrorData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(liveErrorData).isNotEqualTo(null)
+        assertThat(pageSet.size).isEqualTo(0)
+        assertThat(pageList.size).isEqualTo(0)
+    }
+
+    @Test
+    fun is_innerExplorePage_throw_error_when_fail_getInsideFiles() {
+        // Mock Server init
+        initServerManagement()
+        setDispatcherHandler {  MockResponse().setResponseCode(INTERNAL_SERVER_ERROR) }
+
+        getFunction("innerExplorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = "TestToken",
+                    prevToken = "TestPrevToken"
+                ),
+                true
+            )
+
+        // Get Live Data
+        val liveErrorData: Throwable? =
+            pagerViewModel.liveErrorData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(liveErrorData).isNotEqualTo(null)
+        assertThat(pageSet.size).isEqualTo(0)
+        assertThat(pageList.size).isEqualTo(0)
+    }
 
     @Test
     fun is_sortList_works_well_normal() {
