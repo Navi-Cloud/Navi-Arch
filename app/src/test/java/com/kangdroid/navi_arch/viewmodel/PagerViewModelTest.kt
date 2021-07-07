@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import com.kangdroid.navi_arch.server.ServerManagement
@@ -710,5 +711,287 @@ class PagerViewModelTest {
 
         // Assert
         assertThat(resultList.size).isEqualTo(0)
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedName_asc() {
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.TypedName,
+                false, // reverse = false
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileType < targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType < targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].fileName < targetFileList[1].fileName){
+            assertThat(targetFileList[0].fileName < targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime <= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedName_desc() {
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.TypedName,
+                true, // reverse = true
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileType > targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType > targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].fileName > targetFileList[1].fileName){
+            assertThat(targetFileList[0].fileName > targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime >= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedLMT_asc() {
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.TypedLMT,
+                false, // reverse = false
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        if (targetFileList[0].fileType < targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType < targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName <= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedLMT_desc() {
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.TypedLMT,
+                true, // reverse = true
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileType > targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType > targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName >= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_Name_asc() {
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.Name,
+                false, // reverse = false
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        if (targetFileList[0].fileName < targetFileList[1].fileName) {
+            assertThat(targetFileList[0].fileName < targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime <= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_Name_desc() {
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.Name,
+                true, // reverse = true
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileName > targetFileList[1].fileName){
+            assertThat(targetFileList[0].fileName > targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime >= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_LMT_asc() {
+        fakeFileAdapter.fileList[0].lastModifiedTime = 2000
+        fakeFileAdapter.fileList[1].lastModifiedTime = 1000
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.LMT,
+                false, // reverse = false
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        if (targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName <= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_LMT_desc() {
+        fakeFileAdapter.fileList[0].lastModifiedTime = 2000
+        fakeFileAdapter.fileList[1].lastModifiedTime = 1000
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // do
+        val requestPageNum: Int = 0
+        getFunction("sort")
+            .call(
+                pagerViewModel,
+                FileSortingMode.LMT,
+                true, // reverse = true
+                requestPageNum
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo(fakePrevToken)
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName >= targetFileList[1].fileName).isEqualTo(true)
+        }
     }
 }
