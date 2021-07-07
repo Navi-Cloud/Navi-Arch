@@ -17,6 +17,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -144,29 +145,17 @@ class PagerViewModelTest {
         }
     }
 
+    private fun set_PageSet_List_Cache(targetPrevToken: String, targetFileAdapter: FileAdapter) {
+        getFields<MutableSet<String>>("pageSet").add(targetPrevToken)
+        getFields<MutableList<FileAdapter>>("pageList").add(targetFileAdapter)
+        getFields<PagerCacheUtils>("pagerCacheUtils").createCache(
+            targetPrevToken,
+            targetFileAdapter
+        )
+    }
+
     // Fake data
     private val fakePrevToken: String = "/tmp.token"
-    private val fakeFileAdapter: FileAdapter = FileAdapter(
-        onClick = { _, _ -> },
-        onLongClick = { true },
-        fileList = listOf(
-            FileData(
-                userId = mockUserId,
-                fileName = "/tmp/a.txt",
-                fileType = FileType.File.toString(),
-                token = "/tmp/a.txt.token",
-                prevToken = fakePrevToken
-            ),
-        ),
-        pageNumber = 10,
-        currentFolder = FileData(
-            userId = mockUserId,
-            fileName = "/tmp",
-            fileType = FileType.File.toString(),
-            token = fakePrevToken,
-            prevToken = "root"
-        )
-    )
     private val mockRootToken: String = "RootToken"
     private val mockInsideFilesResult: List<FileData> = listOf(
         FileData(
@@ -183,6 +172,19 @@ class PagerViewModelTest {
             token = "/tmp/b.txt.token",
             prevToken = fakePrevToken
         ),
+    )
+    private val fakeFileAdapter: FileAdapter = FileAdapter(
+        onClick = { _, _ -> },
+        onLongClick = { true },
+        fileList = mockInsideFilesResult,
+        pageNumber = 10,
+        currentFolder = FileData(
+            userId = mockUserId,
+            fileName = "/tmp",
+            fileType = FileType.File.toString(),
+            token = fakePrevToken,
+            prevToken = "root"
+        )
     )
 
     @Before
@@ -217,7 +219,7 @@ class PagerViewModelTest {
         // Page List Test
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.token).isEqualTo("/tmp.token")
-        assertThat(pageList[0].fileList.size).isEqualTo(1)
+        assertThat(pageList[0].fileList.size).isEqualTo(2)
     }
 
     @Test
@@ -246,7 +248,7 @@ class PagerViewModelTest {
         // Page List Test
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.token).isEqualTo("/tmp.token")
-        assertThat(pageList[0].fileList.size).isEqualTo(1)
+        assertThat(pageList[0].fileList.size).isEqualTo(2)
     }
 
     @Test
@@ -387,6 +389,171 @@ class PagerViewModelTest {
         assertThat(liveErrorData).isNotEqualTo(null)
         assertThat(pageSet.size).isEqualTo(0)
         assertThat(pageList.size).isEqualTo(0)
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_true_with_no_cache() {
+        initServerManagement()
+
+        // explorePage with cleanUp = true
+        getFunction("explorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = fakePrevToken,
+                    prevToken = "TestPrevToken"
+                ),
+                10,
+                true) // cleanUp = true
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+        assertThat(pageSet.contains(fakePrevToken)).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageSet.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_true_with_cache() {
+        initServerManagement()
+
+        // Set data first: token = fakePrevToken, fileAdapter = fakeFileAdapter
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // explorePage with cleanUp = true
+        getFunction("explorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = fakePrevToken,
+                    prevToken = "TestPrevToken"
+                ),
+                10,
+                true) // cleanUp = true
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+        assertThat(pageSet.contains(fakePrevToken)).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageSet.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_false_with_no_cache() {
+        initServerManagement()
+
+        // explorePage with cleanUp = false
+        getFunction("explorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = fakePrevToken,
+                    prevToken = "TestPrevToken"
+                ),
+                10,
+                false) // cleanUp = false
+
+        // Get Live Data will NOT be fail since page cache hasn't FileData
+        runCatching {
+            pagerViewModel.livePagerData.getOrAwaitValue()
+        }.onSuccess {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it!!.size).isEqualTo(1)
+        }.onFailure {
+            fail("This Should be success...")
+        }
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(pageSet.contains(fakePrevToken)).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageSet.size).isEqualTo(1)
+
+        // This will be "testFileName" (Because there aren't any data with fakePrevToken)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_false_with_cache() {
+        initServerManagement()
+
+        // Set data first: token = fakePrevToken, fileAdapter = fakeFileAdapter
+        set_PageSet_List_Cache(fakePrevToken, fakeFileAdapter)
+
+        // explorePage with cleanUp = false
+        getFunction("explorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserId,
+                    fileName = "testFileName",
+                    fileType = "Folder",
+                    token = fakePrevToken,
+                    prevToken = "TestPrevToken"
+                ),
+                10,
+                false) // cleanUp = false
+
+        // Get Live Data will be fail since page cache has FileData (no clean up)
+        runCatching {
+            pagerViewModel.livePagerData.getOrAwaitValue()
+        }.onSuccess {
+            fail("This Should be fail...")
+        }.onFailure {
+            assertThat(it is TimeoutException).isEqualTo(true)
+        }
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(pageSet.contains(fakePrevToken)).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageSet.size).isEqualTo(1)
+
+        // This will be fakeFileAdapter.currentFolder.fileName, not "testFileName" (Because it doesn't clean up)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo(fakeFileAdapter.currentFolder.fileName)
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
     }
 
     @Test
