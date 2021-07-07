@@ -11,6 +11,8 @@ import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 
 class FakeServerManagement : ServerInterface {
+    private val fakeUserId = "je"
+
     override fun initWholeServerClient(): Boolean = true
 
     override fun getRootToken(): RootTokenResponseDto = RootTokenResponseDto(
@@ -19,38 +21,38 @@ class FakeServerManagement : ServerInterface {
 
     override fun getInsideFiles(requestToken: String): List<FileData> = listOf(
         FileData(
-            id = 10,
+            userId = fakeUserId,
             fileName = "/tmp/a.txt",
             fileType = FileType.File.toString(),
             token = "/tmp/a.txt.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = requestToken
         ),
         FileData(
-            id = 10,
+            userId = fakeUserId,
             fileName = "/tmp/b.txt",
             fileType = FileType.File.toString(),
             token = "/tmp/b.txt.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = requestToken
         ),
         FileData(
-            id = 10,
+            userId = fakeUserId,
             fileName = "/tmp/c.txt",
             fileType = FileType.File.toString(),
             token = "/tmp/c.txt.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = requestToken
         ),
         FileData(
-            id = 10,
+            userId = fakeUserId,
             fileName = "/tmp/test",
             fileType = FileType.Folder.toString(),
             token = "/tmp/test.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = requestToken
         )
     )
 
     override fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String = "10"
 
-    override fun download(token: String): DownloadResponse = DownloadResponse(
+    override fun download(token: String, prevToken: String): DownloadResponse = DownloadResponse(
         fileContents = ResponseBody.create("multipart/form-data".toMediaTypeOrNull(), "test"),
         fileName = "TestingFileName"
     )
