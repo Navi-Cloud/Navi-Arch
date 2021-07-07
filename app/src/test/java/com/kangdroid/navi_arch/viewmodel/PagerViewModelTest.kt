@@ -390,6 +390,34 @@ class PagerViewModelTest {
     }
 
     @Test
+    fun is_createInitialRootPage_works_well() {
+        // Mock Server init
+        initServerManagement()
+
+        getFunction("createInitialRootPage")
+            .call(
+                pagerViewModel
+            )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet")
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList")
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+        assertThat(pageSet.contains(mockRootToken)).isEqualTo(true)
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.fileName).isEqualTo("/")
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
+    }
+
+    @Test
     fun is_sortList_works_well_normal() {
         val mockInsideFilesResult: List<FileData> = listOf(
             FileData(
