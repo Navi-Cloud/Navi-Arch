@@ -34,7 +34,7 @@ class ServerManagement(
                 Log.d(logTag, "Creating Server Management!")
                 val defaultHttpUrl: HttpUrl = HttpUrl.Builder()
                     .scheme("http")
-                    .host("172.30.1.26")
+                    .host("192.168.0.46")
                     .port(8080)
                     .build()
                 serverManagement = ServerManagement(defaultHttpUrl)
@@ -234,7 +234,7 @@ class ServerManagement(
     }
 
     override fun removeFile(prevToken: String, targetToken: String) {
-        val removeRequest: Call<ResponseBody> = api.removeFile(getHeaders(), encodeString(prevToken), encodeString(prevToken))
+        val removeRequest: Call<ResponseBody> = api.removeFile(getHeaders(), encodeString(prevToken), encodeString(targetToken))
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(removeRequest)
