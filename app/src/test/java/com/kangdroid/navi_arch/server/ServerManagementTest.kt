@@ -40,45 +40,43 @@ class ServerManagementTest {
     // Server Management Object
     private val serverManagement: ServerManagement by lazy {
         ServerManagement(
-            baseUrl,
-            ServerManagementHelper(
-                objectMapper
-            )
+            baseUrl
         )
     }
 
 
     // Mock Objects
+    private val mockUserId: String = "je"
     private val mockUserToken: LoginResponse = LoginResponse("world")
     private val mockRootToken: RootTokenResponseDto = RootTokenResponseDto("hello~")
     private val mockInsideFilesResult: List<FileData> = listOf(
         FileData(
-            id = 10,
+            userId = mockUserId,
             fileName = "/tmp/a.txt",
             fileType = FileType.File.toString(),
             token = "/tmp/a.txt.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = mockRootToken.rootToken
         ),
         FileData(
-            id = 10,
+            userId = mockUserId,
             fileName = "/tmp/b.txt",
             fileType = FileType.File.toString(),
             token = "/tmp/b.txt.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = mockRootToken.rootToken
         ),
         FileData(
-            id = 10,
+            userId = mockUserId,
             fileName = "/tmp/c.txt",
             fileType = FileType.File.toString(),
             token = "/tmp/c.txt.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = mockRootToken.rootToken
         ),
         FileData(
-            id = 10,
+            userId = mockUserId,
             fileName = "/tmp/test",
             fileType = FileType.Folder.toString(),
             token = "/tmp/test.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = mockRootToken.rootToken
         )
     )
 
@@ -486,7 +484,7 @@ class ServerManagementTest {
         val mockFileContent: String = "Whatever"
         val fileHeader: String = String.format("attachment; filename=\"%s\"", URLEncoder.encode(mockFileName, "UTF-8"))
         setDispatcherHandler {
-            if (it.path?.contains("/api/navi/files/") == true) {
+            if (it.path?.contains("/api/navi/files") == true) {
                 MockResponse().setResponseCode(OK)
                     .setHeader("Content-Disposition", fileHeader)
                     .setBody(mockFileContent)
@@ -496,7 +494,7 @@ class ServerManagementTest {
         }
 
         runCatching {
-            serverManagement.download("TestToken")
+            serverManagement.download("TestToken", "TestPrevToken")
         }.onFailure {
             fail("This test should passed since we mocked our server to be succeed.")
         }.onSuccess {
@@ -515,7 +513,7 @@ class ServerManagementTest {
             )
         )
         setDispatcherHandler {
-            if (it.path?.contains("/api/navi/files/") == true) {
+            if (it.path?.contains("/api/navi/files") == true) {
                 MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(errorMessage)
             } else {
                 MockResponse().setResponseCode(OK)
@@ -523,7 +521,7 @@ class ServerManagementTest {
         }
 
         runCatching {
-            serverManagement.download("TestToken")
+            serverManagement.download("TestToken", "TestPrevToken")
         }.onFailure {
             println(it.stackTraceToString())
             assertThat(it is RuntimeException).isEqualTo(true)
@@ -544,7 +542,7 @@ class ServerManagementTest {
             )
         )
         setDispatcherHandler {
-            if (it.path?.contains("/api/navi/files/") == true) {
+            if (it.path?.contains("/api/navi/files") == true) {
                 if(it.headers["X-AUTH-TOKEN"] == mockUserToken.userToken) {
                     MockResponse().setResponseCode(OK)
                         .setBody(objectMapper.writeValueAsString(mockRootToken))
@@ -557,12 +555,38 @@ class ServerManagementTest {
         }
 
         runCatching {
-            serverManagement.download("TestToken")
+            serverManagement.download("TestToken", "TestPrevToken")
         }.onFailure {
             println(it.stackTraceToString())
-            assertThat(it is RuntimeException).isEqualTo(true)
-            assertThat(it.message).contains("Server responded with:")
             assertThat(it.message).contains("NOT FOUND")
+        }.onSuccess {
+            fail("This test should be failed since we mocked our server to be failed")
+        }
+    }
+
+    @Test
+    fun is_download_throws_IllegalArgumentException() {
+        // When response header dose not include "Content-Disposition", throw IllegalArgumentException
+        serverManagement.userToken = mockUserToken.userToken
+        setDispatcherHandler {
+            if (it.path?.contains("/api/navi/files")!!) {
+                if(it.headers["X-AUTH-TOKEN"] == mockUserToken.userToken) {
+                    MockResponse().setResponseCode(OK)
+                        .setBody(objectMapper.writeValueAsString(mockRootToken))
+                } else {
+                    MockResponse().setResponseCode(NOT_FOUND_ERROR)
+                }
+            } else {
+                MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
+            }
+        }
+
+        runCatching {
+            serverManagement.download("TestToken", "TestPrevToken")
+        }.onFailure {
+            println(it.stackTraceToString())
+            assertThat(it is IllegalArgumentException).isEqualTo(true)
+            assertThat(it.message).contains("Content-Disposition is NEEDED somehow, but its missing!")
         }.onSuccess {
             fail("This test should be failed since we mocked our server to be failed")
         }
