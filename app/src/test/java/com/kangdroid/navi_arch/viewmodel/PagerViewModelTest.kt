@@ -3,11 +3,21 @@ package com.kangdroid.navi_arch.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileType
+import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
+import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.utils.PagerCacheUtils
+import okhttp3.HttpUrl
+import okhttp3.mockwebserver.Dispatcher
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -20,9 +30,6 @@ import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.jvm.isAccessible
 
 class PagerViewModelTest {
-    // Mock User
-    private val mockUserId: String = "je"
-
     // Target
     private lateinit var pagerViewModel: PagerViewModel
 
@@ -83,7 +90,61 @@ class PagerViewModelTest {
         }
     }
 
-    // Fake adapter
+    // Mock User
+    private val mockUserId: String = "je"
+
+    // Mock Server
+    private val mockServer: MockWebServer = MockWebServer()
+    private val OK: Int = 200
+    private val INTERNAL_SERVER_ERROR: Int = 500
+    private val baseUrl: HttpUrl by lazy {
+        mockServer.url("")
+    }
+
+    // Object Mapper
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
+    @Before
+    fun init() {
+        mockServer.start(8082)
+    }
+
+    @After
+    fun destroy() {
+        mockServer.shutdown()
+    }
+
+    private fun initServerManagement() {
+        val serverManagement: ServerManagement by lazy {
+            ServerManagement(
+                baseUrl
+            )
+        }
+        serverManagement.userToken = "UserToken"
+        setFields("serverManagement", serverManagement)
+
+        // innerExplorePage needs getInsideFiles() from server
+        setDispatcherHandler {
+            when {
+                it.path == "/api/navi/root-token" -> MockResponse().setResponseCode(OK).setBody(
+                    objectMapper.writeValueAsString(RootTokenResponseDto("Token")))
+                it.path!!.contains("/api/navi/files/list/") -> MockResponse().setResponseCode(OK).setBody(
+                    objectMapper.writeValueAsString(mockInsideFilesResult)
+                )
+                else -> MockResponse().setResponseCode(INTERNAL_SERVER_ERROR)
+            }
+        }
+    }
+
+    private fun setDispatcherHandler(dispatcherHandler: (request: RecordedRequest) -> MockResponse ) {
+        mockServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                return dispatcherHandler(request)
+            }
+        }
+    }
+
+    // Fake data
     private val fakePrevToken: String = "/tmp.token"
     private val fakeFileAdapter: FileAdapter = FileAdapter(
         onClick = { _, _ -> },
@@ -105,6 +166,22 @@ class PagerViewModelTest {
             token = fakePrevToken,
             prevToken = "root"
         )
+    )
+    private val mockInsideFilesResult: List<FileData> = listOf(
+        FileData(
+            userId = mockUserId,
+            fileName = "/tmp/a.txt",
+            fileType = FileType.File.toString(),
+            token = "/tmp/a.txt.token",
+            prevToken = fakePrevToken
+        ),
+        FileData(
+            userId = mockUserId,
+            fileName = "/tmp/b.txt",
+            fileType = FileType.File.toString(),
+            token = "/tmp/b.txt.token",
+            prevToken = fakePrevToken
+        ),
     )
 
     @Before
@@ -173,6 +250,10 @@ class PagerViewModelTest {
 
     @Test
     fun is_innerExplorePage_works_well_non_root() {
+        // Mock Server init
+        initServerManagement()
+
+
         getFunction("innerExplorePage")
             .call(
                 pagerViewModel,
@@ -201,6 +282,7 @@ class PagerViewModelTest {
         assertThat(pageSet.contains("TestToken")).isEqualTo(true)
         assertThat(pageList.size).isEqualTo(1)
         assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
     }
 
 
