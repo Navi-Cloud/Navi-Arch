@@ -17,6 +17,8 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Singleton
 
 class ServerManagement(
@@ -62,6 +64,10 @@ class ServerManagement(
 
     init {
         isServerEnabled = initWholeServerClient()
+    }
+
+    private fun encodeString(inputString: String): String {
+        return URLEncoder.encode(inputString, StandardCharsets.UTF_8.toString())
     }
 
     override fun initWholeServerClient(): Boolean {
@@ -121,7 +127,7 @@ class ServerManagement(
     override fun getInsideFiles(requestToken: String): List<FileData> {
         val insiderFunction: Call<List<FileData>> = api.getInsideFiles(
             headerMap = getHeaders(),
-            token = requestToken)
+            token = encodeString(requestToken))
 
         val response: Response<List<FileData>> =
             serverManagementHelper.exchangeDataWithServer(insiderFunction)
@@ -157,8 +163,8 @@ class ServerManagement(
     override fun download(token: String, prevToken: String): DownloadResponse {
         val downloadingApi: Call<ResponseBody> = api.download(
             headerMap = getHeaders(),
-            token = token,
-            prevToken = prevToken
+            token = encodeString(token),
+            prevToken = encodeString(prevToken)
         )
 
         val response: Response<ResponseBody> =
@@ -228,7 +234,7 @@ class ServerManagement(
     }
 
     override fun removeFile(prevToken: String, targetToken: String) {
-        val removeRequest: Call<ResponseBody> = api.removeFile(getHeaders(), prevToken, targetToken)
+        val removeRequest: Call<ResponseBody> = api.removeFile(getHeaders(), encodeString(prevToken), encodeString(prevToken))
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(removeRequest)
