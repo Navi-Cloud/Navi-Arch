@@ -22,13 +22,18 @@ object ServerManagementHelper {
      * Throws: Exception when network failed.
      */
     fun <T> exchangeDataWithServer(apiFunction: Call<T>): Response<T> {
-        return runCatching {
+        val response: Response<T> = runCatching {
             apiFunction.execute()
         }.getOrElse {
             Log.e(logTag, "Error when getting root token from server.")
             Log.e(logTag, it.stackTraceToString())
             throw it
         }
+
+        if (!response.isSuccessful) {
+            handleDataError(response)
+        }
+        return response
     }
 
     /**
