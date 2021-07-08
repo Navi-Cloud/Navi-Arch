@@ -204,40 +204,6 @@ class PagerViewModelTest {
     }
 
     @Test
-    fun is_innerExplorePage_throw_error_when_fail_getRootToken() {
-        // Mock Server init
-        destroy()
-
-        getFunction<PagerViewModel>("innerExplorePage")
-            .call(
-                pagerViewModel,
-                FileData(
-                    userId = mockUserRegisterRequest.userId,
-                    fileName = "testFileName",
-                    fileType = "Folder",
-                    token = "TestToken",
-                    prevToken = "TestPrevToken"
-                ),
-                true
-            )
-
-        // Get Live Data
-        pagerViewModel.liveErrorData.getOrAwaitValue().also {
-            assertThat(it).isNotEqualTo(null)
-        }
-
-        // Get Value for set
-        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
-            assertThat(it.size).isEqualTo(0)
-        }
-
-        // Page List
-        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
-            assertThat(it.size).isEqualTo(0)
-        }
-    }
-
-    @Test
     fun is_explorePage_works_when_cleanUp_true_with_no_cache() {
         registerAndLogin()
         val rootToken: String = serverManagement.getRootToken().rootToken
