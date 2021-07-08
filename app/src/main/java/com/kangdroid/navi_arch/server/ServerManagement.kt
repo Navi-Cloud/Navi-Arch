@@ -28,15 +28,15 @@ class ServerManagement(
     companion object {
         private var serverManagement: ServerManagement? = null
         private val logTag: String = this::class.java.simpleName
+        private val serverDefaultUrl: HttpUrl = HttpUrl.Builder()
+            .scheme("http")
+            .host("192.168.0.46")
+            .port(8080)
+            .build()
 
-        fun getServerManagement(): ServerManagement {
+        fun getServerManagement(defaultHttpUrl: HttpUrl = serverDefaultUrl): ServerManagement {
             if (serverManagement == null) {
                 Log.d(logTag, "Creating Server Management!")
-                val defaultHttpUrl: HttpUrl = HttpUrl.Builder()
-                    .scheme("http")
-                    .host("192.168.0.46")
-                    .port(8080)
-                    .build()
                 serverManagement = ServerManagement(defaultHttpUrl)
             }
             return serverManagement!!
@@ -221,11 +221,6 @@ class ServerManagement(
 
         val response: Response<RegisterResponse> =
             serverManagementHelper.exchangeDataWithServer(registerUserRequest)
-
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
 
         return response.body()!!
     }
