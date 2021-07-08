@@ -1,9 +1,11 @@
 package com.kangdroid.navi_arch
 
-import kotlinx.coroutines.runBlocking
+import at.favre.lib.bytes.Bytes
+import kotlinx.coroutines.*
+import java.io.BufferedReader
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.InputStreamReader
 import java.lang.Thread.sleep
 import java.net.URL
 import java.nio.channels.Channels
@@ -11,7 +13,6 @@ import java.nio.channels.ReadableByteChannel
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.MessageDigest
-import javax.xml.bind.DatatypeConverter
 
 object ServerSetup {
     // Server Download URL
@@ -20,18 +21,24 @@ object ServerSetup {
     // Server Store Location
     private val downloadTargetFile: File = File(System.getProperty("java.io.tmpdir"), "tmpServer.jar")
 
+    // Server Heartbeat URL
+    private val serverUrl: URL = URL("http://localhost:8080/")
+
     // File MD5
     private const val fileMd5Sum: String = "57137ca341e3820e59c1c4e986dfaef9"
 
     private var targetProcess: Process? = null
 
-    private fun inspectMd5File(file: File): String {
+    // Server Jobs
+    private var serverJob: Job? = null
+
+    private fun inspectMd5File(): String {
         val fileBytes: ByteArray = Files.readAllBytes(
             Paths.get(downloadTargetFile.absolutePath)
         )
         val digestedHash: ByteArray = MessageDigest.getInstance("MD5").digest(fileBytes)
 
-        return DatatypeConverter.printHexBinary(digestedHash).toLowerCase()
+        return Bytes.wrap(digestedHash).encodeHex()
     }
 
     // Cycle Starts
@@ -48,61 +55,35 @@ object ServerSetup {
         }
     }
 
-    private fun downloadFile() {
-        if (!downloadTargetFile.exists()) {
-            logDebug("No Cached content for now. Downloading file content...")
-            downloadInitialFile()
-        } else {
-            val tmpMd5Sum: String = inspectMd5File(downloadTargetFile)
-            if (fileMd5Sum != tmpMd5Sum) {
-                logError("File exists, but different MD5!")
-                logError("Local: ${tmpMd5Sum}, Server: ${fileMd5Sum}!")
-                downloadInitialFile()
-            }
-        }
-    }
-
-    private fun downloadInitialFile() {
-        val downloadChannel: ReadableByteChannel = Channels.newChannel(downloadUrl.openStream())
-        FileOutputStream(downloadTargetFile).also {
-            it.channel.transferFrom(downloadChannel, 0, Long.MAX_VALUE)
-            it.close()
-        }
-        downloadChannel.close()
-    }
-
     private fun executeFile() {
         logDebug("Executing Server!")
+
+        // Create Command List
         val processBuilder: ProcessBuilder = ProcessBuilder(
             listOf("java", "-jar", downloadTargetFile.absolutePath)
         )
-        targetProcess = processBuilder.start()
+
+        // Launch Server
+        serverJob = launchServer(processBuilder)
 
         logDebug("Waiting for server to run..!")
         runBlocking {
-            val serverUrl: URL = URL("http://localhost:8080/")
-            while (true) {
-                if (serverHeartBeat(serverUrl)) {
-                    logDebug("Server is now running :)")
-                    break
-                } else {
-                    logError("Seems like server isn't still running.")
-                }
-                sleep(1000)
-            }
+            checkServerAlivePoll()
         }
     }
 
-    private fun serverHeartBeat(url: URL): Boolean {
-        runCatching {
-            url.readText()
-        }.onSuccess {
-            return it == "SERVER_RUNNING"
-        }.onFailure {
-            return false
-        }
+    private fun launchServer(processBuilder: ProcessBuilder): Job {
+        return GlobalScope.launch {
+            targetProcess = processBuilder.start()
+            val bufferedReader: BufferedReader = BufferedReader(InputStreamReader(targetProcess?.inputStream))
 
-        return true
+            var str: String? = ""
+            while (true) {
+                str = bufferedReader.readLine()
+                if (str == null) break
+                println(str)
+            }
+        }
     }
 
     private fun killProcess() {
@@ -134,6 +115,17 @@ object ServerSetup {
             logDebug("Seems like server shut down!")
         }
 
+        runBlocking {
+            serverJob?.cancelAndJoin()
+        }
+
+        if (serverJob?.isCompleted == true) {
+            logDebug("Seems like server Coroutine also has been finished!")
+            serverJob = null
+        } else {
+            logError("Seems like there is some leakage of server coroutine..")
+        }
+
         targetProcess = null
     }
 
@@ -148,5 +140,50 @@ object ServerSetup {
 
     private fun logError(input: String) {
         println("E/${ServerSetup::class.java.simpleName}: $input")
+    }
+
+    private fun checkServerAlivePoll() {
+        while (true) {
+            if (serverHeartBeat()) {
+                logDebug("Server is now running :)")
+                break
+            }
+            sleep(1000)
+        }
+    }
+
+    private fun serverHeartBeat(): Boolean {
+        runCatching {
+            serverUrl.readText()
+        }.onSuccess {
+            return it == "SERVER_RUNNING"
+        }.onFailure {
+            return false
+        }
+
+        return true
+    }
+
+    private fun downloadFile() {
+        if (!downloadTargetFile.exists()) {
+            logDebug("No Cached content for now. Downloading file content...")
+            downloadInitialFile()
+        } else {
+            val tmpMd5Sum: String = inspectMd5File()
+            if (fileMd5Sum != tmpMd5Sum) {
+                logError("File exists, but different MD5!")
+                logError("Local: ${tmpMd5Sum}, Server: ${fileMd5Sum}!")
+                downloadInitialFile()
+            }
+        }
+    }
+
+    private fun downloadInitialFile() {
+        val downloadChannel: ReadableByteChannel = Channels.newChannel(downloadUrl.openStream())
+        FileOutputStream(downloadTargetFile).also {
+            it.channel.transferFrom(downloadChannel, 0, Long.MAX_VALUE)
+            it.close()
+        }
+        downloadChannel.close()
     }
 }
