@@ -2,6 +2,7 @@ package com.kangdroid.navi_arch.server
 
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
@@ -210,5 +211,20 @@ class ServerManagement(
         }
 
         return response.body()!!
+    }
+
+    override fun makeFolder(createFolderRequest: CreateFolderRequestDTO) {
+        val makeFolderApi: Call<ResponseBody> = api.makeFolder(
+            headerMap = getHeaders(),
+            createFolderRequest = createFolderRequest
+        )
+
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(makeFolderApi)
+
+        if (!response.isSuccessful) {
+            Log.e(logTag, "${response.code()}")
+            serverManagementHelper.handleDataError(response)
+        }
     }
 }
