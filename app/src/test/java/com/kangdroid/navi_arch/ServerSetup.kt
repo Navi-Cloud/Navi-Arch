@@ -108,8 +108,23 @@ object ServerSetup {
     private fun killProcess() {
         logDebug("About to shut down server..")
         targetProcess?.destroy()
-        runBlocking {
-            sleep(5000)
+        var tryCount: Int = 0
+        while (true) {
+            if (targetProcess?.isAlive == false) {
+                logDebug("Seems like server is destroyed!")
+                break
+            } else {
+                logError("Seems like server is still running!")
+                sleep(1000)
+                tryCount++
+                if (tryCount > 5) {
+                    logError("Seems like server is NOT DESTROYING...")
+                    logError("Look up Task manager for any zombie process.")
+                    targetProcess?.destroyForcibly()
+                    break
+                }
+                continue
+            }
         }
 
         if (targetProcess?.isAlive == true) {
