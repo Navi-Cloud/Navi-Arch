@@ -25,15 +25,15 @@ class ServerManagement(
     companion object {
         private var serverManagement: ServerManagement? = null
         private val logTag: String = this::class.java.simpleName
+        private val serverDefaultUrl: HttpUrl = HttpUrl.Builder()
+            .scheme("http")
+            .host("192.168.0.46")
+            .port(8080)
+            .build()
 
-        fun getServerManagement(): ServerManagement {
+        fun getServerManagement(defaultHttpUrl: HttpUrl = serverDefaultUrl): ServerManagement {
             if (serverManagement == null) {
                 Log.d(logTag, "Creating Server Management!")
-                val defaultHttpUrl: HttpUrl = HttpUrl.Builder()
-                    .scheme("http")
-                    .host("192.168.0.46")
-                    .port(8080)
-                    .build()
                 serverManagement = ServerManagement(defaultHttpUrl)
             }
             return serverManagement!!
@@ -170,13 +170,22 @@ class ServerManagement(
         }
 
         // Get Content Name
-        val header: String = response.headers()["Content-Disposition"].apply {
-            // Since raw header is encoded with URL Scheme, decode it.
-            URLDecoder.decode(this, "UTF-8")
-        } ?: throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
+        var header: String? = null
+        runCatching {
+            response.headers()["Content-Disposition"].apply {
+                // Since raw header is encoded with URL Scheme, decode it.
+                URLDecoder.decode(this, "UTF-8")
+            }
+        }.onSuccess {
+            header = it!!
+        }.onFailure {
+            // If header "Content-Disposition" is not exist, URLDecoder.decode throw NPE
+            // If character encoding is not supported, URLDecoder.decode throw UnsupportedEncodingException
+            throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
+        }
 
         // Get file Name from header
-        val fileName: String = header.replace("attachment; filename=\"", "").let {
+        val fileName: String = header!!.replace("attachment; filename=\"", "").let {
             it.substring(it.lastIndexOf("/") + 1, it.length - 1)
         }
         Log.d(logTag, "fileName : $fileName")
@@ -205,11 +214,6 @@ class ServerManagement(
 
         val response: Response<RegisterResponse> =
             serverManagementHelper.exchangeDataWithServer(registerUserRequest)
-
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
 
         return response.body()!!
     }

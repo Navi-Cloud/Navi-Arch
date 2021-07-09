@@ -1,28 +1,53 @@
 package com.kangdroid.navi_arch.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
+import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.data.FileType
+import com.kangdroid.navi_arch.data.dto.request.LoginRequest
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
+import com.kangdroid.navi_arch.server.ServerManagement
+import com.kangdroid.navi_arch.setup.LinuxServerSetup
+import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.utils.PagerCacheUtils
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFields
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFunction
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
+import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import java.lang.reflect.Field
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import kotlin.reflect.KFunction
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.jvm.isAccessible
+import org.junit.*
 
 class PagerViewModelTest {
 
-    // Fake Server
-    private val fakeServerManagement: FakeServerManagement = FakeServerManagement()
+    companion object {
+        @JvmStatic
+        val serverSetup: ServerSetup = ServerSetup(
+            if (System.getProperty("os.name").contains("Windows")) {
+                WindowsServerSetup()
+            } else {
+                LinuxServerSetup()
+            }
+        )
+
+        @JvmStatic
+        @BeforeClass
+        fun setupServer() {
+            println("Setting up server..")
+            serverSetup.setupServer()
+            println("Setting up server finished!")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun clearServer() {
+            println("Clearing Server..")
+            serverSetup.killServer(false)
+            println("Clearing Server finished!")
+        }
+    }
 
     // Target
     private lateinit var pagerViewModel: PagerViewModel
@@ -31,91 +56,88 @@ class PagerViewModelTest {
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
-    /* Copyright 2019 Google LLC.
-   SPDX-License-Identifier: Apache-2.0 */
-    fun <T> LiveData<T>.getOrAwaitValue(
-        time: Long = 2,
-        timeUnit: TimeUnit = TimeUnit.SECONDS
-    ): T {
-        var data: T? = null
-        val latch = CountDownLatch(1)
-        val observer = object : Observer<T> {
-            override fun onChanged(o: T?) {
-                data = o
-                latch.countDown()
-                this@getOrAwaitValue.removeObserver(this)
-            }
-        }
+    private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
+        HttpUrl.Builder()
+            .scheme("http")
+            .host("localhost")
+            .port(8080)
+            .build()
+    )
 
-        this.observeForever(observer)
+    // Mock Register Request
+    private val mockUserRegisterRequest: RegisterRequest = RegisterRequest(
+        userId = "kangdroid",
+        userPassword = "test",
+        userEmail = "Ttest",
+        userName = "KangDroid"
+    )
 
-        // Don't wait indefinitely if the LiveData is not set.
-        if (!latch.await(time, timeUnit)) {
-            throw TimeoutException("LiveData value was never set.")
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        return data as T
-    }
-
-    private fun<T> getFields(fieldName: String): T {
-        // Get Page Set
-        val targetField: Field = PagerViewModel::class.java.getDeclaredField(fieldName).apply {
-            isAccessible = true
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        return targetField.get(pagerViewModel) as T
-    }
-
-    private fun<T> setFields(fieldName: String, targetObject: T) {
-        PagerViewModel::class.java.getDeclaredField(fieldName).apply {
-            isAccessible = true
-            set(pagerViewModel, targetObject)
-        }
-    }
-
-    private fun getFunction(functionName: String): KFunction<*> {
-        // Private Method testing
-        return PagerViewModel::class.declaredMemberFunctions.find {
-            it.name == functionName
-        }!!.apply {
-            isAccessible = true
-        }
-    }
-
-    // Fake adapter
     private val fakeFileAdapter: FileAdapter = FileAdapter(
         onClick = { _, _ -> },
         onLongClick = { true },
-        fileList = listOf(
-            FileData(
-                id = 10,
-                fileName = "/tmp/a.txt",
-                fileType = FileType.File.toString(),
-                token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
-            ),
-        ),
+        fileList = listOf(),
         pageNumber = 10,
         currentFolder = FileData(
-            id = 1,
+            userId = mockUserRegisterRequest.userId,
             fileName = "/tmp",
             fileType = FileType.File.toString(),
-            token = "/tmp.token",
-            lastModifiedTime = System.currentTimeMillis()
+            token = "",
+            prevToken = "root"
         )
     )
 
+    private val mockInsideFilesResult: List<FileData> = listOf(
+        FileData(
+            userId = "mockUserId",
+            fileName = "/tmp/a.txt",
+            fileType = FileType.File.toString(),
+            token = "/tmp/a.txt.token",
+            prevToken = "fakePrevToken"
+        ),
+        FileData(
+            userId = "mockUserId",
+            fileName = "/tmp/b.txt",
+            fileType = FileType.File.toString(),
+            token = "/tmp/b.txt.token",
+            prevToken = "fakePrevToken"
+        ),
+    )
+
+    private fun set_PageSet_List_Cache(targetPrevToken: String, targetFileAdapter: FileAdapter) {
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).add(targetPrevToken)
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).add(targetFileAdapter)
+        getFields<PagerViewModel, PagerCacheUtils>("pagerCacheUtils", pagerViewModel).createCache(
+            targetPrevToken,
+            targetFileAdapter
+        )
+    }
+
+    private fun registerAndLogin() {
+        serverManagement.register(mockUserRegisterRequest)
+        serverManagement.loginUser(
+            LoginRequest(
+                userId = mockUserRegisterRequest.userId,
+                userPassword = mockUserRegisterRequest.userPassword
+            )
+        )
+    }
+
     @Before
-    fun createViewModel() {
-        pagerViewModel = PagerViewModel(fakeServerManagement, PagerCacheUtils())
+    fun init() {
+        serverSetup.clearData()
+        pagerViewModel = PagerViewModel(PagerCacheUtils())
+        ViewModelTestHelper.setFields("serverManagement", pagerViewModel, serverManagement)
+    }
+
+    @After
+    fun destroy() {
+        serverSetup.clearData()
     }
 
     @Test
     fun is_updatePageAndNotify_works_well_no_cache() {
         // Private Method testing
-        getFunction("updatePageAndNotify")
+        getFunction<PagerViewModel>("updatePageAndNotify")
             .call(pagerViewModel, fakeFileAdapter, "test_token", false)
 
         // Get Live Data
@@ -127,24 +149,24 @@ class PagerViewModelTest {
         assertThat(livePagerData!!.size).isEqualTo(1)
 
         // Get Value for set
-        val pageSet: MutableSet<String> = getFields("pageSet")
+        val pageSet: MutableSet<String> = getFields("pageSet", pagerViewModel)
 
         // Page Set Test
         assertThat(pageSet.size).isEqualTo(1)
         assertThat(pageSet.contains("test_token")).isEqualTo(true)
 
         // Page List
-        val pageList: MutableList<FileAdapter> = getFields("pageList")
+        val pageList: MutableList<FileAdapter> = getFields("pageList", pagerViewModel)
 
         // Page List Test
         assertThat(pageList.size).isEqualTo(1)
-        assertThat(pageList[0].currentFolder.token).isEqualTo("/tmp.token")
-        assertThat(pageList[0].fileList.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.token).isEqualTo("")
+        assertThat(pageList[0].fileList.size).isEqualTo(0)
     }
 
     @Test
     fun is_updatePageAndNotify_works_well_with_cache() {
-        getFunction("updatePageAndNotify")
+        getFunction<PagerViewModel>("updatePageAndNotify")
             .call(pagerViewModel, fakeFileAdapter, "test_token", true)
 
         // Get Live Data
@@ -156,87 +178,312 @@ class PagerViewModelTest {
         assertThat(livePagerData!!.size).isEqualTo(1)
 
         // Get Value for set
-        val pageSet: MutableSet<String> = getFields("pageSet")
+        val pageSet: MutableSet<String> = getFields("pageSet", pagerViewModel)
 
         // Page Set Test
         assertThat(pageSet.size).isEqualTo(1)
         assertThat(pageSet.contains("test_token")).isEqualTo(true)
 
         // Page List
-        val pageList: MutableList<FileAdapter> = getFields("pageList")
+        val pageList: MutableList<FileAdapter> = getFields("pageList", pagerViewModel)
 
         // Page List Test
         assertThat(pageList.size).isEqualTo(1)
-        assertThat(pageList[0].currentFolder.token).isEqualTo("/tmp.token")
-        assertThat(pageList[0].fileList.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.token).isEqualTo("")
+        assertThat(pageList[0].fileList.size).isEqualTo(0)
     }
 
     @Test
-    fun is_innerExplorePage_works_well_non_root() {
-        getFunction("innerExplorePage")
+    fun is_innerExplorePage_works_well_root() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        getFunction<PagerViewModel>("innerExplorePage")
             .call(
                 pagerViewModel,
                 FileData(
-                    fileName = "testFileName",
+                    userId = mockUserRegisterRequest.userId,
+                    fileName = "/",
                     fileType = "Folder",
                     token = "TestToken",
-                    lastModifiedTime = System.currentTimeMillis()
+                    prevToken = "TestPrevToken"
                 ),
-                false
+                true
             )
 
         // Get Live Data
-        val livePagerData: MutableList<FileAdapter>? =
-            pagerViewModel.livePagerData.getOrAwaitValue()
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
 
         // Get Value for set
-        val pageSet: MutableSet<String> = getFields("pageSet")
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
 
         // Page List
-        val pageList: MutableList<FileAdapter> = getFields("pageList")
-
-        assertThat(livePagerData).isNotEqualTo(null)
-        assertThat(livePagerData!!.size).isEqualTo(1)
-        assertThat(pageSet.contains("TestToken")).isEqualTo(true)
-        assertThat(pageList.size).isEqualTo(1)
-        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
     }
 
+    @Test
+    fun is_explorePage_works_when_cleanUp_true_with_no_cache() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // explorePage with cleanUp = true
+        pagerViewModel.explorePage(
+            nextFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                token = rootToken,
+                prevToken = ""
+            ),
+            0,
+            true
+        )
+
+        // Get Live Data
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.token).isEqualTo(rootToken)
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_true_with_cache() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+        val mockFileAdapter: FileAdapter = FileAdapter(
+            onClick = {_, _ -> },
+            onLongClick = {true},
+            fileList = listOf(),
+            currentFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                prevToken = "",
+                token = rootToken
+            ),
+            pageNumber = 0
+        )
+
+        // Set data first: token = fakePrevToken, fileAdapter = fakeFileAdapter
+        setFields("pageList", pagerViewModel, mutableListOf(mockFileAdapter))
+        setFields("pageSet", pagerViewModel, mutableSetOf(rootToken))
+        val pagerCacheUtils: PagerCacheUtils = PagerCacheUtils().apply {
+            createCache(rootToken, mockFileAdapter)
+        }
+        setFields("pagerCacheUtils", pagerViewModel, pagerCacheUtils)
+
+        // explorePage with cleanUp = true
+        pagerViewModel.explorePage(
+            nextFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                prevToken = "",
+                token = rootToken
+            ),
+            requestedPageNumber = 0,
+            cleanUp = true
+        )
+
+        // Get Live Data
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+        // Page Set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_false_with_no_cache() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        pagerViewModel.explorePage(
+            nextFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                token = rootToken,
+                prevToken = ""
+            ),
+            0,
+            false
+        )
+
+        // Get Live Data will NOT be fail since page cache hasn't FileData
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it!!.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_false_with_cache() {
+        registerAndLogin()
+
+        val rootToken: String = serverManagement.getRootToken().rootToken
+        val mockFileAdapter: FileAdapter = FileAdapter(
+            onClick = {_, _ -> },
+            onLongClick = {true},
+            fileList = listOf(),
+            currentFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                prevToken = "",
+                token = rootToken
+            ),
+            pageNumber = 0
+        )
+
+        // Set data first: token = fakePrevToken, fileAdapter = fakeFileAdapter
+        setFields("pageList", pagerViewModel, mutableListOf(mockFileAdapter))
+        setFields("pageSet", pagerViewModel, mutableSetOf(rootToken))
+        val pagerCacheUtils: PagerCacheUtils = PagerCacheUtils().apply {
+            createCache(rootToken, mockFileAdapter)
+        }
+        setFields("pagerCacheUtils", pagerViewModel, pagerCacheUtils)
+
+        // explorePage with cleanUp = false
+        pagerViewModel.explorePage(
+            nextFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                token = rootToken,
+                prevToken = ""
+            ),
+            0,
+            false
+        )
+
+        // Get Live Data will NOT be fail since page cache hasn't FileData
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it!!.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_createInitialRootPage_works_well() {
+        // Mock Server init
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create Initial Root Page
+        pagerViewModel.createInitialRootPage()
+
+        // Get Live Data
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
 
     @Test
     fun is_sortList_works_well_normal() {
         val mockInsideFilesResult: List<FileData> = listOf(
             FileData(
-                id = 10,
+                userId = mockUserRegisterRequest.userId,
                 fileName = "b",
                 fileType = FileType.File.toString(),
                 token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = ""
             ),
             FileData(
-                id = 10,
+                userId = mockUserRegisterRequest.userId,
                 fileName = "a",
                 fileType = FileType.File.toString(),
                 token = "/tmp/b.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = ""
             ),
             FileData(
-                id = 10,
+                userId = mockUserRegisterRequest.userId,
                 fileName = "c",
                 fileType = FileType.File.toString(),
                 token = "/tmp/c.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = ""
             ),
             FileData(
-                id = 10,
+                userId = mockUserRegisterRequest.userId,
                 fileName = "0",
                 fileType = FileType.Folder.toString(),
                 token = "/tmp/test.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = ""
             )
         )
 
-        val sortedList: List<FileData> = getFunction("sortList").call(
+        val sortedList: List<FileData> = getFunction<PagerViewModel>("sortList").call(
             pagerViewModel,
             mockInsideFilesResult
         ) as List<FileData>
@@ -250,36 +497,36 @@ class PagerViewModelTest {
     fun is_sortList_works_well_reversed() {
         val mockInsideFilesResult: List<FileData> = listOf(
             FileData(
-                id = 10,
+                userId = "mockUserId",
                 fileName = "b",
                 fileType = FileType.File.toString(),
                 token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = "fakePrevToken"
             ),
             FileData(
-                id = 10,
+                userId = "mockUserId",
                 fileName = "a",
                 fileType = FileType.File.toString(),
                 token = "/tmp/b.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = "fakePrevToken"
             ),
             FileData(
-                id = 10,
+                userId = "mockUserId",
                 fileName = "c",
                 fileType = FileType.File.toString(),
                 token = "/tmp/c.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = "fakePrevToken"
             ),
             FileData(
-                id = 10,
+                userId = "mockUserId",
                 fileName = "0",
                 fileType = FileType.Folder.toString(),
                 token = "/tmp/test.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = "fakePrevToken"
             )
         )
 
-        val sortedList: List<FileData> = getFunction("sortList").call(
+        val sortedList: List<FileData> = getFunction<PagerViewModel>("sortList").call(
             pagerViewModel,
             mockInsideFilesResult
         ) as List<FileData>
@@ -299,17 +546,17 @@ class PagerViewModelTest {
         )
 
         // Set
-        setFields("pageList", mockPageList)
+        setFields("pageList", pagerViewModel, mockPageList)
 
         // do
-        getFunction("removePrecedingPages")
+        getFunction<PagerViewModel>("removePrecedingPages")
             .call(
                 pagerViewModel,
                 mockRequestPageNumber
             )
 
         // Get Results
-        val resultList: List<FileAdapter> = getFields("pageList")
+        val resultList: List<FileAdapter> = getFields("pageList", pagerViewModel)
 
         // Assert
         assertThat(resultList.size).isEqualTo(1)
@@ -318,16 +565,371 @@ class PagerViewModelTest {
     @Test
     fun is_removePrecedingPages_calculates_correctly_size_smaller() {
         // do
-        getFunction("removePrecedingPages")
+        getFunction<PagerViewModel>("removePrecedingPages")
             .call(
                 pagerViewModel,
                 10
             )
 
         // Get Results
-        val resultList: List<FileAdapter> = getFields("pageList")
+        val resultList: List<FileAdapter> = getFields("pageList", pagerViewModel)
 
         // Assert
         assertThat(resultList.size).isEqualTo(0)
     }
+
+    private fun setListForSort() {
+        val mockFileAdapter: FileAdapter = FileAdapter(
+            onClick = {_, _ -> },
+            onLongClick = {true},
+            fileList = mockInsideFilesResult,
+            currentFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                prevToken = "",
+                token = "rootToken"
+            ),
+            pageNumber = 0
+        )
+        setFields("pageList", pagerViewModel, mutableListOf(mockFileAdapter))
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedName_asc() {
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.TypedName,
+            false,
+            requestPageNum
+        )
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        assertThat(targetFileList.size).isEqualTo(mockInsideFilesResult.size)
+        if (targetFileList[0].fileType < targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType < targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].fileName < targetFileList[1].fileName){
+            assertThat(targetFileList[0].fileName < targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime <= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedName_desc() {
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.TypedName,
+            true,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileType > targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType > targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].fileName > targetFileList[1].fileName){
+            assertThat(targetFileList[0].fileName > targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime >= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedLMT_asc() {
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.TypedLMT,
+            false,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        if (targetFileList[0].fileType < targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType < targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName <= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedLMT_desc() {
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.TypedLMT,
+            true,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileType > targetFileList[1].fileType){
+            assertThat(targetFileList[0].fileType > targetFileList[1].fileType).isEqualTo(true)
+        } else if (targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName >= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_Name_asc() {
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.Name,
+            false,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        if (targetFileList[0].fileName < targetFileList[1].fileName) {
+            assertThat(targetFileList[0].fileName < targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime <= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_Name_desc() {
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.Name,
+            true,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].fileName > targetFileList[1].fileName){
+            assertThat(targetFileList[0].fileName > targetFileList[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].lastModifiedTime >= targetFileList[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_LMT_asc() {
+        mockInsideFilesResult[0].lastModifiedTime = 2000
+        mockInsideFilesResult[1].lastModifiedTime = 1000
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.LMT,
+            false,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        if (targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime < targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName <= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_LMT_desc() {
+        mockInsideFilesResult[0].lastModifiedTime = 2000
+        mockInsideFilesResult[1].lastModifiedTime = 1000
+        setListForSort()
+
+        // do
+        val requestPageNum: Int = 0
+        pagerViewModel.sort(
+            FileSortingMode.LMT,
+            true,
+            requestPageNum
+        )
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Check sorting works well
+        val targetFileAdapter: FileAdapter = livePagerData[requestPageNum]
+        val targetFileList: List<FileData> = targetFileAdapter.fileList
+
+        assertThat(targetFileAdapter.currentFolder.token).isEqualTo("rootToken")
+        assertThat(targetFileList.size).isEqualTo(2)
+        if (targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime){
+            assertThat(targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime).isEqualTo(true)
+        } else {
+            assertThat(targetFileList[0].fileName >= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+//    @Test
+//    fun is_innerExplorePage_works_well_non_root() {
+//        registerAndLogin()
+//        val rootToken: String = serverManagement.getRootToken().rootToken
+//
+//        // Create Folder on root - ahhhh we don't have folder creation api right..?
+//
+//        getFunction<PagerViewModel>("innerExplorePage")
+//            .call(
+//                pagerViewModel,
+//                FileData(
+//                    userId = mockUserRegisterRequest.userId,
+//                    fileName = "testFileName",
+//                    fileType = "Folder",
+//                    token = "TestToken",
+//                    prevToken = "TestPrevToken"
+//                ),
+//                false
+//            )
+//
+//        // Get Live Data
+//        val livePagerData: MutableList<FileAdapter>? =
+//            pagerViewModel.livePagerData.getOrAwaitValue()
+//
+//        // Get Value for set
+//        val pageSet: MutableSet<String> = getFields("pageSet")
+//
+//        // Page List
+//        val pageList: MutableList<FileAdapter> = getFields("pageList")
+//
+//        assertThat(livePagerData).isNotEqualTo(null)
+//        assertThat(livePagerData!!.size).isEqualTo(1)
+//        assertThat(pageSet.contains("TestToken")).isEqualTo(true)
+//        assertThat(pageList.size).isEqualTo(1)
+//        assertThat(pageList[0].currentFolder.fileName).isEqualTo("testFileName")
+//        assertThat(pageList[0].fileList).isEqualTo(mockInsideFilesResult)
+//    }
+//
+
+//    @Test
+//    fun is_innerExplorePage_throw_error_when_fail_getInsideFiles() {
+//        // Mock Server init
+//        initServerManagement()
+//        setDispatcherHandler {  MockResponse().setResponseCode(INTERNAL_SERVER_ERROR) }
+//
+//        getFunction("innerExplorePage")
+//            .call(
+//                pagerViewModel,
+//                FileData(
+//                    userId = mockUserId,
+//                    fileName = "testFileName",
+//                    fileType = "Folder",
+//                    token = "TestToken",
+//                    prevToken = "TestPrevToken"
+//                ),
+//                true
+//            )
+//
+//        // Get Live Data
+//        val liveErrorData: Throwable? =
+//            pagerViewModel.liveErrorData.getOrAwaitValue()
+//
+//        // Get Value for set
+//        val pageSet: MutableSet<String> = getFields("pageSet")
+//
+//        // Page List
+//        val pageList: MutableList<FileAdapter> = getFields("pageList")
+//
+//        assertThat(liveErrorData).isNotEqualTo(null)
+//        assertThat(pageSet.size).isEqualTo(0)
+//        assertThat(pageList.size).isEqualTo(0)
+//    }
 }

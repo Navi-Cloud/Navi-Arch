@@ -14,26 +14,29 @@ class PagerCacheUtilsTest {
     // Target
     private val pagerCacheUtils: PagerCacheUtils = PagerCacheUtils()
 
+    // Mock User
+    private val mockUserId = "je"
+
     // Fake adapter
     private val fakeFileAdapter: FileAdapter = FileAdapter(
         onClick = { _, _ -> },
         onLongClick = { true },
         fileList = listOf(
             FileData(
-                id = 10,
+                userId = mockUserId,
                 fileName = "/tmp/a.txt",
                 fileType = FileType.File.toString(),
                 token = "/tmp/a.txt.token",
-                lastModifiedTime = System.currentTimeMillis()
+                prevToken = "/tmp.token"
             ),
         ),
         pageNumber = 10,
         currentFolder = FileData(
-            id = 1,
+            userId = mockUserId,
             fileName = "/tmp",
             fileType = FileType.File.toString(),
             token = "/tmp.token",
-            lastModifiedTime = System.currentTimeMillis()
+            prevToken = "root"
         )
     )
 
