@@ -56,9 +56,6 @@ class ServerManagementHelperTest {
             .create(APIInterface::class.java)
     }
 
-    // Target ServerManagementHelper
-    private val serverManagementHelper: ServerManagementHelper = ServerManagementHelper(jacksonObjectMapper())
-
     // Object Mapper
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
@@ -83,7 +80,7 @@ class ServerManagementHelperTest {
     @Test
     fun is_exchangeDataWithServer_throws_network_error_no_server() {
         runCatching {
-            serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
+            ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
         }.onSuccess {
             fail("exchangeDataWithServer should fail because server is OFF now.")
         }.onFailure {
@@ -102,7 +99,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
+            ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
         }.onSuccess {
             fail("This should not be fine because")
         }.onFailure {
@@ -123,7 +120,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
+            ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders))
         }.onSuccess {
             assertThat(it.code()).isEqualTo(OK)
         }.onFailure {
@@ -144,7 +141,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
+            ServerManagementHelper.handleDataError(ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
             assertThat(it is JsonParseException).isEqualTo(true)
@@ -154,7 +151,7 @@ class ServerManagementHelperTest {
     }
 
     @Test
-    fun is_handleDataError_throws_RuntimeException_correct_errorcode() {
+    fun is_handleDataError_throws_RuntimeException() {
         setDispatcherHandler {
             when (it.path) {
                 "/api/navi/root-token" -> MockResponse().setResponseCode(INTERNAL_SERVER_ERROR).setBody(
@@ -171,10 +168,10 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
+            ServerManagementHelper.handleDataError(ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
-            assertThat(it is SocketTimeoutException).isEqualTo(true) // Is this OK??
+            assertThat(it is RuntimeException).isEqualTo(true)
         }.onSuccess {
             fail("This should result in fail, because we are using wrong json string.")
         }
@@ -197,7 +194,7 @@ class ServerManagementHelperTest {
         }
 
         runCatching {
-            serverManagementHelper.handleDataError(serverManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
+            ServerManagementHelper.handleDataError(ServerManagementHelper.exchangeDataWithServer(api.getRootToken(mockHeaders)))
         }.onFailure {
             println(it.stackTraceToString())
             assertThat(it is NoSuchFieldException).isEqualTo(true)

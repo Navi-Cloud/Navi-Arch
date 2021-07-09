@@ -106,10 +106,11 @@ class PagerViewModel @Inject constructor(
         // Network on other thread
         innerExplorePage(
             FileData(
+                userId = "",
                 fileName = "/",
                 fileType = "Folder",
-                lastModifiedTime = System.currentTimeMillis(),
-                token = "rootToken"
+                token = "rootToken",
+                prevToken = "prevToken"
             ),
             true
         )

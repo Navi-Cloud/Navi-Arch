@@ -23,8 +23,8 @@ interface APIInterface {
     @POST("/api/navi/files")
     fun upload(@HeaderMap headerMap: HashMap<String, Any?>, @PartMap par : HashMap<String, Any>, @Part files: MultipartBody.Part) : Call<ResponseBody>
 
-    @GET("/api/navi/files/{token}")
-    fun download(@HeaderMap headerMap: HashMap<String, Any?>, @Path("token") token : String) : Call<ResponseBody>
+    @GET("/api/navi/files")
+    fun download(@HeaderMap headerMap: HashMap<String, Any?>, @Query("token") token : String, @Query("prevToken") prevToken: String) : Call<ResponseBody>
 
     @POST("/api/navi/login")
     fun loginUser( @Body userLoginRequest : LoginRequest): Call<LoginResponse>
