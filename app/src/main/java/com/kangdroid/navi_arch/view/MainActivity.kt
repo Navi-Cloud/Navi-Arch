@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.CompoundButton
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -19,8 +20,10 @@ import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.adapter.PagerAdapter
 import com.kangdroid.navi_arch.data.FileSortingMode
+import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 import com.kangdroid.navi_arch.server.ServerManagement
+import com.kangdroid.navi_arch.viewmodel.MakeFolderViewModel
 import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.viewmodel.UploadingViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model
     private val uploadingViewModel: UploadingViewModel by viewModels()
+    private val makeFolderViewModel: MakeFolderViewModel by viewModels()
 
     // Value for detecting this activity launched with normal activity or Upload Activity.
     private val uploadingIdentifier: String = "UPLOAD_ACTIVITY"
@@ -119,8 +123,17 @@ class MainActivity : AppCompatActivity() {
                     val builder2 = AlertDialog.Builder(this)
                     val dialogView2 = layoutInflater.inflate(R.layout.dialog_add_folder, null)
                     builder2.setView(dialogView2)
-                        .setPositiveButton("확인"){
-                            _, _ ->
+                        .setPositiveButton("확인"){ _, _ ->
+                            val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
+                            val name = dialogView2.findViewById<EditText>(R.id.folderName)
+                            makeFolderViewModel.makeFolder(CreateFolderRequestDTO(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token, name.text.toString())){
+                                val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
+                                pagerViewModel.explorePage(
+                                    currentPageList[activityMainBinding.viewPager.currentItem].currentFolder,
+                                    activityMainBinding.viewPager.currentItem,
+                                    true
+                                )
+                            }
                         }
                         .setNegativeButton("취소"){
                             _, _ ->
