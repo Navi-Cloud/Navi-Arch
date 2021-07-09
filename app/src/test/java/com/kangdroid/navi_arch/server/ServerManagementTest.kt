@@ -20,13 +20,29 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
+import org.junit.*
 import java.io.File
 import java.net.URLEncoder
 
 class ServerManagementTest {
+
+    companion object {
+        @JvmStatic
+        @BeforeClass
+        fun setupServer() {
+            println("Setting up server..")
+            ServerSetup.setupServer()
+            println("Setting up server finished!")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun clearServer() {
+            println("Clearing Server..")
+            ServerSetup.clearServer(false)
+            println("Clearing Server finished!")
+        }
+    }
 
     // Server Management Object
     private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
@@ -56,13 +72,10 @@ class ServerManagementTest {
     }
 
     @Before
-    fun init() {
-        ServerSetup.setupServer()
-    }
-
     @After
-    fun destroy() {
-        ServerSetup.clearServer(false)
+    fun init() {
+        println("Clearing Server Data!")
+        ServerSetup.clearData()
     }
 
     // Init Test

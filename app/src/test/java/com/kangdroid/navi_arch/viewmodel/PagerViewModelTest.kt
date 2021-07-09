@@ -16,12 +16,28 @@ import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 
 class PagerViewModelTest {
+
+    companion object {
+        @JvmStatic
+        @BeforeClass
+        fun setupServer() {
+            println("Setting up server..")
+            ServerSetup.setupServer()
+            println("Setting up server finished!")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun clearServer() {
+            println("Clearing Server..")
+            ServerSetup.clearServer(false)
+            println("Clearing Server finished!")
+        }
+    }
+
     // Target
     private lateinit var pagerViewModel: PagerViewModel
 
@@ -97,14 +113,14 @@ class PagerViewModelTest {
 
     @Before
     fun init() {
-        ServerSetup.setupServer()
+        ServerSetup.clearData()
         pagerViewModel = PagerViewModel(PagerCacheUtils())
         ViewModelTestHelper.setFields("serverManagement", pagerViewModel, serverManagement)
     }
 
     @After
     fun destroy() {
-        ServerSetup.clearServer(false)
+        ServerSetup.clearData()
     }
 
     @Test

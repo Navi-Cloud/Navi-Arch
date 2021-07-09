@@ -1,6 +1,9 @@
 package com.kangdroid.navi_arch
 
 import at.favre.lib.bytes.Bytes
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.File
@@ -16,16 +19,21 @@ import java.security.MessageDigest
 
 object ServerSetup {
     // Server Download URL
-    private val downloadUrl: URL = URL("https://github.com/KangDroid/Navi-Server/releases/download/PVJar/NavIServer-1.0-SNAPSHOT.jar")
+    private val downloadUrl: URL by lazy {
+        val apiUrl: URL = URL("https://api.github.com/repos/Navi-Cloud/Navi-Server/releases/latest")
+        val objectMapper: ObjectMapper = jacksonObjectMapper()
+        val treeNode: JsonNode = objectMapper.readTree(apiUrl.readText())
+        URL(treeNode.get("assets").get(0).get("browser_download_url").textValue())
+    }
 
     // Server Store Location
     private val downloadTargetFile: File = File(System.getProperty("java.io.tmpdir"), "tmpServer.jar")
 
     // Server Heartbeat URL
-    private val serverUrl: URL = URL("http://localhost:8080/")
+    private val serverUrl: URL = URL("http://localhost:8080/api/remove")
 
     // File MD5
-    private const val fileMd5Sum: String = "57137ca341e3820e59c1c4e986dfaef9"
+    private const val fileMd5Sum: String = "382fe3291da7aff442a4f6dedbe7bb0e"
 
     private var targetProcess: Process? = null
 
@@ -45,6 +53,11 @@ object ServerSetup {
     fun setupServer() {
         downloadFile()
         executeFile()
+    }
+
+    // Clear Data
+    fun clearData() {
+        serverUrl.readText()
     }
 
     // Cycle Ends
@@ -156,7 +169,7 @@ object ServerSetup {
         runCatching {
             serverUrl.readText()
         }.onSuccess {
-            return it == "SERVER_RUNNING"
+            return it == "OK"
         }.onFailure {
             return false
         }
