@@ -1,7 +1,7 @@
 package com.kangdroid.navi_arch.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.kangdroid.navi_arch.ServerSetup
+import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
@@ -9,6 +9,8 @@ import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.server.ServerManagement
+import com.kangdroid.navi_arch.setup.LinuxServerSetup
+import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.utils.PagerCacheUtils
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFields
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFunction
@@ -22,10 +24,19 @@ class PagerViewModelTest {
 
     companion object {
         @JvmStatic
+        val serverSetup: ServerSetup = ServerSetup(
+            if (System.getProperty("os.name").contains("Windows")) {
+                WindowsServerSetup()
+            } else {
+                LinuxServerSetup()
+            }
+        )
+
+        @JvmStatic
         @BeforeClass
         fun setupServer() {
             println("Setting up server..")
-            ServerSetup.setupServer()
+            serverSetup.setupServer()
             println("Setting up server finished!")
         }
 
@@ -33,7 +44,7 @@ class PagerViewModelTest {
         @AfterClass
         fun clearServer() {
             println("Clearing Server..")
-            ServerSetup.clearServer(false)
+            serverSetup.killServer(false)
             println("Clearing Server finished!")
         }
     }
@@ -113,14 +124,14 @@ class PagerViewModelTest {
 
     @Before
     fun init() {
-        ServerSetup.clearData()
+        serverSetup.clearData()
         pagerViewModel = PagerViewModel(PagerCacheUtils())
         ViewModelTestHelper.setFields("serverManagement", pagerViewModel, serverManagement)
     }
 
     @After
     fun destroy() {
-        ServerSetup.clearData()
+        serverSetup.clearData()
     }
 
     @Test

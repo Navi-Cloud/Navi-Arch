@@ -1,37 +1,37 @@
 package com.kangdroid.navi_arch.server
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.kangdroid.navi_arch.ServerSetup
+import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.data.FileData
-import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
-import com.kangdroid.navi_arch.data.dto.response.ApiError
-import com.kangdroid.navi_arch.data.dto.response.LoginResponse
-import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
+import com.kangdroid.navi_arch.setup.LinuxServerSetup
+import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.mockwebserver.Dispatcher
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.*
 import java.io.File
-import java.net.URLEncoder
 
 class ServerManagementTest {
 
     companion object {
         @JvmStatic
+        val serverSetup: ServerSetup = ServerSetup(
+            if (System.getProperty("os.name").contains("Windows")) {
+                WindowsServerSetup()
+            } else {
+                LinuxServerSetup()
+            }
+        )
+
+        @JvmStatic
         @BeforeClass
         fun setupServer() {
             println("Setting up server..")
-            ServerSetup.setupServer()
+            serverSetup.setupServer()
             println("Setting up server finished!")
         }
 
@@ -39,7 +39,7 @@ class ServerManagementTest {
         @AfterClass
         fun clearServer() {
             println("Clearing Server..")
-            ServerSetup.clearServer(false)
+            serverSetup.killServer(false)
             println("Clearing Server finished!")
         }
     }
@@ -75,7 +75,7 @@ class ServerManagementTest {
     @After
     fun init() {
         println("Clearing Server Data!")
-        ServerSetup.clearData()
+        serverSetup.clearData()
     }
 
     // Init Test
