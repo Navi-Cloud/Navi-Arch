@@ -108,12 +108,6 @@ class ServerManagement(
         val response: Response<RootTokenResponseDto> =
             serverManagementHelper.exchangeDataWithServer(tokenFunction)
 
-        // Check for input response
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
-
         return response.body()
             ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
@@ -132,11 +126,6 @@ class ServerManagement(
         val response: Response<List<FileData>> =
             serverManagementHelper.exchangeDataWithServer(insiderFunction)
 
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
-
         return response.body()
             ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
     }
@@ -149,11 +138,6 @@ class ServerManagement(
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(uploading)
-
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
 
         val responseBody: ResponseBody = response.body()!!
 
@@ -169,12 +153,6 @@ class ServerManagement(
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(downloadingApi)
-
-        if (!response.isSuccessful) {
-            Log.e(logTag, "Token: $token , Prev: $prevToken")
-            Log.e(logTag, "Error: ${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
 
         // Get Content Name
         var header: String? = null
@@ -205,11 +183,6 @@ class ServerManagement(
         val response: Response<LoginResponse> =
             serverManagementHelper.exchangeDataWithServer(loginUserRequest)
 
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
-
         userToken = response.body()!!.userToken
         Log.d(logTag, "userToken---> $userToken")
 
@@ -230,11 +203,6 @@ class ServerManagement(
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(createFolderRequest)
-
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
     }
 
     override fun removeFile(prevToken: String, targetToken: String) {
@@ -242,10 +210,5 @@ class ServerManagement(
 
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(removeRequest)
-
-        if (!response.isSuccessful) {
-            Log.e(logTag, "${response.code()}")
-            serverManagementHelper.handleDataError(response)
-        }
     }
 }
