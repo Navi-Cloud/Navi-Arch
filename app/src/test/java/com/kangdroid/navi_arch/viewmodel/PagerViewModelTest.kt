@@ -125,7 +125,7 @@ class PagerViewModelTest {
     @Before
     fun init() {
         serverSetup.clearData()
-        pagerViewModel = PagerViewModel(PagerCacheUtils())
+        pagerViewModel = PagerViewModel()
         ViewModelTestHelper.setFields("serverManagement", pagerViewModel, serverManagement)
     }
 
