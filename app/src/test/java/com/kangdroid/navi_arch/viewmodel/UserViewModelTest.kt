@@ -1,117 +1,153 @@
-//package com.kangdroid.navi_arch.viewmodel
-//
-//import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-//import androidx.lifecycle.LiveData
-//import androidx.lifecycle.MutableLiveData
-//import androidx.lifecycle.Observer
-//import junit.framework.TestCase
-//import kotlinx.coroutines.runBlocking
-//import org.assertj.core.api.Assertions.assertThat
-//import org.assertj.core.api.Assertions.catchThrowable
-//import org.assertj.core.internal.bytebuddy.implementation.bytecode.Throw
-//import org.junit.Rule
-//import org.junit.Test
-//import java.lang.RuntimeException
-//import java.lang.reflect.Field
-//import java.util.concurrent.CountDownLatch
-//import java.util.concurrent.TimeUnit
-//import java.util.concurrent.TimeoutException
-//import kotlin.reflect.KFunction
-//import kotlin.reflect.full.declaredMemberFunctions
-//import kotlin.reflect.jvm.isAccessible
-//
-//class UserViewModelTest {
-//
-//    private val fakeServerManagement: FakeServerManagement = FakeServerManagement()
-//
-//    private val userViewModel: UserViewModel = UserViewModel(fakeServerManagement)
-//
-//    @get:Rule
-//    var instantExecutorRule = InstantTaskExecutorRule()
-//
-//    /* Copyright 2019 Google LLC.
-//SPDX-License-Identifier: Apache-2.0 */
-//    fun <T> LiveData<T>.getOrAwaitValue(
-//        time: Long = 2,
-//        timeUnit: TimeUnit = TimeUnit.SECONDS
-//    ): T {
-//        var data: T? = null
-//        val latch = CountDownLatch(1)
-//        val observer = object : Observer<T> {
-//            override fun onChanged(o: T?) {
-//                data = o
-//                latch.countDown()
-//                this@getOrAwaitValue.removeObserver(this)
-//            }
-//        }
-//
-//        this.observeForever(observer)
-//
-//        // Don't wait indefinitely if the LiveData is not set.
-//        if (!latch.await(time, timeUnit)) {
-//            throw TimeoutException("LiveData value was never set.")
-//        }
-//
-//        @Suppress("UNCHECKED_CAST")
-//        return data as T
-//    }
-//
-//
-//    @Test
-//    fun register_doingwell(){
-//
-//        userViewModel.register("userId","userName","userEmail","userPassword")
-//        val pageRequestData : PageRequest ?=
-//        userViewModel.pageRequest.getOrAwaitValue()
-//
-//        assertThat(pageRequestData).isEqualTo(PageRequest.REQUEST_LOGIN)
-//
-//    }
-//
-//    @Test
-//    fun login_doingwell(){
-//
-//        userViewModel.login("userId","userPassword")
-//        val pageRequestData : PageRequest ?=
-//            userViewModel.pageRequest.getOrAwaitValue()
-//
-//        assertThat(pageRequestData).isEqualTo(PageRequest.REQUEST_MAIN)
-//
-//    }
-//
-////    @Test
-////    fun login_doingwrong(){
-////
-////        userViewModel.login("wrongId","wrongpassword")
-////
-////        val loginError : Throwable ?= userViewModel.loginErrorData.getOrAwaitValue()
-////
-////        assertThat(loginError).isNotEqualTo(null)
-////
-////    }
-//
-//    @Test
-//    fun loginError_doingWell(){
-//        val exception : Throwable = Throwable()
-//        userViewModel.loginError(exception)
-//        val loginErrorData = userViewModel.loginErrorData.getOrAwaitValue()
-//
-//        assertThat(loginErrorData).isEqualTo(exception)
-//    }
-//
-//    @Test
-//    fun clearErrorData_doingwell(){
-//        userViewModel.clearErrorData()
-//        val loginErrorData = userViewModel.loginErrorData.getOrAwaitValue()
-//        assertThat(loginErrorData).isEqualTo(null)
-//    }
-//
-//    @Test
-//    fun requestRegisterPage_doingwell(){
-//        userViewModel.requestRegisterPage()
-//        val pageRequestData : PageRequest ?=
-//            userViewModel.pageRequest.getOrAwaitValue()
-//        assertThat(pageRequestData).isEqualTo(PageRequest.REQUEST_REGISTER)
-//    }
-//
-//}
+package com.kangdroid.navi_arch.viewmodel
+
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
+import com.kangdroid.navi_arch.server.ServerManagement
+import com.kangdroid.navi_arch.setup.LinuxServerSetup
+import com.kangdroid.navi_arch.setup.ServerSetup
+import com.kangdroid.navi_arch.setup.WindowsServerSetup
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import okhttp3.HttpUrl
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.*
+
+class UserViewModelTest{
+
+    companion object {
+        @JvmStatic
+        val serverSetup: ServerSetup = ServerSetup(
+            if (System.getProperty("os.name").contains("Windows")) {
+                WindowsServerSetup()
+            } else {
+                LinuxServerSetup()
+            }
+        )
+
+        @JvmStatic
+        @BeforeClass
+        fun setupServer() {
+            println("Setting up server..")
+            serverSetup.setupServer()
+            println("Setting up server finished!")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun clearServer() {
+            println("Clearing Server..")
+            serverSetup.killServer(false)
+            println("Clearing Server finished!")
+        }
+    }
+
+    //Target
+    private lateinit var userViewModel: UserViewModel
+
+    // Rule that every android-thread should launched in single thread
+    @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
+
+    private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
+        HttpUrl.Builder()
+            .scheme("http")
+            .host("localhost")
+            .port(8080)
+            .build()
+    )
+
+    // Mock Register Request
+    private val mockUserRegisterRequest: RegisterRequest = RegisterRequest(
+        userId = "kangdroid",
+        userPassword = "test",
+        userEmail = "a@b.com",
+        userName = "KangDroid"
+    )
+
+    private val mockUserRegisterRequestNotCorrect: RegisterRequest = RegisterRequest(
+        userId = "wronguser",
+        userPassword = "test",
+        userEmail = "Ttest",
+        userName = "KangDroid"
+    )
+
+    @Before
+    fun init() {
+        serverSetup.clearData()
+        userViewModel = UserViewModel()
+        ViewModelTestHelper.setFields("serverManagement", userViewModel, serverManagement)
+    }
+
+    @After
+    fun destroy() {
+        serverSetup.clearData()
+    }
+
+    @Test
+    fun is_requestRegisterPage_works_well(){
+        userViewModel.requestRegisterPage()
+
+        userViewModel.pageRequest.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(PageRequest.REQUEST_REGISTER)
+        }
+    }
+
+    @Test
+    fun is_requestLoginPage_works_well(){
+        userViewModel.requestLoginPage()
+
+        userViewModel.pageRequest.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(PageRequest.REQUEST_LOGIN)
+        }
+    }
+
+    @Test
+    fun is_loginError_works_well(){
+        val exception : Throwable = Throwable()
+        userViewModel.loginError(exception)
+
+        userViewModel.loginErrorData.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(exception)
+        }
+    }
+
+    @Test
+    fun is_clearErrorData_works_well(){
+        userViewModel.clearErrorData()
+
+        userViewModel.loginErrorData.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(null)
+        }
+    }
+
+    @Test
+    fun is_login_works_well(){
+        serverManagement.register(mockUserRegisterRequest)
+        userViewModel.login(mockUserRegisterRequest.userId, mockUserRegisterRequest.userPassword)
+
+//        assertThat(userViewModel.loginresponse).isNotEqualTo(null)
+        userViewModel.pageRequest.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(PageRequest.REQUEST_MAIN)
+        }
+    }
+
+    @Test
+    fun is_login_works_wrong(){
+        userViewModel.login(mockUserRegisterRequestNotCorrect.userId, mockUserRegisterRequestNotCorrect.userPassword)
+
+        assertThat(userViewModel.loginErrorData).isNotEqualTo(null)
+    }
+
+    @Test
+    fun is_register_works_well(){
+        userViewModel.register(
+            mockUserRegisterRequest.userId,
+            mockUserRegisterRequest.userName,
+            mockUserRegisterRequest.userEmail,
+            mockUserRegisterRequest.userPassword
+        )
+
+        userViewModel.pageRequest.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(PageRequest.REQUEST_LOGIN)
+        }
+    }
+}
