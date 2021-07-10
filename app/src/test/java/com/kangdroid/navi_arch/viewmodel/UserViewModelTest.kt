@@ -92,6 +92,16 @@ class UserViewModelTest{
     }
 
     @Test
+    fun is_requestMainPage_works_well() {
+        ViewModelTestHelper.getFunction<UserViewModel>("requestMainPage")
+            .call(userViewModel)
+
+        userViewModel.pageRequest.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(PageRequest.REQUEST_MAIN)
+        }
+    }
+
+    @Test
     fun is_requestLoginPage_works_well(){
         userViewModel.requestLoginPage()
 
