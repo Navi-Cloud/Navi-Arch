@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.nio.file.Files
 import javax.inject.Inject
 
 @HiltViewModel
@@ -67,36 +68,16 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
         // Open a file object for target
         val targetFile: File = File(saveBaseDirectory, downloadResponse.fileName)
 
+        // Read File from downloaded content file[TMP]
+        val inputStream: InputStream = downloadResponse.fileContents.byteStream()
+
         runCatching {
-            // Buffer Size: 4086
-            val fileReadingBuffer: ByteArray = ByteArray(4096)
-
-            // Read File from downloaded content file[TMP]
-            val inputStream: InputStream = downloadResponse.fileContents.byteStream()
-
-            // Open an output stream for saving it
-            val outputStream: FileOutputStream = FileOutputStream(targetFile)
-
-            // Read it
-            while (true) {
-                val readByte: Int = inputStream.read(fileReadingBuffer)
-
-                // Yup, done reading it
-                if (readByte == -1) {
-                    break
-                }
-
-                // Write read strings
-                outputStream.write(fileReadingBuffer, 0, readByte)
-            }
-
-            // Flush outputStream
-            outputStream.flush()
+            Files.copy(inputStream, targetFile.toPath())
+        }.onSuccess {
+            Log.d(this::class.java.simpleName, "Successfully saved file")
         }.onFailure {
             Log.d(this::class.java.simpleName, "Failed to save file to SDCard!")
             throw it
-        }.onSuccess {
-            Log.d(this::class.java.simpleName, "Successfully saved file")
         }
     }
 }
