@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -30,6 +31,7 @@ class UploadingActivity: PagerActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setUpObserver()
         getContentActivity()
         super.onCreate(savedInstanceState)
     }
@@ -47,11 +49,7 @@ class UploadingActivity: PagerActivity() {
                 Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
                 // Upload it!
                 val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
-                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token) {
-                    // Set UploadingActivity Result as RESULT_OK
-                    setResult(RESULT_OK)
-                    finish()
-                }
+                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
                 true
             }
             else -> false
@@ -65,5 +63,18 @@ class UploadingActivity: PagerActivity() {
                 type = "*/*"
             }
         )
+    }
+
+    private fun setUpObserver() {
+        uploadingViewModel.fileUploadSucceed.observe(this) {
+            if (it) {
+                // Set UploadingActivity Result as RESULT_OK
+                setResult(RESULT_OK)
+                finish()
+            } else {
+                Toast.makeText(this, "Failed upload file! Try again in few minutes!", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 }

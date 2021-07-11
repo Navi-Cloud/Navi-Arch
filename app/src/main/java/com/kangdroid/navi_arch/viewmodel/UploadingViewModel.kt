@@ -8,6 +8,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
@@ -55,6 +56,9 @@ class UploadingViewModel @Inject constructor(
     private lateinit var fileName: String
     private lateinit var uploadFile : MultipartBody.Part
 
+    // Live Data when uploading succeed
+    var fileUploadSucceed: MutableLiveData<Boolean> = MutableLiveData()
+
     private fun getFileName(uri: Uri): String {
         var targetString: String? = null
         if (uri.scheme == "content") {
@@ -92,7 +96,7 @@ class UploadingViewModel @Inject constructor(
         Log.d(logTag, "fileName: $fileName")
     }
 
-    fun upload(uploadPath: String, actionAfterUpload: (() -> Unit)) {
+    fun upload(uploadPath: String) {
         Log.d(logTag, "Upload Path: $uploadPath")
 
         Log.d(logTag,"File Name: $fileName")
@@ -110,10 +114,14 @@ class UploadingViewModel @Inject constructor(
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                serverManagement.upload(param, uploadFile)
-            }
-            withContext(Dispatchers.Main) {
-                actionAfterUpload()
+                runCatching {
+                    serverManagement.upload(param, uploadFile)
+                }.onSuccess {
+                    fileUploadSucceed.postValue(true)
+                }.onFailure {
+                    Log.e(this::class.java.simpleName, it.stackTraceToString())
+                    fileUploadSucceed.postValue(false)
+                }
             }
         }
     }

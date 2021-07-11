@@ -20,7 +20,7 @@ import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFields
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFunction
-import kotlinx.coroutines.runBlocking
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.*
@@ -29,7 +29,6 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowContentResolver
 import java.io.ByteArrayInputStream
-import java.lang.Thread.sleep
 
 @RunWith(AndroidJUnit4::class)
 class UploadingViewModelTest {
@@ -236,14 +235,42 @@ class UploadingViewModelTest {
         // Create file contents
         uploadingViewModel.createFileUri(normalUri)
 
-        // Do execute
-        runBlocking {
-            uploadingViewModel.upload(rootToken) {}
-            sleep(1500) // Wait for server confirms
-            serverManagement.getInsideFiles(rootToken).also {
-                assertThat(it.size).isEqualTo(1)
-                assertThat(it[0].fileName).isEqualTo(testFileName)
+        // Do Execute
+        uploadingViewModel.upload(rootToken)
+
+        // Check Live Data
+        uploadingViewModel.fileUploadSucceed.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(true)
+            serverManagement.getInsideFiles(rootToken).also { gotList ->
+                assertThat(gotList.size).isEqualTo(1)
+                assertThat(gotList[0].fileName).isEqualTo(testFileName)
             }
+        }
+    }
+
+    @Test
+    fun is_upload_fails_no_token() {
+        // Server Setup
+        val rootToken: String = "serverManagement.getRootToken().rootToken"
+
+        // Create "com.android.providers.media.documents" author provided URI
+        val expectedString: String = "TestWhatever"
+
+        // Register Input Stream
+        shadowContentResolver.registerInputStream(normalUri, ByteArrayInputStream(expectedString.toByteArray()))
+
+        // Setup for File operation
+        setUpForFileOperation()
+
+        // Create file contents
+        uploadingViewModel.createFileUri(normalUri)
+
+        // Do Execute
+        uploadingViewModel.upload(rootToken)
+
+        // Check Live Data
+        uploadingViewModel.fileUploadSucceed.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(false)
         }
     }
 }
