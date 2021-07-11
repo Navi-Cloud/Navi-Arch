@@ -25,6 +25,7 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
     private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
 
     var removeFileExecutionResult: MutableLiveData<ExecutionInformation<Any>> = MutableLiveData()
+    var downloadFileExecutionResult: MutableLiveData<ExecutionInformation<String>> = MutableLiveData()
 
     // TODO: Dismiss Dialog when download is done.
     fun downloadFile(targetToken: String, prevToken: String) {
@@ -35,6 +36,10 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
                     serverManagement.download(targetToken, prevToken)
                 }.onSuccess {
                     saveDownloadedFile(it)
+                    downloadFileExecutionResult.postValue(ExecutionInformation(true, it.fileName, null))
+                }.onFailure {
+                    Log.e(this::class.java.simpleName, it.stackTraceToString())
+                    downloadFileExecutionResult.postValue(ExecutionInformation(false, null, it))
                 }
             }
         }

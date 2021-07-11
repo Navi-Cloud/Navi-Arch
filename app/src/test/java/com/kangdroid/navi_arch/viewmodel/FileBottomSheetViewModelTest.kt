@@ -25,7 +25,6 @@ import org.junit.*
 import org.junit.runner.RunWith
 import org.robolectric.shadows.ShadowEnvironment
 import java.io.File
-import java.lang.Thread.sleep
 
 @RunWith(AndroidJUnit4::class)
 class FileBottomSheetViewModelTest {
@@ -270,16 +269,28 @@ class FileBottomSheetViewModelTest {
         val uploadResult: FileData = serverManagement.getInsideFiles(rootToken)[0]
 
         // Do Execute
-        runBlocking {
-            fileBottomSheetViewModel.downloadFile(uploadResult.token, uploadResult.prevToken)
-            sleep(1500)
-        }
+        fileBottomSheetViewModel.downloadFile(uploadResult.token, uploadResult.prevToken)
 
         // Check
-        assertThat(File(downloadFile, "test.txt").exists()).isEqualTo(true)
+        fileBottomSheetViewModel.downloadFileExecutionResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(true)
+            assertThat(it.value).isEqualTo("test.txt")
+            assertThat(File(downloadFile, "test.txt").exists()).isEqualTo(true)
+        }
 
         // Cleanup
         storagePath.deleteRecursively()
+    }
+
+    @Test
+    fun is_downloadFile_fail_wrong_token() {
+        // Do Execute
+        fileBottomSheetViewModel.downloadFile("uploadResult.token", "uploadResult.prevToken")
+
+        // Check
+        fileBottomSheetViewModel.downloadFileExecutionResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(false)
+        }
     }
 
 }
