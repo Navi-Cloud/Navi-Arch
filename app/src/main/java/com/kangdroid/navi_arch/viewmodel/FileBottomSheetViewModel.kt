@@ -2,8 +2,10 @@ package com.kangdroid.navi_arch.viewmodel
 
 import android.os.Environment
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kangdroid.navi_arch.data.dto.internal.ExecutionInformation
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
 import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
@@ -22,6 +24,8 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
 
     private val serverManagement: ServerInterface = ServerManagement.getServerManagement()
 
+    var removeFileExecutionResult: MutableLiveData<ExecutionInformation<Any>> = MutableLiveData()
+
     // TODO: Dismiss Dialog when download is done.
     fun downloadFile(targetToken: String, prevToken: String) {
         Log.d(this::class.java.simpleName, "Accessing downloadFile")
@@ -36,24 +40,19 @@ class FileBottomSheetViewModel @Inject constructor(): ViewModel() {
         }
     }
 
-    fun removeFile(prevToken: String, targetToken: String, onSuccess: (String)->Unit, onFailure: (Throwable) -> Unit) {
+    fun removeFile(prevToken: String, targetToken: String) {
         Log.d(this::class.java.simpleName, "Removing Target")
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 runCatching {
                     serverManagement.removeFile(prevToken, targetToken)
                 }.onSuccess {
-                    handleData(onSuccess, "")
+                    removeFileExecutionResult.postValue(ExecutionInformation(true, null, null))
                 }.onFailure {
-                    handleData(onFailure, it)
+                    Log.e(this::class.java.simpleName, it.stackTraceToString())
+                    removeFileExecutionResult.postValue(ExecutionInformation(false, null, it))
                 }
             }
-        }
-    }
-
-    private suspend fun<T> handleData(handler: (T) -> Unit, inputVariable: T) {
-        withContext(Dispatchers.Main) {
-            handler(inputVariable)
         }
     }
 

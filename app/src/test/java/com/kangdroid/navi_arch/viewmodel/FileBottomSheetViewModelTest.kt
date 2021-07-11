@@ -13,6 +13,7 @@ import com.kangdroid.navi_arch.setup.LinuxServerSetup
 import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFunction
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -196,19 +197,26 @@ class FileBottomSheetViewModelTest {
         val uploadResult: FileData = serverManagement.getInsideFiles(rootToken)[0]
 
         // doExecute
-        runBlocking {
-            fileBottomSheetViewModel.removeFile(
-                prevToken = uploadResult.prevToken,
-                targetToken = uploadResult.token,
-                onSuccess = {},
-                onFailure = {}
-            )
-            sleep(1500)
-        }
+        fileBottomSheetViewModel.removeFile(
+            prevToken = uploadResult.prevToken,
+            targetToken = uploadResult.token
+        )
 
         // Check
-        serverManagement.getInsideFiles(rootToken).also {
-            assertThat(it.size).isEqualTo(0)
+        fileBottomSheetViewModel.removeFileExecutionResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(true)
+            serverManagement.getInsideFiles(rootToken).also { fileList ->
+                assertThat(fileList.size).isEqualTo(0)
+            }
+        }
+    }
+
+    @Test
+    fun is_removeFile_error_wrong_token() {
+        fileBottomSheetViewModel.removeFile("whatever", "wwww")
+
+        fileBottomSheetViewModel.removeFileExecutionResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(false)
         }
     }
 
@@ -227,19 +235,17 @@ class FileBottomSheetViewModelTest {
         val uploadResult: FileData = serverManagement.getInsideFiles(rootToken)[0]
 
         // doExecute
-        runBlocking {
-            fileBottomSheetViewModel.removeFile(
-                prevToken = uploadResult.prevToken,
-                targetToken = uploadResult.token,
-                onSuccess = {},
-                onFailure = {}
-            )
-            sleep(1500)
-        }
+        fileBottomSheetViewModel.removeFile(
+            prevToken = uploadResult.prevToken,
+            targetToken = uploadResult.token,
+        )
 
         // Check
-        serverManagement.getInsideFiles(rootToken).also {
-            assertThat(it.size).isEqualTo(0)
+        fileBottomSheetViewModel.removeFileExecutionResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(true)
+            serverManagement.getInsideFiles(rootToken).also { fileList ->
+                assertThat(fileList.size).isEqualTo(0)
+            }
         }
     }
 

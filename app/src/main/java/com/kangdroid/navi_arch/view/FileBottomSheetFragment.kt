@@ -43,6 +43,7 @@ class FileBottomSheetFragment(
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        setUpObserver()
         // Add Launcher for Requesting Permissions
         requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             permissionGranted =
@@ -96,17 +97,8 @@ class FileBottomSheetFragment(
             it.bottomFileRemove.text = resources.getString(R.string.bottom_sheet_default_remove, targetFileData.fileName)
             it.bottomFileDeleteView.setOnClickListener {
                 fileBottomSheetViewModel.removeFile(
-                    prevToken = targetFileData!!.prevToken,
-                    targetToken = targetFileData!!.token,
-                    onSuccess = {
-                        Toast.makeText(requireContext(), "Successfully removed target ${targetFileData.fileName}", Toast.LENGTH_SHORT)
-                            .show()
-                        refreshPageLambda()
-                    },
-                    onFailure = {
-                        Toast.makeText(requireContext(), "Cannot remove ${targetFileData.fileName}", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                    prevToken = targetFileData.prevToken,
+                    targetToken = targetFileData.token
                 )
             }
         }
@@ -120,6 +112,19 @@ class FileBottomSheetFragment(
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
         } else if (isPermissionGrantedInternal == PackageManager.PERMISSION_GRANTED) {
             permissionGranted = true
+        }
+    }
+
+    private fun setUpObserver() {
+        fileBottomSheetViewModel.removeFileExecutionResult.observe(viewLifecycleOwner) {
+            if (it.isSucceed) {
+                Toast.makeText(requireContext(), "Successfully removed target ${targetFileData.fileName}", Toast.LENGTH_SHORT)
+                    .show()
+                refreshPageLambda()
+            } else {
+                Toast.makeText(requireContext(), "Cannot remove ${targetFileData.fileName}", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 }
