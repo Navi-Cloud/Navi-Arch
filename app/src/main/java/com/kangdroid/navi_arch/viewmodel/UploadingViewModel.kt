@@ -39,8 +39,6 @@ class UploadingViewModel @Inject constructor(
 
     private val logTag: String = this::class.java.simpleName
 
-    private lateinit var bufferedReader: BufferedReader
-
     private val serverManagement: ServerManagement = ServerManagement.getServerManagement()
 
     // Application Context
@@ -55,6 +53,7 @@ class UploadingViewModel @Inject constructor(
 
     private lateinit var fileContentArray: ByteArray
     private lateinit var fileName: String
+    private lateinit var uploadFile : MultipartBody.Part
 
     private fun getFileName(uri: Uri): String {
         var targetString: String? = null
@@ -88,6 +87,9 @@ class UploadingViewModel @Inject constructor(
 
         fileContentArray = inputStream.readBytes()
         fileName = getFileName(uri)
+
+        Log.d(logTag, "filecontentArray: $fileContentArray")
+        Log.d(logTag, "fileName: $fileName")
     }
 
     fun upload(uploadPath: String, actionAfterUpload: (() -> Unit)) {
@@ -100,7 +102,7 @@ class UploadingViewModel @Inject constructor(
             contentType = "multipart/form-data".toMediaTypeOrNull(),
             content = fileContentArray
         )
-        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile",fileName,requestBody)
+        uploadFile = MultipartBody.Part.createFormData("uploadFile",fileName,requestBody)
         val param : HashMap<String,Any> = HashMap()
         with(param){
             put("uploadPath", uploadPath)
