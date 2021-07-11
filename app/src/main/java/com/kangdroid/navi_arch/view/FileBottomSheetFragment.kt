@@ -126,5 +126,15 @@ class FileBottomSheetFragment(
                     .show()
             }
         }
+
+        fileBottomSheetViewModel.downloadFileExecutionResult.observe(viewLifecycleOwner) {
+            if (it.isSucceed) {
+                Toast.makeText(requireContext(), "Successfully downloaded file!", Toast.LENGTH_SHORT)
+                    .show()
+            } else {
+                Toast.makeText(requireContext(), "Failed to download file!!", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 }
