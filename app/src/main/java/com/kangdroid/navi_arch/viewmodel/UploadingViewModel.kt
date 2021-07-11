@@ -51,11 +51,11 @@ class UploadingViewModel @Inject constructor(
         rawApplication.applicationContext.contentResolver
     }
 
-    lateinit var fileContentArray: ByteArray
-    lateinit var fileName: String
-    lateinit var uploadFile : MultipartBody.Part
+    private lateinit var fileContentArray: ByteArray
+    private lateinit var fileName: String
+    private lateinit var uploadFile : MultipartBody.Part
 
-    fun getFileName(uri: Uri): String {
+    private fun getFileName(uri: Uri): String {
         var targetString: String? = null
         if (uri.scheme == "content") {
             val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)

@@ -18,6 +18,8 @@ import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.setup.LinuxServerSetup
 import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFields
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFunction
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
@@ -166,7 +168,10 @@ class UploadingViewModelTest {
         // Register File Name
         setUpForFileOperation()
 
-        assertThat(uploadingViewModel.getFileName(normalUri)).isEqualTo(testFileName)
+        val targetString: String = getFunction<UploadingViewModel>("getFileName")
+            .call(uploadingViewModel, normalUri) as String
+
+        assertThat(targetString).isEqualTo(testFileName)
     }
 
     @Test
@@ -174,14 +179,20 @@ class UploadingViewModelTest {
         // Create "com.android.providers.media.documents" author provided URI
         val mockUri: Uri = Uri.parse("content://other.provider.test/document/$testFileName")
 
-        assertThat(uploadingViewModel.getFileName(mockUri)).isEqualTo(testFileName)
+        val targetString: String = getFunction<UploadingViewModel>("getFileName")
+            .call(uploadingViewModel, mockUri) as String
+
+        assertThat(targetString).isEqualTo(testFileName)
     }
 
     @Test
     fun is_getFileName_works_well_from_non_provider() {
         val mockUri: Uri = Uri.parse("/home/kangdroid/$testFileName")
 
-        assertThat(uploadingViewModel.getFileName(mockUri)).isEqualTo(testFileName)
+        val targetString: String = getFunction<UploadingViewModel>("getFileName")
+            .call(uploadingViewModel, mockUri) as String
+
+        assertThat(targetString).isEqualTo(testFileName)
     }
 
     @Test
@@ -199,8 +210,12 @@ class UploadingViewModelTest {
         uploadingViewModel.createFileUri(normalUri)
 
         // Check
-        assertThat(String(uploadingViewModel.fileContentArray)).isEqualTo(expectedString)
-        assertThat(uploadingViewModel.fileName).isEqualTo(testFileName)
+        getFields<UploadingViewModel, ByteArray>("fileContentArray", uploadingViewModel).also {
+            assertThat(String(it)).isEqualTo(expectedString)
+        }
+        getFields<UploadingViewModel, String>("fileName", uploadingViewModel).also {
+            assertThat(it).isEqualTo(testFileName)
+        }
     }
 
     @Test
