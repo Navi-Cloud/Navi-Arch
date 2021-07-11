@@ -1,21 +1,35 @@
 package com.kangdroid.navi_arch.viewmodel
 
 import android.app.Application
+import android.content.ContentProvider
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Context
+import android.database.Cursor
+import android.database.MatrixCursor
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.kangdroid.navi_arch.data.dto.request.LoginRequest
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.setup.LinuxServerSetup
 import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
+import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.*
 import org.junit.runner.RunWith
-import org.mockito.Mockito
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
+import org.robolectric.shadows.ShadowContentResolver
+import java.io.ByteArrayInputStream
+import java.lang.Thread.sleep
 
+@RunWith(AndroidJUnit4::class)
 class UploadingViewModelTest {
 
     companion object {
@@ -45,25 +59,60 @@ class UploadingViewModelTest {
         }
     }
 
-    private lateinit var uploadingViewModel : UploadingViewModel
-
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
+    // Target Object
+    private lateinit var uploadingViewModel : UploadingViewModel
+
+    // For Robolectric
+    private lateinit var application: Application
+    private lateinit var contentResolver: ContentResolver
+    private lateinit var shadowContentResolver: ShadowContentResolver
+
+    // Global 'right' file name
+    private val testFileName: String = "test_file_name"
+
+    // Create "com.android.providers.media.documents" author provided URI
+    val normalUri: Uri = Uri.parse("content://com.android.providers.media.documents/document/image%3A32")
+
+    // Mock Server Management
     private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
         HttpUrl.Builder()
             .scheme("http")
-            .host("172.30.1.37")
+            .host("localhost")
             .port(8080)
             .build()
     )
 
+    // Mock Register Request
+    private val mockUserRegisterRequest: RegisterRequest = RegisterRequest(
+        userId = "kangdroid",
+        userPassword = "test",
+        userEmail = "Ttest",
+        userName = "KangDroid"
+    )
+
+    // Server Registration Function
+    private fun registerAndLogin() {
+        serverManagement.register(mockUserRegisterRequest)
+        serverManagement.loginUser(
+            LoginRequest(
+                userId = mockUserRegisterRequest.userId,
+                userPassword = mockUserRegisterRequest.userPassword
+            )
+        )
+    }
 
     @Before
     fun init() {
+        // Setup Robolectric Required Data
+        application = RuntimeEnvironment.getApplication()
+        contentResolver = ApplicationProvider.getApplicationContext<Context>().contentResolver
+        shadowContentResolver = shadowOf(contentResolver)
+        uploadingViewModel = UploadingViewModel(application)
+
         serverSetup.clearData()
-        //val mockApplication = Mockito.mock(Application::class.java)
-        uploadingViewModel = UploadingViewModel(Application())
         ViewModelTestHelper.setFields("serverManagement", uploadingViewModel, serverManagement)
     }
 
@@ -72,38 +121,114 @@ class UploadingViewModelTest {
         serverSetup.clearData()
     }
 
-    private val mockUri : Uri = Uri.parse("content://com.android.providers.media.documents/document/image%3A32")
+    /**
+     * Setup function for mocking DocumentProvider.
+     * This function will setup com.android.providers.media.document's Internal DB and its provider.
+     */
+    private fun setUpForFileOperation() {
+        // Register File Name
+        val cursor: MatrixCursor = MatrixCursor(arrayOf(OpenableColumns.DISPLAY_NAME)).apply {addRow(listOf(testFileName))}
 
-    private lateinit var mockFile : MultipartBody.Part
+        // Register Content Provider
+        ShadowContentResolver.registerProviderInternal("com.android.providers.media.documents", object: ContentProvider() {
+            override fun onCreate(): Boolean = false
 
-    private lateinit var requestBody : RequestBody
+            override fun query(
+                uri: Uri,
+                projection: Array<out String>?,
+                selection: String?,
+                selectionArgs: Array<out String>?,
+                sortOrder: String?
+            ): Cursor = cursor
 
-    @Test
-    fun is_createFileUri_working_well(){
+            override fun getType(uri: Uri): String? = null
 
-        uploadingViewModel.createFileUri(mockUri)
+            override fun insert(uri: Uri, values: ContentValues?): Uri = normalUri
 
-        assertThat(uploadingViewModel.fileContentArray).isEqualTo("[B@fca0319")
+            override fun delete(
+                uri: Uri,
+                selection: String?,
+                selectionArgs: Array<out String>?
+            ): Int = -1
 
-        //getFileName
-        assertThat(uploadingViewModel.fileName).isEqualTo("elmo3 - 복사본.jpeg")
+            override fun update(
+                uri: Uri,
+                values: ContentValues?,
+                selection: String?,
+                selectionArgs: Array<out String>?
+            ): Int = -1
 
-        requestBody = RequestBody.create(
-            contentType = "multipart/form-data".toMediaTypeOrNull(),
-            content = uploadingViewModel.fileContentArray
-        )
-
+        })
     }
 
     @Test
-    fun is_upload_working_well(){
+    fun is_getFileName_works_well_from_document_provider() {
+        // Register File Name
+        setUpForFileOperation()
 
-        uploadingViewModel.createFileUri(mockUri)
-        uploadingViewModel.upload("Lw==") { }
-
-        mockFile = MultipartBody.Part.createFormData("uploadFile","a.txt",requestBody)
-
-        assertThat(uploadingViewModel.uploadFile).isEqualTo(mockFile)
+        assertThat(uploadingViewModel.getFileName(normalUri)).isEqualTo(testFileName)
     }
 
+    @Test
+    fun is_getFileName_works_well_from_other_provider() {
+        // Create "com.android.providers.media.documents" author provided URI
+        val mockUri: Uri = Uri.parse("content://other.provider.test/document/$testFileName")
+
+        assertThat(uploadingViewModel.getFileName(mockUri)).isEqualTo(testFileName)
+    }
+
+    @Test
+    fun is_getFileName_works_well_from_non_provider() {
+        val mockUri: Uri = Uri.parse("/home/kangdroid/$testFileName")
+
+        assertThat(uploadingViewModel.getFileName(mockUri)).isEqualTo(testFileName)
+    }
+
+    @Test
+    fun is_createFileUri_works_well() {
+        // Create "com.android.providers.media.documents" author provided URI
+        val expectedString: String = "TestWhatever"
+
+        // Register Input Stream
+        shadowContentResolver.registerInputStream(normalUri, ByteArrayInputStream(expectedString.toByteArray()))
+
+        // Setup for File operation
+        setUpForFileOperation()
+
+        // Do execute
+        uploadingViewModel.createFileUri(normalUri)
+
+        // Check
+        assertThat(String(uploadingViewModel.fileContentArray)).isEqualTo(expectedString)
+        assertThat(uploadingViewModel.fileName).isEqualTo(testFileName)
+    }
+
+    @Test
+    fun is_upload_works_well() {
+        // Server Setup
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create "com.android.providers.media.documents" author provided URI
+        val expectedString: String = "TestWhatever"
+
+        // Register Input Stream
+        shadowContentResolver.registerInputStream(normalUri, ByteArrayInputStream(expectedString.toByteArray()))
+
+        // Setup for File operation
+        setUpForFileOperation()
+
+        // Create file contents
+        uploadingViewModel.createFileUri(normalUri)
+
+        // Do execute
+        runBlocking {
+            uploadingViewModel.upload(rootToken) {}
+            sleep(1500) // Wait for server confirms
+            serverManagement.getInsideFiles(rootToken).also {
+                assertThat(it.size).isEqualTo(1)
+                assertThat(it[0].fileName).isEqualTo(testFileName)
+            }
+        }
+    }
 }
