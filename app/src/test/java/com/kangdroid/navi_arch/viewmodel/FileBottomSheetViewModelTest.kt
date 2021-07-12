@@ -25,6 +25,7 @@ import org.junit.*
 import org.junit.runner.RunWith
 import org.robolectric.shadows.ShadowEnvironment
 import java.io.File
+import java.nio.file.FileAlreadyExistsException
 
 @RunWith(AndroidJUnit4::class)
 class FileBottomSheetViewModelTest {
@@ -181,6 +182,51 @@ class FileBottomSheetViewModelTest {
         }.onSuccess {
             fail("Media Storage is removed but it succeed to save?")
         }
+    }
+
+    @Test
+    fun is_saveDownloadFile_throws_FileAlreadyExistException_not_mounted() {
+        // Set Environment state to media_mounted
+        val storagePath: File = File(System.getProperty("java.io.tmpdir"), "tmpRoot").apply {
+            mkdir()
+        }
+        val downloadFile: File = File(storagePath, "Download").apply {mkdir()}
+        ShadowEnvironment.setExternalStorageState(Environment.MEDIA_MOUNTED)
+        ShadowEnvironment.setExternalStorageDirectory(storagePath.toPath())
+
+        // Setup server
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Upload file
+        uploadTestFileToRoot()
+
+        // Get Uploaded file information
+        val uploadResult: FileData = serverManagement.getInsideFiles(rootToken)[0]
+
+        // Download it
+        val downloadResult: DownloadResponse = serverManagement.download(uploadResult.token, uploadResult.prevToken)
+
+        // Do Execute
+        getFunction<FileBottomSheetViewModel>("saveDownloadedFile").call(
+            fileBottomSheetViewModel, downloadResult
+        )
+
+        // Check
+        assertThat(File(downloadFile, "test.txt").exists()).isEqualTo(true)
+
+        // Check FileAlreadyExistException
+        runCatching {
+            getFunction<FileBottomSheetViewModel>("saveDownloadedFile").call(
+                fileBottomSheetViewModel, downloadResult
+            )
+        }.onFailure {
+            assertThat(it.cause is FileAlreadyExistsException).isEqualTo(true)
+        }.onSuccess {
+            fail("We are downloading twice, but it succeed?")
+        }
+        // Cleanup
+        storagePath.deleteRecursively()
     }
 
     @Test

@@ -8,6 +8,7 @@ import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.setup.LinuxServerSetup
 import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
@@ -100,52 +101,26 @@ class MenuBottomSheetViewModelTest {
         )
 
         // Do
-        menuBottomSheetViewModel.createFolder(
-            createFolderRequestDTO = mockCreateFolderRequest,
-            onSuccess = {
-                assertThat(it).isEqualTo("")
-            },
-            onFailure = {
-                println(it.stackTraceToString())
-                fail("This is correct mock test, but it failed!")
-            }
-        )
+        menuBottomSheetViewModel.createFolder(mockCreateFolderRequest)
+
+        menuBottomSheetViewModel.createFolderResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(true)
+        }
     }
 
     @Test
-    fun is_createFolder_duplicated_fails() {
-        registerAndLogin()
-
-        // Get rootToken
-        val rootToken: String = serverManagement.getRootToken().rootToken
-
+    fun is_createFolder_fails_well() {
         // To request
         val mockCreateFolderRequest: CreateFolderRequestDTO = CreateFolderRequestDTO(
-            parentFolderToken = rootToken,
+            parentFolderToken = "rootToken",
             newFolderName = "TestFolder"
         )
 
-        // Do
-        menuBottomSheetViewModel.createFolder(
-            createFolderRequestDTO = mockCreateFolderRequest,
-            onSuccess = {
-                assertThat(it).isEqualTo("")
-            },
-            onFailure = {
-                println(it.stackTraceToString())
-                fail("This is correct mock test, but it failed!")
-            }
-        )
-
         // Try to create another folder
-        menuBottomSheetViewModel.createFolder(
-            createFolderRequestDTO = mockCreateFolderRequest,
-            onSuccess = {
-                fail("We've already created same folder just now. But it succeed.")
-            },
-            onFailure = {
-                assertThat(it is RuntimeException).isEqualTo(true)
-            }
-        )
+        menuBottomSheetViewModel.createFolder(mockCreateFolderRequest)
+
+        menuBottomSheetViewModel.createFolderResult.getOrAwaitValue().also {
+            assertThat(it.isSucceed).isEqualTo(false)
+        }
     }
 }

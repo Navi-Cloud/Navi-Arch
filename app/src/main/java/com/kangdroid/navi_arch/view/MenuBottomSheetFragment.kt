@@ -47,6 +47,19 @@ class MenuBottomSheetFragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        menuBottomSheetViewModel.createFolderResult.observe(viewLifecycleOwner) {
+            if (it.isSucceed) {
+                Log.d(logTag, "Successfully created folder!")
+                // Probably need to refresh
+                refreshPage()
+            } else {
+                Log.e(logTag, "Cannot create folder: ${it.error?.message}")
+                Toast.makeText(requireContext(), "Cannot create folder: ${it.error?.message}", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
         dialogAddBinding.makeFolderLayout.setOnClickListener {
             val folderNameDialog: FolderNameDialog = FolderNameDialog(
                 context = requireContext(),
@@ -55,17 +68,7 @@ class MenuBottomSheetFragment(
                         createFolderRequestDTO = CreateFolderRequestDTO(
                             parentFolderToken = currentFolderToken,
                             newFolderName = fileName
-                        ),
-                        onSuccess = {
-                            Log.d(logTag, "Successfully created folder $it")
-                            // Probably need to refresh
-                            refreshPage()
-                        },
-                        onFailure = {
-                            Log.e(logTag, "Cannot create folder: ${it.message}")
-                            Toast.makeText(requireContext(), "Cannot create folder: ${it.message}", Toast.LENGTH_SHORT)
-                                .show()
-                        }
+                        )
                     )
                 }
             )

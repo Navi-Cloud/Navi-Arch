@@ -136,7 +136,9 @@ def setupAndroidCoverageVerification(threshold) {
                     "com.kangdroid.navi_arch.view.**",
                     "com.kangdroid.navi_arch.adapter.**",
                     "com.kangdroid.navi_arch.hilt.**",
-                    "com.kangdroid.navi_arch.data.**"
+                    "com.kangdroid.navi_arch.data.**",
+                    "com.kangdroid.navi_arch.viewmodel.FileBottomSheetViewModel.removeFile.1",
+                    "com.kangdroid.navi_arch.viewmodel.FileBottomSheetViewModel.downloadFile.1"
                 ]
             }
         }
