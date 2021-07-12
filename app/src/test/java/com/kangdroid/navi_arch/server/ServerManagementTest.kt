@@ -6,6 +6,7 @@ import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.setup.LinuxServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFields
 import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -105,7 +106,9 @@ class ServerManagementTest {
             )
         ).also {
             assertThat(it.userToken).isNotEqualTo("")
+            assertThat(serverManagement.userToken).isEqualTo(it.userToken)
         }
+
     }
 
     // Root Token Test
@@ -175,5 +178,14 @@ class ServerManagementTest {
         registerAndLogin()
         uploadTest()
         downloadTest()
+    }
+
+    @Test
+    fun is_initWholeServerClient_works_well() {
+        val serverManagementNotConnected: ServerManagement = ServerManagement(null)
+
+        getFields<ServerManagement, Boolean>("isServerEnabled", serverManagementNotConnected).also {
+            assertThat(it).isEqualTo(false)
+        }
     }
 }

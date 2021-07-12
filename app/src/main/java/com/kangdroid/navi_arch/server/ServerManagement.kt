@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets
 import javax.inject.Singleton
 
 class ServerManagement(
-    private val httpUrl: HttpUrl
+    private val httpUrl: HttpUrl?
 ): ServerInterface {
 
     companion object {
@@ -108,8 +108,7 @@ class ServerManagement(
         val response: Response<RootTokenResponseDto> =
             serverManagementHelper.exchangeDataWithServer(tokenFunction)
 
-        return response.body()
-            ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
+        return response.body()!!
     }
 
     /**
@@ -126,8 +125,7 @@ class ServerManagement(
         val response: Response<List<FileData>> =
             serverManagementHelper.exchangeDataWithServer(insiderFunction)
 
-        return response.body()
-            ?: throw NoSuchFieldException("Response was OK, but wrong response body received.")
+        return response.body()!!
     }
 
     override fun upload(Param: HashMap<String, Any>, file: MultipartBody.Part): String {
@@ -155,22 +153,13 @@ class ServerManagement(
             serverManagementHelper.exchangeDataWithServer(downloadingApi)
 
         // Get Content Name
-        var header: String? = null
-        runCatching {
-            response.headers()["Content-Disposition"].apply {
-                // Since raw header is encoded with URL Scheme, decode it.
-                URLDecoder.decode(this, "UTF-8")
-            }
-        }.onSuccess {
-            header = it!!
-        }.onFailure {
-            // If header "Content-Disposition" is not exist, URLDecoder.decode throw NPE
-            // If character encoding is not supported, URLDecoder.decode throw UnsupportedEncodingException
-            throw IllegalArgumentException("Content-Disposition is NEEDED somehow, but its missing!")
-        }
+        val header: String = response.headers()["Content-Disposition"].apply {
+            // Since raw header is encoded with URL Scheme, decode it.
+            URLDecoder.decode(this, "UTF-8")
+        }!!
 
         // Get file Name from header
-        val fileName: String = header!!.replace("attachment; filename=\"", "").let {
+        val fileName: String = header.replace("attachment; filename=\"", "").let {
             it.substring(it.lastIndexOf("/") + 1, it.length - 1)
         }
         Log.d(logTag, "fileName : $fileName")
