@@ -484,7 +484,7 @@ class PagerViewModelTest {
                 token = rootToken,
                 prevToken = ""
             ),
-            0,
+            0, // removePrecedingPages() will remove this data
             false
         )
 
@@ -492,6 +492,70 @@ class PagerViewModelTest {
         pagerViewModel.livePagerData.getOrAwaitValue().also {
             assertThat(it).isNotEqualTo(null)
             assertThat(it!!.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_false_with_cache_and_pageSet() {
+        registerAndLogin()
+
+        val rootToken: String = serverManagement.getRootToken().rootToken
+        val mockFileAdapter: FileAdapter = FileAdapter(
+            onClick = {_, _ -> },
+            onLongClick = {true},
+            fileList = listOf(),
+            currentFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                prevToken = "",
+                token = rootToken
+            ),
+            pageNumber = 0
+        )
+
+        // Set data first: token = fakePrevToken, fileAdapter = fakeFileAdapter
+        setFields("pageList", pagerViewModel, mutableListOf(mockFileAdapter))
+        setFields("pageSet", pagerViewModel, mutableSetOf(rootToken))
+        val pagerCacheUtils: PagerCacheUtils = PagerCacheUtils().apply {
+            createCache(rootToken, mockFileAdapter)
+        }
+        setFields("pagerCacheUtils", pagerViewModel, pagerCacheUtils)
+
+        // explorePage with cleanUp = false
+        pagerViewModel.explorePage(
+            nextFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                token = rootToken,
+                prevToken = ""
+            ),
+            10, // removePrecedingPages() will NOT remove this data
+            false
+        )
+
+        // Get Live Data
+        // Since there're already have "rootToken" folder data and cleanUp=false, livePagerData never set
+        runCatching {
+            pagerViewModel.livePagerData.getOrAwaitValue()
+        }.onSuccess {
+            fail("This should be failed...")
+        }.onFailure {
+            // fail to get livedata
+            assertThat(it is TimeoutException).isEqualTo(true)
         }
 
         // Get Value for set
