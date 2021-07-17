@@ -19,6 +19,7 @@ import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.*
+import kotlin.reflect.KFunction
 
 class PagerViewModelTest {
 
@@ -132,6 +133,42 @@ class PagerViewModelTest {
     @After
     fun destroy() {
         serverSetup.clearData()
+    }
+    @Test
+    fun is_updatePageAndNotify_works_well_default_param() {
+        // Private Method testing with default parameters -> use callBy() instead of call()
+        val funUpdatePageAndNotify: KFunction<*> = getFunction<PagerViewModel>("updatePageAndNotify")
+        val adapterParam = funUpdatePageAndNotify.parameters.first { it.name == "fileAdapter" }
+        val tokenParam = funUpdatePageAndNotify.parameters.first { it.name == "targetToken" }
+
+        funUpdatePageAndNotify.callBy(mapOf(
+            funUpdatePageAndNotify.parameters[0] to pagerViewModel,
+            adapterParam to fakeFileAdapter,
+            tokenParam to "test_token"
+        ))
+
+        // Get Live Data
+        val livePagerData: MutableList<FileAdapter>? =
+            pagerViewModel.livePagerData.getOrAwaitValue()
+
+        // Live Set Test
+        assertThat(livePagerData).isNotEqualTo(null)
+        assertThat(livePagerData!!.size).isEqualTo(1)
+
+        // Get Value for set
+        val pageSet: MutableSet<String> = getFields("pageSet", pagerViewModel)
+
+        // Page Set Test
+        assertThat(pageSet.size).isEqualTo(1)
+        assertThat(pageSet.contains("test_token")).isEqualTo(true)
+
+        // Page List
+        val pageList: MutableList<FileAdapter> = getFields("pageList", pagerViewModel)
+
+        // Page List Test
+        assertThat(pageList.size).isEqualTo(1)
+        assertThat(pageList[0].currentFolder.token).isEqualTo("")
+        assertThat(pageList[0].fileList.size).isEqualTo(0)
     }
 
     @Test
@@ -421,6 +458,42 @@ class PagerViewModelTest {
             assertThat(it[0].fileList.size).isEqualTo(0)
         }
     }
+
+    @Test
+    fun is_explorePage_works_when_cleanUp_false_with_default_param() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        pagerViewModel.explorePage(
+            nextFolder = FileData(
+                userId = mockUserRegisterRequest.userId,
+                fileName = "/",
+                fileType = FileType.Folder.toString(),
+                token = rootToken,
+                prevToken = ""
+            ),
+            0
+        )
+
+        // Get Live Data will NOT be fail since page cache hasn't FileData
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it!!.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
 
     @Test
     fun is_createInitialRootPage_works_well() {
