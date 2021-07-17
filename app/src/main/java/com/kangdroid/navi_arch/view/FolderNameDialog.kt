@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.view
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
