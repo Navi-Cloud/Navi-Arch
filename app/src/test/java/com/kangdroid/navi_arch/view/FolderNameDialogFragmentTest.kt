@@ -29,6 +29,7 @@ class FolderNameDialogFragmentTest {
 
             assertThat(dialogAddFolderBinding).isNotEqualTo(null)
         }
+        scenario.moveToState(Lifecycle.State.DESTROYED)
     }
 
     @Test
@@ -49,6 +50,7 @@ class FolderNameDialogFragmentTest {
                 assertThat(clickResult).isEqualTo(true)
             }
         }
+        scenario.moveToState(Lifecycle.State.DESTROYED)
     }
 
     @Test
@@ -78,5 +80,6 @@ class FolderNameDialogFragmentTest {
 
             assertThat(tmpString).isEqualTo(targetFolderName)
         }
+        scenario.moveToState(Lifecycle.State.DESTROYED)
     }
 }
