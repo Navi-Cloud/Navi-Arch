@@ -18,7 +18,9 @@ import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.junit.*
+import java.util.concurrent.TimeoutException
 import kotlin.reflect.KFunction
 
 class PagerViewModelTest {
@@ -976,6 +978,59 @@ class PagerViewModelTest {
             assertThat(targetFileList[0].lastModifiedTime > targetFileList[1].lastModifiedTime).isEqualTo(true)
         } else {
             assertThat(targetFileList[0].fileName >= targetFileList[1].fileName).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_recyclerOnClickListener_works_well_when_folder() {
+        registerAndLogin()
+
+        val recyclerOnClickListener: ((FileData, Int) -> Unit) =
+            getFields("recyclerOnClickListener", pagerViewModel)
+        val fileData: FileData = FileData(
+            userId = mockUserRegisterRequest.userId,
+            fileName = "testFileName",
+            fileType = "Folder",
+            token = "TestToken",
+            prevToken = "TestPrevToken"
+        )
+        recyclerOnClickListener(fileData, 10)
+
+        // Get Live Data
+        // Since FileData is "Folder", recyclerOnClickListener should call explorePage() and inner func update livePagerData
+        runCatching {
+            pagerViewModel.livePagerData.getOrAwaitValue()
+        }.onSuccess {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }.onFailure {
+            fail("This should be succeed...")
+        }
+    }
+
+    @Test
+    fun is_recyclerOnClickListener_works_well_when_file() {
+        registerAndLogin()
+
+        val recyclerOnClickListener: ((FileData, Int) -> Unit) =
+            getFields("recyclerOnClickListener", pagerViewModel)
+        val fileData: FileData = FileData(
+            userId = mockUserRegisterRequest.userId,
+            fileName = "testFileName",
+            fileType = "File",
+            token = "TestToken",
+            prevToken = "TestPrevToken"
+        )
+        recyclerOnClickListener(fileData, 10)
+
+        // Get Live Data
+        // Since FileData is "File", recyclerOnClickListener don't call explorePage()
+        runCatching {
+            pagerViewModel.livePagerData.getOrAwaitValue()
+        }.onSuccess {
+            fail("This should be failed...")
+        }.onFailure {
+            assertThat(it is TimeoutException).isEqualTo(true)
         }
     }
 
