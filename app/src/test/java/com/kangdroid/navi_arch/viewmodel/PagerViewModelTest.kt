@@ -268,6 +268,52 @@ class PagerViewModelTest {
     }
 
     @Test
+    fun is_innerExplorePage_throw_error_when_getRootToken_fail() {
+        // No Register & Login -> fail to getRootToken()
+        // Check innerExplorePage() works well when isRoot=true but fail to getRootToken()
+        getFunction<PagerViewModel>("innerExplorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserRegisterRequest.userId,
+                    fileName = "/",
+                    fileType = "Folder",
+                    token = "TestToken",
+                    prevToken = "TestPrevToken"
+                ),
+                true
+            )
+
+        // Get Live Data [Error]
+        pagerViewModel.liveErrorData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+        }
+    }
+
+    @Test
+    fun is_innerExplorePage_throw_error_when_getInsideFiles_fail() {
+        // No Register & Login -> fail to getInsideFiles()
+        // Check innerExplorePage() works well when isRoot=false and fail to getInsideFiles()
+        getFunction<PagerViewModel>("innerExplorePage")
+            .call(
+                pagerViewModel,
+                FileData(
+                    userId = mockUserRegisterRequest.userId,
+                    fileName = "/",
+                    fileType = "Folder",
+                    token = "TestToken",
+                    prevToken = "TestPrevToken"
+                ),
+                false
+            )
+
+        // Get Live Data [Error]
+        pagerViewModel.liveErrorData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+        }
+    }
+
+    @Test
     fun is_explorePage_works_when_cleanUp_true_with_no_cache() {
         registerAndLogin()
         val rootToken: String = serverManagement.getRootToken().rootToken
