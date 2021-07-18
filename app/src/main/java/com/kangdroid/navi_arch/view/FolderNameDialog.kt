@@ -1,20 +1,30 @@
 package com.kangdroid.navi_arch.view
 
-import android.app.Dialog
-import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.DialogFragment
 import com.kangdroid.navi_arch.databinding.DialogAddFolderBinding
 
-class FolderNameDialog(context: Context, private val createFolderLogic: (String) -> Unit) : Dialog(context) {
+class FolderNameDialog(private val createFolderLogic: (String) -> Unit) : DialogFragment() {
     private val logTag: String = this::class.java.simpleName
-    private val dialogAddFolderBinding: DialogAddFolderBinding by lazy {
-        DialogAddFolderBinding.inflate(layoutInflater)
+    private var _dialogBinding: DialogAddFolderBinding? = null
+    private val dialogAddFolderBinding: DialogAddFolderBinding get() = _dialogBinding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _dialogBinding = DialogAddFolderBinding.inflate(inflater, container, false)
+        return dialogAddFolderBinding.root
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(dialogAddFolderBinding.root)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         dialogAddFolderBinding.cancelCreateFolder.setOnClickListener {
             Log.d(logTag, "Cancel Clicked!")
@@ -26,5 +36,10 @@ class FolderNameDialog(context: Context, private val createFolderLogic: (String)
             createFolderLogic(dialogAddFolderBinding.folderName.text.toString())
             dismiss()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _dialogBinding = null
     }
 }
