@@ -5,10 +5,9 @@ import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle.State
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
-import com.kangdroid.navi_arch.databinding.FragmentRegisterBinding
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.assertj.core.api.Assertions.assertThat
 import org.robolectric.annotation.Config
 
 @Config(sdk = [Build.VERSION_CODES.P])
@@ -33,6 +32,21 @@ class RegisterFragmentTest {
         scenario.onFragment {
             it.onDestroyView()
             assertThat(it.registerBinding).isEqualTo(null)
+        }
+        scenario.moveToState(State.DESTROYED)
+    }
+
+    @Test
+    fun is_id_check_button_works_when_click() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            it.registerBinding?.button?.performClick().also { clickResult ->
+                // TODO 아이디 중복 체크
+                assertThat(clickResult).isEqualTo(true)
+            }
         }
         scenario.moveToState(State.DESTROYED)
     }
