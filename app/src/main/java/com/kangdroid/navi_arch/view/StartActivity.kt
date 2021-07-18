@@ -16,7 +16,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StartActivity : AppCompatActivity() {
     // View binding
-    private val startBinding: ActivityStartBinding by lazy {
+     val startBinding: ActivityStartBinding by lazy {
         ActivityStartBinding.inflate(layoutInflater)
     }
 
@@ -24,12 +24,12 @@ class StartActivity : AppCompatActivity() {
     private val userViewModel: UserViewModel by viewModels()
 
     // Register Fragment
-    @Inject
-    lateinit var registerFragment: RegisterFragment
+    @set : Inject
+    var registerFragment: RegisterFragment = RegisterFragment()
 
     // Login Fragment
-    @Inject
-    lateinit var loginFragment: LoginFragment
+    @set : Inject
+    var loginFragment: LoginFragment = LoginFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
