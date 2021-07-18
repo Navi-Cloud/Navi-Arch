@@ -19,10 +19,9 @@ class RegisterFragmentTest {
         val scenario = launchFragmentInContainer<RegisterFragment>(
             themeResId = R.style.Theme_NaviArch // If you don't do this, this will throw error while inflating material view
         )
-        scenario.moveToState(State.CREATED)
+        scenario.moveToState(State.STARTED)
         scenario.onFragment{
-            assertThat(it.registerBinding is FragmentRegisterBinding?).isEqualTo(true)
-            assertThat(it).isNotEqualTo(null)
+            assertThat(it.registerBinding).isNotEqualTo(null)
         }
     }
 
@@ -33,7 +32,6 @@ class RegisterFragmentTest {
         )
         scenario.onFragment {
             it.onDestroyView()
-            assertThat(it.registerBinding is FragmentRegisterBinding?).isEqualTo(true)
             assertThat(it.registerBinding).isEqualTo(null)
         }
         scenario.moveToState(State.DESTROYED)
