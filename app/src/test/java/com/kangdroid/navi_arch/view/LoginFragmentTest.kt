@@ -15,16 +15,27 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.fragment.app.testing.withFragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Lifecycle.State
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.databinding.FragmentLoginBinding
+import com.kangdroid.navi_arch.server.ServerManagement
+import com.kangdroid.navi_arch.setup.LinuxServerSetup
+import com.kangdroid.navi_arch.setup.ServerSetup
+import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.viewmodel.PageRequest
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
 import junit.framework.Assert.assertEquals
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
@@ -33,16 +44,59 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLog
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMembers
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 
 @Config(sdk = [Build.VERSION_CODES.P])
 @RunWith(AndroidJUnit4::class)
 class LoginFragmentTest {
-    private lateinit var userViewModel: UserViewModel
+    // Rule that every android-thread should launched in single thread
+    @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
 
-    @Before
-    fun init() {
-        userViewModel = UserViewModel()
+    companion object {
+        @JvmStatic
+        val serverSetup: ServerSetup = ServerSetup(
+            if (System.getProperty("os.name").contains("Windows")) {
+                WindowsServerSetup()
+            } else {
+                LinuxServerSetup()
+            }
+        )
+
+        @JvmStatic
+        @BeforeClass
+        fun setupServer() {
+            println("Setting up server..")
+            serverSetup.setupServer()
+            println("Setting up server finished!")
+        }
+
+        @JvmStatic
+        @AfterClass
+        fun clearServer() {
+            println("Clearing Server..")
+            serverSetup.killServer(false)
+            println("Clearing Server finished!")
+        }
+    }
+
+    private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
+        HttpUrl.Builder()
+            .scheme("http")
+            .host("localhost")
+            .port(8080)
+            .build()
+    )
+
+    private inline fun<reified T> getUserViewModel(receiver: T): UserViewModel {
+        val memberProperty = T::class.declaredMembers.find { it.name == "userViewModel" }!!
+        memberProperty.isAccessible = true
+        return memberProperty.call(receiver) as UserViewModel
     }
 
     @Test
@@ -52,7 +106,7 @@ class LoginFragmentTest {
         )
         scenario.moveToState(State.CREATED)
         scenario.onFragment{
-            assertThat(it.loginBinding is FragmentLoginBinding?).isEqualTo(true)
+            assertThat(it.loginBinding).isNotEqualTo(null)
             assertThat(it).isNotEqualTo(null)
         }
     }
@@ -62,11 +116,12 @@ class LoginFragmentTest {
         val scenario = launchFragmentInContainer<LoginFragment>(
             themeResId = R.style.Theme_NaviArch
         )
-        scenario.onFragment {
-            it.onDestroyView()
-            assertThat(it.loginBinding is FragmentLoginBinding?).isEqualTo(true)
+
+        scenario.onFragment {loginFragment ->
+            val userViewModel: UserViewModel = getUserViewModel(loginFragment)
+            loginFragment.onDestroyView()
             assertThat(userViewModel.loginErrorData.value).isEqualTo(null)
-            assertThat(it.loginBinding).isEqualTo(null)
+            assertThat(loginFragment.loginBinding).isEqualTo(null)
         }
         scenario.moveToState(State.DESTROYED)
     }
@@ -79,18 +134,21 @@ class LoginFragmentTest {
             moveToState(State.STARTED)
         }
         scenario.onFragment {
-            val button = it.view?.findViewById<TextView>(R.id.textView2)
-            button?.performClick().also { clickResult ->
+            val userViewModel: UserViewModel = getUserViewModel(it)
+            assertThat(it.loginBinding).isNotEqualTo(null)
+
+            it.loginBinding!!.textView2.performClick().also { clickResult ->
                 assertThat(clickResult).isEqualTo(true)
-                userViewModel.requestRegisterPage()
-                assertThat(userViewModel.pageRequest.value).isEqualTo(PageRequest.REQUEST_REGISTER)
             }
+            assertThat(userViewModel.pageRequest.getOrAwaitValue()).isEqualTo(PageRequest.REQUEST_REGISTER)
         }
     }
 
     //로그인 버튼 눌렀을 때 에러
     @Test
     fun login_is_fail(){
+        ShadowLog.stream = System.out
+
         val scenario = launchFragmentInContainer<LoginFragment>(
             themeResId = R.style.Theme_NaviArch
         ).apply {
@@ -100,38 +158,36 @@ class LoginFragmentTest {
         scenario.onFragment {
             it.loginBinding!!.idLogin.setText("userid")
             it.loginBinding!!.pwLogin.setText("password")
+            val userViewModel: UserViewModel = getUserViewModel(it)
+            setFields("serverManagement", userViewModel, serverManagement)
+            assertThat(it.loginBinding!!.button.performClick()).isEqualTo(true)
+            userViewModel.loginErrorData.value = RuntimeException("")
 
-            val exception = Throwable()
-            userViewModel.loginError(exception)
-            it.loginBinding!!.button.performClick().also { clickResult ->
-                assertThat(clickResult).isEqualTo(true)
-            }
-            assertThat(userViewModel.loginErrorData.value).isNotEqualTo(null)
-//            assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("")
-//            assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("")
+            assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("")
+            assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("")
         }
     }
-
-    //로그인 버튼 눌렀을 때 성공
-    @Test
-    fun login_is_well(){
-        val scenario = launchFragmentInContainer<LoginFragment>(
-            themeResId = R.style.Theme_NaviArch
-        ).apply {
-            moveToState(State.STARTED)
-        }
-
-        scenario.onFragment {
-            it.loginBinding!!.idLogin.setText("userid")
-            it.loginBinding!!.pwLogin.setText("password")
-
-            it.loginBinding!!.button.performClick().also { clickResult ->
-                assertThat(clickResult).isEqualTo(true)
-            }
-
-            assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("userid")
-            assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("password")
-        }
-    }
+//
+//    //로그인 버튼 눌렀을 때 성공
+//    @Test
+//    fun login_is_well(){
+//        val scenario = launchFragmentInContainer<LoginFragment>(
+//            themeResId = R.style.Theme_NaviArch
+//        ).apply {
+//            moveToState(State.STARTED)
+//        }
+//
+//        scenario.onFragment {
+//            it.loginBinding!!.idLogin.setText("userid")
+//            it.loginBinding!!.pwLogin.setText("password")
+//
+//            it.loginBinding!!.button.performClick().also { clickResult ->
+//                assertThat(clickResult).isEqualTo(true)
+//            }
+//
+//            assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("userid")
+//            assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("password")
+//        }
+//    }
 
 }
