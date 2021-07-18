@@ -89,7 +89,7 @@ class RegisterFragment @Inject constructor() : Fragment() {
             val userName: String = this.Name.text.toString()
 
             // step 1) Check all args are filled
-            if(userId=="" || userId=="" || userEmail=="" || userPassword=="" || userPasswordForCheck==""){
+            if(userId=="" || userName=="" || userEmail=="" || userPassword=="" || userPasswordForCheck==""){
                 Toast.makeText(context,"양식을 모두 채우지 않았습니다.",Toast.LENGTH_SHORT).show()
                 return false
             }
