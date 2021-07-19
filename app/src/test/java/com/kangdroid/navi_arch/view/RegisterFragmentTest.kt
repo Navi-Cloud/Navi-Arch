@@ -1,11 +1,14 @@
 package com.kangdroid.navi_arch.view
 
 import android.os.Build
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle.State
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.viewmodel.PageRequest
+import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
@@ -15,6 +18,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.*
+import org.robolectric.Robolectric
+import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
 
 @Config(sdk = [Build.VERSION_CODES.P])
@@ -124,6 +129,104 @@ class RegisterFragmentTest {
                 assertThat(clickResult).isEqualTo(true)
             }
             // TODO Assert
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_all_input_args_ok() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set values
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Name.setText("je")
+                Email.setText("email@.com")
+                Textpassword.setText("pw")
+                passwordRe.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_invalid_email_form() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set values
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Name.setText("je")
+                Email.setText("email") // "Email" must contains '@'
+                Textpassword.setText("pw")
+                passwordRe.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_password_not_equal() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set values
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Name.setText("je")
+                Email.setText("email@.com")
+                Textpassword.setText("pw1") // pw1
+                passwordRe.setText("pw2")   // pw2 -> not equal
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_all_args_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
         }
     }
 }
