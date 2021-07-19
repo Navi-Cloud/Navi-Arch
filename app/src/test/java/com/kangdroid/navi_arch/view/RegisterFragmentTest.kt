@@ -219,6 +219,160 @@ class RegisterFragmentTest {
     }
 
     @Test
+    fun is_checkRegisterArgs_works_when_check_policy_but_other_args_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set value [only check policy box]
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+
+    @Test
+    fun is_checkRegisterArgs_works_when_userId_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set value [no userId]
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                Name.setText("je")
+                Email.setText("email@.com")
+                Textpassword.setText("pw")
+                passwordRe.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_userName_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set value [no userName]
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Email.setText("email@.com")
+                Textpassword.setText("pw")
+                passwordRe.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+
+    @Test
+    fun is_checkRegisterArgs_works_when_userEmail_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set value [no userEmail]
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Name.setText("je")
+                Textpassword.setText("pw")
+                passwordRe.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_userPassword_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set value [no userPassword]
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Name.setText("je")
+                Email.setText("email@.com")
+                passwordRe.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_checkRegisterArgs_works_when_userPasswordForCheck_empty() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Set value [no userPasswordForCheck]
+            it.registerBinding?.apply {
+                checkbox.isChecked = true
+                TextId.setText("id")
+                Name.setText("je")
+                Email.setText("email@.com")
+                Textpassword.setText("pw")
+            }
+
+            // Perform
+            val result: Boolean =
+                ViewModelTestHelper.getFunction<RegisterFragment>("checkRegisterArgs")
+                    .call(it) as Boolean
+
+            // Assert
+            assertThat(result).isEqualTo(false)
+        }
+    }
+
+    @Test
     fun is_checkRegisterArgs_works_when_all_args_empty() {
         val scenario = launchFragmentInContainer<RegisterFragment>(
             themeResId = R.style.Theme_NaviArch,
