@@ -18,6 +18,7 @@ import org.mockito.Mockito.*
 import org.robolectric.Robolectric
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
+import java.util.concurrent.TimeoutException
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
@@ -133,7 +134,19 @@ class RegisterFragmentTest {
             it.registerBinding?.button2?.callOnClick().also { clickResult ->
                 assertThat(clickResult).isEqualTo(true)
             }
-            // TODO Assert
+
+            // Get userViewModel
+            val userViewModel: UserViewModel = getUserViewModel(it)
+
+            // Get Live Data
+            // Since all args are empty, RegisterFragment don't call userViewModel.register()(: update pageRequest)
+            runCatching {
+                userViewModel.pageRequest.getOrAwaitValue()
+            }.onSuccess {
+                Assertions.fail("This should be failed...")
+            }.onFailure { throwable ->
+                assertThat(throwable is TimeoutException).isEqualTo(true)
+            }
         }
     }
 
