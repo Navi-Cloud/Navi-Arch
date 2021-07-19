@@ -1,14 +1,11 @@
 package com.kangdroid.navi_arch.view
 
 import android.os.Build
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle.State
-import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.viewmodel.PageRequest
-import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
@@ -21,12 +18,20 @@ import org.mockito.Mockito.*
 import org.robolectric.Robolectric
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
+import kotlin.reflect.full.declaredMembers
+import kotlin.reflect.jvm.isAccessible
 
 @Config(sdk = [Build.VERSION_CODES.P])
 //@RunWith(MockitoJUnitRunner::class)
 @RunWith(AndroidJUnit4::class)
 class RegisterFragmentTest {
     private val mockUserViewModel: UserViewModel = mock(UserViewModel::class.java)
+
+    private inline fun<reified T> getUserViewModel(receiver: T): UserViewModel {
+        val memberProperty = T::class.declaredMembers.find { it.name == "userViewModel" }!!
+        memberProperty.isAccessible = true
+        return memberProperty.call(receiver) as UserViewModel
+    }
 
     @Before
     fun setUp() {
@@ -228,5 +233,37 @@ class RegisterFragmentTest {
             // Assert
             assertThat(result).isEqualTo(false)
         }
+    }
+
+    @Test
+    fun is_back_press_works_well() {
+        // Since back press works on activity, this test needs activity (start from activity)
+        val activityController: ActivityController<StartActivity>
+            = Robolectric.buildActivity(StartActivity::class.java)
+
+        // Inject [for test]
+        activityController.get().loginFragment = LoginFragment()
+        activityController.get().registerFragment = RegisterFragment()
+
+        val startActivity: StartActivity = activityController
+            .create()
+            .start()
+            .resume()
+            .get()
+
+        // Get userViewModel
+        val userViewModel: UserViewModel = getUserViewModel(startActivity)
+
+        // Fragment transaction to RegisterFragment !
+        userViewModel.requestRegisterPage()
+        assertThat(userViewModel.pageRequest.getOrAwaitValue()).isEqualTo(PageRequest.REQUEST_REGISTER)
+        //startActivity.supportFragmentManager.beginTransaction().apply {
+        //    add(startActivity.registerFragment, "RegisterFragment")
+        //    commit()
+        //}
+
+        // BackPress at StartActivity[with RegisterFragment] will callback to onBackPressedDispatcher of RegisterFragment: requestLoginPage()
+        startActivity.onBackPressed()
+        assertThat(userViewModel.pageRequest.getOrAwaitValue()).isEqualTo(PageRequest.REQUEST_LOGIN)
     }
 }
