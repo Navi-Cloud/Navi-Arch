@@ -5,12 +5,22 @@ import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle.State
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
+import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
+import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
+import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.viewmodel.PageRequest
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.setMain
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,10 +33,12 @@ import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
 @Config(sdk = [Build.VERSION_CODES.P])
-//@RunWith(MockitoJUnitRunner::class)
+@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class RegisterFragmentTest {
-    private val mockUserViewModel: UserViewModel = mock(UserViewModel::class.java)
+    private val testDispatcher = TestCoroutineDispatcher() // for coroutine test
+
+    private val mockServerManagement: ServerManagement = mock(ServerManagement::class.java)
 
     private inline fun<reified T> getUserViewModel(receiver: T): UserViewModel {
         val memberProperty = T::class.declaredMembers.find { it.name == "userViewModel" }!!
@@ -34,18 +46,25 @@ class RegisterFragmentTest {
         return memberProperty.call(receiver) as UserViewModel
     }
 
+    private val testRegisterRequest: RegisterRequest = RegisterRequest(
+        userId = "id",
+        userName = "je",
+        userEmail = "email@com",
+        userPassword = "pw"
+    )
+
     @Before
     fun setUp() {
-        `when`(mockUserViewModel.register(anyString(), anyString(), anyString(), anyString()))
-            .thenAnswer {
-                mockUserViewModel.pageRequest.value = PageRequest.REQUEST_LOGIN
-                Unit
-            }
-        `when`(mockUserViewModel.requestLoginPage())
-            .thenAnswer {
-                mockUserViewModel.pageRequest.value = PageRequest.REQUEST_LOGIN
-                Unit
-            }
+        Dispatchers.setMain(testDispatcher)
+
+        `when`(mockServerManagement.register(testRegisterRequest))
+            .thenReturn(RegisterResponse("test", "test"))
+    }
+
+    @After
+    fun cleanUp() {
+        Dispatchers.resetMain()
+        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test
@@ -87,23 +106,24 @@ class RegisterFragmentTest {
     }
 
     @Test
-    fun is_register_button_works_when_all_input_args_ok() {
+    fun is_register_button_works_when_all_input_args_ok() = runBlockingTest {
         val scenario = launchFragmentInContainer<RegisterFragment>(
             themeResId = R.style.Theme_NaviArch,
             initialState = State.STARTED
         )
         scenario.onFragment{
-            // Set userViewModel of RegisterFragment [Trying]
-            ViewModelTestHelper.setFields("userViewModel", it, mockUserViewModel)
+            // Get userViewModel and Set serverManagement (to mockServerManagement)
+            val userViewModel: UserViewModel = getUserViewModel(it)
+            ViewModelTestHelper.setFields("serverManagement", userViewModel, mockServerManagement)
 
             // Set values
             it.registerBinding?.apply {
                 checkbox.isChecked = true
-                TextId.setText("id")
-                Name.setText("je")
-                Email.setText("email@.com")
-                Textpassword.setText("pw")
-                passwordRe.setText("pw")
+                TextId.setText(testRegisterRequest.userId)
+                Name.setText(testRegisterRequest.userName)
+                Email.setText(testRegisterRequest.userEmail)
+                Textpassword.setText(testRegisterRequest.userPassword)
+                passwordRe.setText(testRegisterRequest.userPassword)
             }
 
             // Perform
@@ -113,7 +133,7 @@ class RegisterFragmentTest {
 
             // Get Live Data
             runCatching {
-                mockUserViewModel.pageRequest.getOrAwaitValue()
+                userViewModel.pageRequest.getOrAwaitValue()
             }.onSuccess { pageRequest ->
                 println(pageRequest)
                 assertThat(pageRequest).isEqualTo(PageRequest.REQUEST_LOGIN)
