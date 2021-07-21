@@ -1,6 +1,5 @@
 package com.kangdroid.navi_arch.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +13,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.IllegalStateException
 import javax.inject.Inject
 
 enum class PageRequest {
@@ -27,8 +25,9 @@ class UserViewModel @Inject constructor(): ViewModel() {
     // TAG
     private val logTag: String = this::class.java.simpleName
 
-    // Live data for login error
+    // Live data for Login/Register error
     val loginErrorData: MutableLiveData<Throwable> = MutableLiveData()
+    val registerErrorData: MutableLiveData<Throwable> = MutableLiveData()
 
     // Register Request
     val pageRequest: MutableLiveData<PageRequest> = MutableLiveData()
@@ -56,8 +55,16 @@ class UserViewModel @Inject constructor(): ViewModel() {
         loginErrorData.value = throwable
     }
 
+    fun registerError(throwable : Throwable){
+        registerErrorData.value = throwable
+    }
+
     fun clearErrorData() {
         loginErrorData.value = null
+    }
+
+    fun clearRegisterErrorData() {
+        registerErrorData.value = null
     }
 
     fun login(userId: String, userPassword: String) {
@@ -100,20 +107,31 @@ class UserViewModel @Inject constructor(): ViewModel() {
         userEmail: String,
         userPassword: String
     ) {
-        // TODO id/email check
+        var registerResponse: RegisterResponse? = null
+        var registerThrow : Throwable?= null
+
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val response: RegisterResponse = serverManagement.register(
-                    RegisterRequest(
-                        userId = userId,
-                        userName = userName,
-                        userEmail = userEmail,
-                        userPassword = userPassword
+                runCatching {
+                    serverManagement.register(
+                        RegisterRequest(
+                            userId = userId,
+                            userName = userName,
+                            userEmail = userEmail,
+                            userPassword = userPassword
+                        )
                     )
-                )
+                }.onFailure {
+                    registerThrow = it
+                }.onSuccess {
+                    registerResponse = it
+                }
             }
-            withContext(Dispatchers.Main) {
+            if(registerResponse != null){
                 requestLoginPage()
+            }
+            else if (registerThrow != null){
+                registerError(registerThrow!!)
             }
         }
     }

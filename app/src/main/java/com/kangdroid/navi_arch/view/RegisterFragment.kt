@@ -18,6 +18,7 @@ import com.kangdroid.navi_arch.server.ServerManagement
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import org.w3c.dom.Text
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -41,6 +42,8 @@ class RegisterFragment @Inject constructor() : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        initObserver()
 
         registerBinding!!.apply {
             //TODO 아이디 중복 체크
@@ -112,8 +115,21 @@ class RegisterFragment @Inject constructor() : Fragment() {
         return true
     }
 
+    private fun initObserver() {
+        userViewModel.registerErrorData.observe(viewLifecycleOwner) {
+            if (it != null) {
+                // If login success, make Toast Message and clear livErrorData
+                Log.e(logTag, "Error Message Observed")
+                Log.e(logTag, it.stackTraceToString())
+                Toast.makeText(context, "Register Error: ${it.message}", Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        userViewModel.clearRegisterErrorData()
         registerBinding = null
     }
 }
