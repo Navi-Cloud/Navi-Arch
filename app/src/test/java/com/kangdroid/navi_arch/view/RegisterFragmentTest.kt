@@ -452,7 +452,7 @@ class RegisterFragmentTest {
     }
 
     @Test
-    fun is_registerErrorData_observe_well() {
+    fun is_registerErrorData_observe_well_when_not_null() {
         val scenario = launchFragmentInContainer<RegisterFragment>(
             themeResId = R.style.Theme_NaviArch,
             initialState = State.STARTED
@@ -467,6 +467,24 @@ class RegisterFragmentTest {
 
             // Assert
             assertThat(ShadowToast.getTextOfLatestToast()).isEqualTo("Register Error: $testRegisterErrorMsg")
+        }
+    }
+
+    @Test
+    fun is_registerErrorData_observe_well_null() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Get userViewModel
+            val userViewModel: UserViewModel = getUserViewModel(it)
+
+            // Perform [change registerErrorData to null]
+            userViewModel.registerErrorData.value = null
+
+            // Assert
+            assertThat(ShadowToast.shownToastCount()).isEqualTo(0)
         }
     }
 }
