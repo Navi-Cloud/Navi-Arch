@@ -28,6 +28,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowToast
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
@@ -448,5 +449,24 @@ class RegisterFragmentTest {
         // BackPress at StartActivity[with RegisterFragment] will callback to onBackPressedDispatcher of RegisterFragment: requestLoginPage()
         startActivity.onBackPressed()
         assertThat(userViewModel.pageRequest.getOrAwaitValue()).isEqualTo(PageRequest.REQUEST_LOGIN)
+    }
+
+    @Test
+    fun is_registerErrorData_observe_well() {
+        val scenario = launchFragmentInContainer<RegisterFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Get userViewModel
+            val userViewModel: UserViewModel = getUserViewModel(it)
+
+            // Perform [change registerErrorData]
+            val testRegisterErrorMsg: String = "test"
+            userViewModel.registerErrorData.value = RuntimeException(testRegisterErrorMsg)
+
+            // Assert
+            assertThat(ShadowToast.getTextOfLatestToast()).isEqualTo("Register Error: $testRegisterErrorMsg")
+        }
     }
 }
