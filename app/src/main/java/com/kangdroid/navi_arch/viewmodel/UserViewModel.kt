@@ -59,7 +59,7 @@ class UserViewModel @Inject constructor(): ViewModel() {
         registerErrorData.value = throwable
     }
 
-    fun clearErrorData() {
+    fun clearLoginErrorData() {
         loginErrorData.value = null
     }
 

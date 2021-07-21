@@ -121,10 +121,29 @@ class UserViewModelTest{
     }
 
     @Test
-    fun is_clearErrorData_works_well(){
-        userViewModel.clearErrorData()
+    fun is_registerError_works_well(){
+        val exception : Throwable = Throwable()
+        userViewModel.registerError(exception)
+
+        userViewModel.registerErrorData.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(exception)
+        }
+    }
+
+    @Test
+    fun is_clearLoginErrorData_works_well(){
+        userViewModel.clearLoginErrorData()
 
         userViewModel.loginErrorData.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(null)
+        }
+    }
+
+    @Test
+    fun is_clearRegisterErrorData_works_well(){
+        userViewModel.clearRegisterErrorData()
+
+        userViewModel.registerErrorData.getOrAwaitValue().also {
             assertThat(it).isEqualTo(null)
         }
     }
