@@ -48,7 +48,7 @@ class UserViewModel @Inject constructor(): ViewModel() {
     }
 
     // Request Main Page
-    private fun requestMainPage() {
+    fun requestMainPage() {
         pageRequest.value = PageRequest.REQUEST_MAIN
     }
 
