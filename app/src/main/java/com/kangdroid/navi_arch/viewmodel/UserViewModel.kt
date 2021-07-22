@@ -73,7 +73,6 @@ class UserViewModel @Inject constructor(): ViewModel() {
             var loginthrow : Throwable ?= null
 
             withContext(Dispatchers.IO) {
-
                 runCatching {
                     serverManagement.loginUser(
                         LoginRequest(
@@ -89,14 +88,10 @@ class UserViewModel @Inject constructor(): ViewModel() {
             }
 
             if(loginresponse != null){
-                withContext(Dispatchers.Main) {
-                    requestMainPage()
-                }
+                requestMainPage()
             }
             if(loginthrow != null){
-                withContext(Dispatchers.Main){
-                    loginError(loginthrow!!)
-                }
+                loginError(loginthrow!!)
             }
         }
     }
@@ -130,7 +125,7 @@ class UserViewModel @Inject constructor(): ViewModel() {
             if(registerResponse != null){
                 requestLoginPage()
             }
-            else if (registerThrow != null){
+            if (registerThrow != null){
                 registerError(registerThrow!!)
             }
         }
