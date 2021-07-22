@@ -31,6 +31,8 @@ class StartActivity : AppCompatActivity() {
     @set : Inject
     var loginFragment: LoginFragment = LoginFragment()
 
+    lateinit var transaction: FragmentTransaction
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(startBinding.root)
@@ -60,7 +62,7 @@ class StartActivity : AppCompatActivity() {
     // for fragment by fragment transaction
     // default: addToBackStack
     private fun replaceFragment(fragment: Fragment, onBackStack: Boolean = false){
-        val transaction: FragmentTransaction =
+        transaction =
             supportFragmentManager.beginTransaction().replace(R.id.startActivityContainer, fragment)
         if(onBackStack) transaction.addToBackStack(null)
         transaction.commit()
