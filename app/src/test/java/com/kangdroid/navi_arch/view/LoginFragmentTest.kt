@@ -1,97 +1,40 @@
 package com.kangdroid.navi_arch.view
 
-//import androidx.test.espresso.Espresso.onView
-//import androidx.test.espresso.matcher.ViewMatchers.withText
-//import androidx.test.espresso.matcher.ViewMatchers.withId
-//import androidx.test.espresso.action.ViewActions.click
-//
-//import androidx.test.espresso.assertion.ViewAssertions.matches
-
 import android.os.Build
-import android.os.IBinder
-import android.provider.DocumentsContract
-import android.util.Log
-import android.view.WindowManager
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.fragment.app.testing.withFragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Lifecycle.State
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
-import com.kangdroid.navi_arch.databinding.FragmentLoginBinding
 import com.kangdroid.navi_arch.server.ServerManagement
-import com.kangdroid.navi_arch.setup.LinuxServerSetup
-import com.kangdroid.navi_arch.setup.ServerSetup
-import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.viewmodel.PageRequest
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
-import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
-import junit.framework.Assert.assertEquals
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import okhttp3.HttpUrl
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.Description
-import org.hamcrest.TypeSafeMatcher
 import org.junit.*
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowLog
-import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMembers
-import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 
 @Config(sdk = [Build.VERSION_CODES.P])
+@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class LoginFragmentTest {
     // Rule that every android-thread should launched in single thread
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
-    companion object {
-        @JvmStatic
-        val serverSetup: ServerSetup = ServerSetup(
-            if (System.getProperty("os.name").contains("Windows")) {
-                WindowsServerSetup()
-            } else {
-                LinuxServerSetup()
-            }
-        )
-
-        @JvmStatic
-        @BeforeClass
-        fun setupServer() {
-            println("Setting up server..")
-            serverSetup.setupServer()
-            println("Setting up server finished!")
-        }
-
-        @JvmStatic
-        @AfterClass
-        fun clearServer() {
-            println("Clearing Server..")
-            serverSetup.killServer(false)
-            println("Clearing Server finished!")
-        }
-    }
-
-    private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
-        HttpUrl.Builder()
-            .scheme("http")
-            .host("localhost")
-            .port(8080)
-            .build()
-    )
+    private val testDispatcher = TestCoroutineDispatcher() // for coroutine test
 
     private inline fun<reified T> getUserViewModel(receiver: T): UserViewModel {
         val memberProperty = T::class.declaredMembers.find { it.name == "userViewModel" }!!
@@ -99,12 +42,23 @@ class LoginFragmentTest {
         return memberProperty.call(receiver) as UserViewModel
     }
 
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(testDispatcher) // swap dispatcher with a test dispatcher
+    }
+
+    @After
+    fun cleanUp() {
+        Dispatchers.resetMain() // reset main dispatcher to the original Main dispatcher
+        testDispatcher.cleanupTestCoroutines()
+    }
+
     @Test
     fun is_viewBinding_ok() {
         val scenario = launchFragmentInContainer<LoginFragment>(
             themeResId = R.style.Theme_NaviArch // If you don't do this, this will throw error while inflating material view
         )
-        scenario.moveToState(State.CREATED)
+        scenario.moveToState(State.STARTED) //created, started, resumed, destroyed
         scenario.onFragment{
             assertThat(it.loginBinding).isNotEqualTo(null)
             assertThat(it).isNotEqualTo(null)
@@ -117,20 +71,20 @@ class LoginFragmentTest {
             themeResId = R.style.Theme_NaviArch
         )
 
-        scenario.onFragment {loginFragment ->
-            val userViewModel: UserViewModel = getUserViewModel(loginFragment)
-            loginFragment.onDestroyView()
+        scenario.onFragment {
+            val userViewModel: UserViewModel = getUserViewModel(it)
+            it.onDestroyView()
             assertThat(userViewModel.loginErrorData.value).isEqualTo(null)
-            assertThat(loginFragment.loginBinding).isEqualTo(null)
+            assertThat(it.loginBinding).isEqualTo(null)
         }
         scenario.moveToState(State.DESTROYED)
     }
 
     @Test
-    fun show_registerView(){
+    fun registerBtn_is_well(){
         val scenario = launchFragmentInContainer<LoginFragment>(
             themeResId = R.style.Theme_NaviArch
-        ).apply {
+        ).apply{
             moveToState(State.STARTED)
         }
         scenario.onFragment {
@@ -144,50 +98,70 @@ class LoginFragmentTest {
         }
     }
 
-    //로그인 버튼 눌렀을 때 에러
     @Test
-    fun login_is_fail(){
-        ShadowLog.stream = System.out
-
+    fun loginBtn_is_work_well(){
         val scenario = launchFragmentInContainer<LoginFragment>(
-            themeResId = R.style.Theme_NaviArch
-        ).apply {
-            moveToState(State.STARTED)
-        }
+            themeResId = R.style.Theme_NaviArch,
+            initialState  = State.STARTED
+        )
 
-        scenario.onFragment {
-            it.loginBinding!!.idLogin.setText("userid")
-            it.loginBinding!!.pwLogin.setText("password")
+        scenario.onFragment{
+            // Mock ServerManagement for UserViewModel
+            val mockServerManagement: ServerManagement = mockk(relaxed = true) // relaxed mock returns some simple value for all functions
             val userViewModel: UserViewModel = getUserViewModel(it)
-            setFields("serverManagement", userViewModel, serverManagement)
-            assertThat(it.loginBinding!!.button.performClick()).isEqualTo(true)
+            ViewModelTestHelper.setFields("serverManagement", userViewModel, mockServerManagement)
+
+            // Set
+            it.loginBinding?.apply {
+                idLogin.setText("userId")
+                pwLogin.setText("userPw")
+            }
+
+            //Perform
+            it.loginBinding?.button!!.performClick().also{ clickResult ->
+                assertThat(clickResult).isEqualTo(true)
+            }
+
+            // Get Live Data
+            runCatching {
+                userViewModel.pageRequest.getOrAwaitValue()
+            }.onSuccess { pageRequest ->
+                assertThat(pageRequest).isEqualTo(PageRequest.REQUEST_MAIN)
+            }.onFailure { throwable ->
+                println(throwable.stackTraceToString())
+                Assertions.fail("This should be succeed...")
+            }
+        }
+    }
+
+    @Test
+    fun loginBtn_is_fail(){
+        val scenario = launchFragmentInContainer<LoginFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState  = State.STARTED
+        )
+
+        scenario.onFragment{
+            // Mock ServerManagement for UserViewModel
+            val mockServerManagement: ServerManagement = mockk(relaxed = true) // relaxed mock returns some simple value for all functions
+            val userViewModel: UserViewModel = getUserViewModel(it)
+            ViewModelTestHelper.setFields("serverManagement", userViewModel, mockServerManagement)
+
+            // Set values
+            it.loginBinding?.apply {
+                idLogin.setText("userId")
+                pwLogin.setText("userPw")
+            }
             userViewModel.loginErrorData.value = RuntimeException("")
 
+            //Perform
+            it.loginBinding?.button!!.performClick().also{ clickResult ->
+                assertThat(clickResult).isEqualTo(true)
+            }
+
+            // Get Data
             assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("")
             assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("")
         }
     }
-//
-//    //로그인 버튼 눌렀을 때 성공
-//    @Test
-//    fun login_is_well(){
-//        val scenario = launchFragmentInContainer<LoginFragment>(
-//            themeResId = R.style.Theme_NaviArch
-//        ).apply {
-//            moveToState(State.STARTED)
-//        }
-//
-//        scenario.onFragment {
-//            it.loginBinding!!.idLogin.setText("userid")
-//            it.loginBinding!!.pwLogin.setText("password")
-//
-//            it.loginBinding!!.button.performClick().also { clickResult ->
-//                assertThat(clickResult).isEqualTo(true)
-//            }
-//
-//            assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("userid")
-//            assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("password")
-//        }
-//    }
-
 }
