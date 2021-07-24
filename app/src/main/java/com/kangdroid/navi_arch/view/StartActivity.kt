@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.view
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -31,7 +32,7 @@ class StartActivity : AppCompatActivity() {
     @set : Inject
     var loginFragment: LoginFragment = LoginFragment()
 
-    lateinit var transaction: FragmentTransaction
+    private var transaction: FragmentTransaction ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +41,10 @@ class StartActivity : AppCompatActivity() {
         // Init Observer
         initObserver()
         userViewModel.requestLoginPage()
+    }
+
+    fun anything(){
+        switchActivity()
     }
 
     private fun initObserver() {
@@ -64,7 +69,7 @@ class StartActivity : AppCompatActivity() {
     private fun replaceFragment(fragment: Fragment, onBackStack: Boolean = false){
         transaction =
             supportFragmentManager.beginTransaction().replace(R.id.startActivityContainer, fragment)
-        if(onBackStack) transaction.addToBackStack(null)
-        transaction.commit()
+        if(onBackStack) transaction!!.addToBackStack(null)
+        transaction!!.commit()
     }
 }
