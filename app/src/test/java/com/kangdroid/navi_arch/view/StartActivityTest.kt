@@ -2,21 +2,20 @@ package com.kangdroid.navi_arch.view
 
 import android.content.Intent
 import android.os.Build
-import android.view.View
-import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.viewmodel.PageRequest
 import com.kangdroid.navi_arch.viewmodel.UserViewModel
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertNotNull
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +23,7 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.util.FragmentTestUtil.startFragment
+import org.robolectric.shadows.ShadowLog
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
@@ -57,13 +56,13 @@ class StartActivityTest {
     @Test
     fun is_initObserver_MAIN_well(){
 
-        val one = Robolectric.buildActivity(StartActivity::class.java)
-            .create()
-            .resume()
-            .get()
+        val actual = Intent(activity,MainActivity::class.java)
 
-        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.CREATED)
+        //CREATED 가 아닌 RESUMED
+        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.RESUMED)
         scenario.onActivity {
+
+            val shadowactivity = shadowOf(it)
 
             val userViewModel = getUserViewModel(it)
             userViewModel.requestMainPage()
@@ -76,10 +75,8 @@ class StartActivityTest {
                 println(throwable.stackTraceToString())
             }
 
-            val actual = Intent(one,MainActivity::class.java)
-            val shadowactivity = shadowOf(one)
-            val intent = shadowOf(shadowactivity.nextStartedActivity)
-            assertEquals(intent.intentClass.name,MainActivity::class.java.name)
+            val intent = shadowactivity.nextStartedActivity
+            assertEquals(intent.component,actual.component)
         }
     }
 
@@ -99,11 +96,10 @@ class StartActivityTest {
                 println(it.stackTraceToString())
             }
 
-//            val fragmentManager = activity.supportFragmentManager
-//            val trans : FragmentTransaction = fragmentManager.beginTransaction()
-//            trans.replace(R.id.startActivityContainer,loginFragment)
+            val transaction : FragmentTransaction =
+                ViewModelTestHelper.getFields("transaction",it)
 
-            assertNotNull(activity.transaction)
+            assertNotNull(transaction)
 
         }
     }
@@ -124,12 +120,11 @@ class StartActivityTest {
                 println(throwable.stackTraceToString())
             }
 
-            assertNotNull(activity.transaction)
+            val transaction : FragmentTransaction =
+                ViewModelTestHelper.getFields("transaction",it)
 
-//            val fragmentScenario = launchFragmentInContainer<RegisterFragment>(
-//                themeResId = R.style.Theme_NaviArch // If you don't do this, this will throw error while inflating material view
-//            )
-//            assertNotNull(fragmentScenario)
+            assertNotNull(transaction)
+
         }
 
     }
