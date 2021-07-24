@@ -54,6 +54,22 @@ class StartActivityTest {
     }
 
     @Test
+    fun is_fragment_well() {
+        scenario =
+            ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.RESUMED)
+        scenario.onActivity {
+
+            val registerFragment: RegisterFragment =
+                ViewModelTestHelper.getFields("registerFragment", it)
+            assertNotNull(registerFragment)
+
+            val loginFragment: LoginFragment =
+                ViewModelTestHelper.getFields("loginFragment", it)
+            assertNotNull(loginFragment)
+        }
+    }
+
+    @Test
     fun is_initObserver_MAIN_well(){
 
         val actual = Intent(activity,MainActivity::class.java)
@@ -124,7 +140,6 @@ class StartActivityTest {
                 ViewModelTestHelper.getFields("transaction",it)
 
             assertNotNull(transaction)
-
         }
 
     }
