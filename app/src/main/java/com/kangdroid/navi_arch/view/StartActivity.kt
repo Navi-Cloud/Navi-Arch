@@ -43,10 +43,6 @@ class StartActivity : AppCompatActivity() {
         userViewModel.requestLoginPage()
     }
 
-    fun anything(){
-        switchActivity()
-    }
-
     private fun initObserver() {
         userViewModel.pageRequest.observe(this) {
             when(it) {
