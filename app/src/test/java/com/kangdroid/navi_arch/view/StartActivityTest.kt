@@ -122,7 +122,7 @@ class StartActivityTest {
 
     @Test
     fun is_initObserver_REGISTER_well(){
-        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.CREATED)
+        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.RESUMED)
         scenario.onActivity {
 
             val userViewModel = getUserViewModel(it)
