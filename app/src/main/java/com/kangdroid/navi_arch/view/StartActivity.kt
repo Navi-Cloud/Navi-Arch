@@ -26,11 +26,11 @@ class StartActivity : AppCompatActivity() {
 
     // Register Fragment
     @set : Inject
-    var registerFragment: RegisterFragment = RegisterFragment()
+    private var registerFragment: RegisterFragment = RegisterFragment()
 
     // Login Fragment
     @set : Inject
-    var loginFragment: LoginFragment = LoginFragment()
+    private var loginFragment: LoginFragment = LoginFragment()
 
     private var transaction: FragmentTransaction ?= null
 
