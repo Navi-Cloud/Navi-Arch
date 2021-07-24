@@ -141,7 +141,24 @@ class StartActivityTest {
 
             assertNotNull(transaction)
         }
+    }
 
+    @Test
+    fun replaceFragment_with_onBackStack_true(){
+        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.RESUMED)
+        scenario.onActivity {
+
+            val registerFragment: RegisterFragment =
+                ViewModelTestHelper.getFields("registerFragment", it)
+
+            ViewModelTestHelper.getFunction<StartActivity>("replaceFragment")
+                .call(it,registerFragment,true)
+
+            val transaction : FragmentTransaction =
+                ViewModelTestHelper.getFields("transaction",it)
+
+            assertNotNull(transaction)
+        }
     }
 
 }
