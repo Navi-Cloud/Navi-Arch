@@ -70,6 +70,15 @@ class StartActivityTest {
     }
 
     @Test
+    fun initObserver_with_else(){
+        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.RESUMED)
+        scenario.onActivity {
+            val userViewModel = getUserViewModel(it)
+            userViewModel.pageRequest.value = null
+        }
+    }
+
+    @Test
     fun is_initObserver_MAIN_well(){
 
         val actual = Intent(activity,MainActivity::class.java)
@@ -99,7 +108,7 @@ class StartActivityTest {
 
     @Test
     fun is_initObserver_LOGIN_well(){
-        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.CREATED)
+        scenario = ActivityScenario.launch(StartActivity::class.java).moveToState(Lifecycle.State.RESUMED)
         scenario.onActivity {
 
             val userViewModel = getUserViewModel(it)
