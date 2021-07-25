@@ -42,8 +42,8 @@ class ServerManagementHelperTest {
 
     // Mock Retrofit[API]
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(500, TimeUnit.MILLISECONDS)
-        .readTimeout(500, TimeUnit.MILLISECONDS)
+        .connectTimeout(5000, TimeUnit.MILLISECONDS)
+        .readTimeout(5000, TimeUnit.MILLISECONDS)
         .writeTimeout(5000, TimeUnit.MILLISECONDS)
         .build()
 
