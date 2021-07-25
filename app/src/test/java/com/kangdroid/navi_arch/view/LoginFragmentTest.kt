@@ -22,6 +22,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.*
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowToast
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
@@ -162,6 +163,43 @@ class LoginFragmentTest {
             // Get Data
             assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("")
             assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("")
+        }
+    }
+
+    @Test
+    fun is_loginErrorData_observe_well_when_not_null() {
+        val scenario = launchFragmentInContainer<LoginFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Get userViewModel
+            val userViewModel: UserViewModel = getUserViewModel(it)
+
+            // Perform [change loginErrorData]
+            val testLoginErrorMsg: String = "test"
+            userViewModel.loginErrorData.value = RuntimeException(testLoginErrorMsg)
+
+            // Assert
+            assertThat(ShadowToast.getTextOfLatestToast()).isEqualTo("Login Error: $testLoginErrorMsg")
+        }
+    }
+
+    @Test
+    fun is_loginErrorData_observe_well_null() {
+        val scenario = launchFragmentInContainer<LoginFragment>(
+            themeResId = R.style.Theme_NaviArch,
+            initialState = State.STARTED
+        )
+        scenario.onFragment{
+            // Get userViewModel
+            val userViewModel: UserViewModel = getUserViewModel(it)
+
+            // Perform [change registerErrorData to null]
+            userViewModel.loginErrorData.value = null
+
+            // Assert
+            assertThat(ShadowToast.shownToastCount()).isEqualTo(0)
         }
     }
 }
