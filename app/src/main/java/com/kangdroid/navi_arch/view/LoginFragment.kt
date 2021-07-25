@@ -79,7 +79,7 @@ class LoginFragment @Inject constructor(): Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        userViewModel.clearErrorData()
+        userViewModel.clearLoginErrorData()
         loginBinding = null
     }
 }
