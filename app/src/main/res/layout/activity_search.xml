@@ -34,6 +34,58 @@
             android:layout_marginRight="10dp"
             android:textColor="@color/white"
             android:textCursorDrawable="@color/white"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:maxLines="1"
             />
     </androidx.appcompat.widget.Toolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="horizontal">
+
+        <ToggleButton
+            android:id="@+id/sortByNameOrLMT"
+            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:checked="false"
+            android:minHeight="0dip"
+            android:textOff="@string/sort_name"
+            android:textOn="@string/sort_lmt" />
+
+        <ToggleButton
+            android:id="@+id/sortByAscendingOrDescending"
+            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="0dip"
+            android:textOff="@string/sort_ascending"
+            android:textOn="@string/sort_descending" />
+
+        <ToggleButton
+            android:id="@+id/sortByType"
+            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="0dip"
+            android:textOff="@string/sort_type"
+            android:textOn="@string/sort_type_not" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/sky_blue"
+        android:layout_margin="10dp"
+        android:visibility="gone"
+        />
 </LinearLayout>
