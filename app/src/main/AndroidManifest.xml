@@ -18,16 +18,17 @@
         <activity
             android:name=".view.StartActivity"
             android:theme="@style/Theme.NaviArch.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
         </activity>
         <activity android:name=".view.MainActivity"></activity>
         <activity android:name=".view.UploadingActivity" />
         <activity
             android:name=".view.SearchActivity"
             android:theme="@style/Theme.NaviArch.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 
