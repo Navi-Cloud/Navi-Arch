@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.view
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StartActivity : AppCompatActivity() {
     // View binding
-    private val startBinding: ActivityStartBinding by lazy {
+     val startBinding: ActivityStartBinding by lazy {
         ActivityStartBinding.inflate(layoutInflater)
     }
 
@@ -24,12 +25,14 @@ class StartActivity : AppCompatActivity() {
     private val userViewModel: UserViewModel by viewModels()
 
     // Register Fragment
-    @Inject
-    lateinit var registerFragment: RegisterFragment
+    @set : Inject
+    private var registerFragment: RegisterFragment = RegisterFragment()
 
     // Login Fragment
-    @Inject
-    lateinit var loginFragment: LoginFragment
+    @set : Inject
+    private var loginFragment: LoginFragment = LoginFragment()
+
+    private var transaction: FragmentTransaction ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,9 +63,9 @@ class StartActivity : AppCompatActivity() {
     // for fragment by fragment transaction
     // default: addToBackStack
     private fun replaceFragment(fragment: Fragment, onBackStack: Boolean = false){
-        val transaction: FragmentTransaction =
+        transaction =
             supportFragmentManager.beginTransaction().replace(R.id.startActivityContainer, fragment)
-        if(onBackStack) transaction.addToBackStack(null)
-        transaction.commit()
+        if(onBackStack) transaction!!.addToBackStack(null)
+        transaction!!.commit()
     }
 }
