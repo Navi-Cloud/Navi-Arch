@@ -79,6 +79,12 @@ class MainActivity : PagerActivity() {
                 menuBottomSheetFragment.show(supportFragmentManager, menuBottomSheetFragment.tag)
                 true
             }
+            R.id.action_search -> {
+                // Search
+                val intent = Intent(this, SearchActivity::class.java)
+                startActivity(intent)
+                true
+            }
             else -> false
         }
     }
