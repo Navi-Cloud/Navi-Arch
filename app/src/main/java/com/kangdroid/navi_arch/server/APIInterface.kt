@@ -39,4 +39,6 @@ interface APIInterface {
     @DELETE("/api/navi/files/{prevToken}/{targetToken}")
     fun removeFile(@HeaderMap headerMap: HashMap<String, Any?>, @Path("prevToken") prevToken: String, @Path("targetToken") targetToken: String): Call<ResponseBody>
 
+    @GET("/api/navi/search")
+    fun searchFile(@HeaderMap headerMap: HashMap<String, Any?>, @Query("searchParam") searchParam: String): Call<List<FileData>>
 }

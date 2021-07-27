@@ -20,4 +20,5 @@ interface ServerInterface {
     fun register(userRegisterRequest : RegisterRequest) : RegisterResponse
     fun createFolder(createFolderRequestDTO: CreateFolderRequestDTO)
     fun removeFile(prevToken: String, targetToken: String)
+    fun searchFile(searchParam: String): List<FileData>
 }

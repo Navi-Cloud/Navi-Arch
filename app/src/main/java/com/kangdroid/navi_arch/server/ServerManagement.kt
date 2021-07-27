@@ -200,4 +200,15 @@ class ServerManagement(
         val response: Response<ResponseBody> =
             serverManagementHelper.exchangeDataWithServer(removeRequest)
     }
+
+    override fun searchFile(searchParam: String): List<FileData> {
+        val searchFunction: Call<List<FileData>> = api.searchFile(
+            headerMap = getHeaders(),
+            searchParam = encodeString(searchParam))
+
+        val response: Response<List<FileData>> =
+            serverManagementHelper.exchangeDataWithServer(searchFunction)
+
+        return response.body()!!
+    }
 }
