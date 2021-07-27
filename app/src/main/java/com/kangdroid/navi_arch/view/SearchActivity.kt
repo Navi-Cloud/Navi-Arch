@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.view
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -7,7 +8,11 @@ import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.kangdroid.navi_arch.adapter.BaseFileAdapter
+import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
+import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.ActivitySearchBinding
 import com.kangdroid.navi_arch.viewmodel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,6 +34,18 @@ class SearchActivity : AppCompatActivity() {
     private var currentSortMode: FileSortingMode = FileSortingMode.TypedName
     private var isReversed: Boolean = false
 
+    private val recyclerOnClickListener: ((FileData, Int) -> Unit) = { fileData, _ ->
+        // Go to MainActivity for show file list of selected folder
+        // TODO show selected folder
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+    }
+
+    private var baseFileAdapter: BaseFileAdapter = BaseFileAdapter(
+        onClick = recyclerOnClickListener,
+        fileList = listOf()
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(searchBinding.root)
@@ -40,6 +57,7 @@ class SearchActivity : AppCompatActivity() {
 
     private fun initBinding() {
         searchBinding.apply {
+            // Search Edit Text
             inputSearch.setOnKeyListener { _, keyCode, _ ->
                 if (keyCode == KeyEvent.KEYCODE_ENTER){
                     // Show ProgressBar
@@ -50,6 +68,7 @@ class SearchActivity : AppCompatActivity() {
 
                     // Search file
                     val query: String = inputSearch.text.toString()
+                    Log.d(logTag, "$query!")
                     searchViewModel.search(
                         query = query,
                         mode = currentSortMode,
@@ -58,6 +77,11 @@ class SearchActivity : AppCompatActivity() {
                     true
                 } else false
             }
+
+            // Recycler View
+            searchResultRecyclerView.layoutManager =
+                LinearLayoutManager(this@SearchActivity, LinearLayoutManager.VERTICAL, false)
+            searchResultRecyclerView.adapter = baseFileAdapter
         }
     }
 
@@ -68,7 +92,18 @@ class SearchActivity : AppCompatActivity() {
 
             // Handle search result
             if (it != null) {
+                Toast.makeText(this, "Search success!: ${it.size}", Toast.LENGTH_LONG)
+                    .show()
+                if(it.size <= 0){
+                    searchBinding.searchResultRecyclerView.visibility = View.GONE
+                    searchBinding.textNoResult.visibility = View.VISIBLE
+                } else {
+                    searchBinding.searchResultRecyclerView.visibility = View.VISIBLE
+                    searchBinding.textNoResult.visibility = View.GONE
 
+                    baseFileAdapter.fileList = it
+                    baseFileAdapter.notifyDataSetChanged()
+                }
             }
         }
         searchViewModel.liveErrorData.observe(this) {
