@@ -81,6 +81,11 @@ class SearchActivity : AppCompatActivity() {
             searchResultRecyclerView.layoutManager =
                 LinearLayoutManager(this@SearchActivity, LinearLayoutManager.VERTICAL, false)
             searchResultRecyclerView.adapter = baseFileAdapter
+
+            // Back Button
+            backButton.setOnClickListener {
+                onBackPressed()
+            }
         }
     }
 
