@@ -94,7 +94,32 @@ class PagerViewModel @Inject constructor(): ViewModel() {
     }
 
     fun createInitialPage(fileData: FileData) {
-        innerExplorePage(fileData, false)
+        if(fileData.fileType == FileType.Folder.toString()) {
+            innerExplorePage(fileData, false)
+        } else {
+            // If selected file is FILE, then get parent folder
+            var parentFileData: FileData? = null
+
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        serverManagement.findFolderFromToken(
+                            token = fileData.prevToken
+                        )
+                    }.onFailure {
+                        parentFileData = null
+                    }.onSuccess {
+                        parentFileData = it
+                    }
+                }
+                if(parentFileData != null){
+                    innerExplorePage(parentFileData!!, false)
+                } else {
+                    // Alternative ...
+                    createInitialRootPage()
+                }
+            }
+        }
     }
 
     // Create Additional Page
