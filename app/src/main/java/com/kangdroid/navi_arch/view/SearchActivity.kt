@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.kangdroid.navi_arch.adapter.BaseFileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
-import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.ActivitySearchBinding
 import com.kangdroid.navi_arch.viewmodel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,8 +35,8 @@ class SearchActivity : AppCompatActivity() {
 
     private val recyclerOnClickListener: ((FileData, Int) -> Unit) = { fileData, _ ->
         // Go to MainActivity for show file list of selected folder
-        // TODO show selected folder
         val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("searchFolder", fileData)
         startActivity(intent)
     }
 

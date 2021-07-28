@@ -93,6 +93,10 @@ class PagerViewModel @Inject constructor(): ViewModel() {
         )
     }
 
+    fun createInitialPage(fileData: FileData) {
+        innerExplorePage(fileData, false)
+    }
+
     // Create Additional Page
     fun explorePage(nextFolder: FileData, requestedPageNumber: Int, cleanUp: Boolean = false) {
         // Invalidate all cache, set, pageList to cleanup[New-Fetch]

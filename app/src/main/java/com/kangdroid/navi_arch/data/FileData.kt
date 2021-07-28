@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.data
 
+import java.io.Serializable
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -9,7 +10,7 @@ data class FileData(
     var prevToken: String,
     var fileName: String,
     var fileType: String,
-) {
+): Serializable {
     var lastModifiedTime: Long = 1000
 
     fun getBriefName(): String {

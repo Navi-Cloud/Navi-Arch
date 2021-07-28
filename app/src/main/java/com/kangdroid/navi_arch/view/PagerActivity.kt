@@ -31,12 +31,11 @@ abstract class PagerActivity: AppCompatActivity() {
     // Error Observer Callback
     open val errorObserverCallback: ((Throwable) -> Unit)? = null
 
+    private var isFromSearch: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
-
-        // Init Pager Adapter
-        initPager()
 
         // Init View Model
         initViewModel()
@@ -44,8 +43,17 @@ abstract class PagerActivity: AppCompatActivity() {
         // Init toggle button
         initToggleButton()
 
-        // Now start from initial page
-        pagerViewModel.createInitialRootPage()
+        if(intent.getSerializableExtra("searchFolder") != null){
+            isFromSearch = true
+            val searchFolder: FileData = intent.getSerializableExtra("searchFolder") as FileData
+            pagerViewModel.createInitialPage(searchFolder)
+        } else {
+            // Now start from initial page
+            pagerViewModel.createInitialRootPage()
+        }
+
+        // Init Pager Adapter
+        initPager()
     }
 
     private fun initPager() {
@@ -55,10 +63,11 @@ abstract class PagerActivity: AppCompatActivity() {
             activityMainBinding.mainTab,
             activityMainBinding.viewPager
         ) { tab, position ->
-            tab.text = if (position == 0) {
-                "/"
-            } else {
+            tab.text = if(isFromSearch) {
                 pagerViewModel.livePagerData.value?.get(position)?.currentFolder?.getBriefName()
+            } else {
+                if (position == 0) { "/" }
+                else { pagerViewModel.livePagerData.value?.get(position)?.currentFolder?.getBriefName() }
             }
         }.attach()
     }
