@@ -31,11 +31,12 @@
         app:boxStrokeWidthFocused="3dp"
         app:boxStrokeWidth="3dp"
         app:boxStrokeColor="@color/dark_navy"
-        android:gravity="center">
+        android:gravity="center"
+        android:layout_marginHorizontal="80dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/id_login"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#00000000"
             android:inputType="text"
@@ -61,11 +62,12 @@
         app:boxStrokeWidthFocused="3dp"
         app:boxStrokeWidth="3dp"
         app:boxStrokeColor="@color/dark_navy"
+        android:layout_marginHorizontal="80dp"
         >
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/pw_login"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="15"
             android:background="#00000000"
