@@ -41,4 +41,7 @@ interface APIInterface {
 
     @GET("/api/navi/search")
     fun searchFile(@HeaderMap headerMap: HashMap<String, Any?>, @Query("searchParam") searchParam: String): Call<List<FileData>>
+
+    @GET("/api/navi/folder/{token}")
+    fun findFolderFromToken(@HeaderMap headerMap: HashMap<String, Any?>, @Path("token") token: String) : Call<FileData>
 }

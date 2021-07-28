@@ -21,4 +21,5 @@ interface ServerInterface {
     fun createFolder(createFolderRequestDTO: CreateFolderRequestDTO)
     fun removeFile(prevToken: String, targetToken: String)
     fun searchFile(searchParam: String): List<FileData>
+    fun findFolderFromToken(token: String): FileData
 }

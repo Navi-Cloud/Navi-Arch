@@ -211,4 +211,15 @@ class ServerManagement(
 
         return response.body()!!
     }
+
+    override fun findFolderFromToken(token: String): FileData {
+        val findFolderFunction: Call<FileData> = api.findFolderFromToken(
+            headerMap = getHeaders(),
+            token = encodeString(token))
+
+        val response: Response<FileData> =
+            serverManagementHelper.exchangeDataWithServer(findFolderFunction)
+
+        return response.body()!!
+    }
 }
