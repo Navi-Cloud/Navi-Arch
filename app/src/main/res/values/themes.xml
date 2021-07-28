@@ -5,10 +5,6 @@
         <item name="colorPrimary">@color/sky_blue</item>
         <item name="colorPrimaryVariant">@color/dark_blue</item>
         <item name="colorOnPrimary">@color/black</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/light_blue</item>
-        <item name="colorSecondaryVariant">@color/dark_navy</item>
-        <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
@@ -30,6 +26,12 @@
         <item name="colorPrimary">@color/sky_blue</item>
         <item name="colorPrimaryVariant">@color/dark_blue</item>
         <item name="colorOnPrimary">@color/black</item>
+    </style>
+
+    <style name="Theme.NaviArch.Uploading" parent="Theme.NaviArch">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/dark_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
     </style>
 
     <style name="NaviBottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
