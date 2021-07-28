@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,6 +53,8 @@ class SearchActivity : AppCompatActivity() {
         initBinding()
 
         initObserver()
+
+        initToggleButton()
     }
 
     private fun initBinding() {
@@ -61,9 +64,6 @@ class SearchActivity : AppCompatActivity() {
                 if (keyCode == KeyEvent.KEYCODE_ENTER){
                     // Show ProgressBar
                     progressBar.visibility = View.VISIBLE
-
-                    // Update sort mode
-                    updateSortMode()
 
                     // Search file
                     val query: String = inputSearch.text.toString()
@@ -91,8 +91,7 @@ class SearchActivity : AppCompatActivity() {
 
             // Handle search result
             if (it != null) {
-                Toast.makeText(this, "Search success!: ${it.size}", Toast.LENGTH_LONG)
-                    .show()
+                Log.d(logTag, "Search success!: ${it.size}")
                 if(it.size <= 0){
                     searchBinding.searchResultRecyclerView.visibility = View.GONE
                     searchBinding.textNoResult.visibility = View.VISIBLE
@@ -119,11 +118,23 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateSortMode() {
-        currentSortMode = when (searchBinding.sortByNameOrLMT.isChecked) {
-            true -> if (searchBinding.sortByType.isChecked) FileSortingMode.LMT else FileSortingMode.TypedLMT
-            false -> if (searchBinding.sortByType.isChecked) FileSortingMode.Name else FileSortingMode.TypedName
+    private fun initToggleButton() {
+        // Toggle Buttons[Sorting Buttons]
+        val sortListener: (CompoundButton, Boolean) -> Unit = { _, _ ->
+            currentSortMode = when (searchBinding.sortByNameOrLMT.isChecked) {
+                true -> if (searchBinding.sortByType.isChecked) FileSortingMode.LMT else FileSortingMode.TypedLMT
+                false -> if (searchBinding.sortByType.isChecked) FileSortingMode.Name else FileSortingMode.TypedName
+            }
+            isReversed = searchBinding.sortByAscendingOrDescending.isChecked
+
+            searchViewModel.sort(mode = currentSortMode, isReversed = isReversed)
         }
-        isReversed = searchBinding.sortByAscendingOrDescending.isChecked
+
+        // Toggle Button INIT
+        with(searchBinding) {
+            sortByNameOrLMT.setOnCheckedChangeListener(sortListener)
+            sortByType.setOnCheckedChangeListener(sortListener)
+            sortByAscendingOrDescending.setOnCheckedChangeListener(sortListener)
+        }
     }
 }
