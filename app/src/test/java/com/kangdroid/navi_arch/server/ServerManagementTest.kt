@@ -230,6 +230,25 @@ class ServerManagementTest {
     }
 
     @Test
+    fun is_searchFile_works_well() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Make Folder
+        val folderName: String = "TeST"
+        val partialFolderName: String = "eST"
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(parentFolderToken = rootToken, newFolderName = folderName))
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(parentFolderToken = rootToken, newFolderName = partialFolderName))
+
+        // Perform & Assert
+        serverManagement.searchFile(partialFolderName).also {
+            assertThat(it.size).isEqualTo(2)
+        }
+    }
+
+    @Test
     fun is_initWholeServerClient_works_well() {
         val serverManagementNotConnected: ServerManagement = ServerManagement(null)
 
