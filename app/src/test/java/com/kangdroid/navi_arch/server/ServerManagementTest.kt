@@ -2,6 +2,8 @@ package com.kangdroid.navi_arch.server
 
 import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileType
+import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.setup.LinuxServerSetup
@@ -178,6 +180,53 @@ class ServerManagementTest {
         registerAndLogin()
         uploadTest()
         downloadTest()
+    }
+
+    @Test
+    fun is_createFolder_works_well() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Perform
+        val folderName: String = "TeST"
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(
+                parentFolderToken = rootToken,
+                newFolderName = folderName
+            )
+        )
+
+        // Assert
+        serverManagement.getInsideFiles(rootToken).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].prevToken).isEqualTo(rootToken)
+            assertThat(it[0].fileName).isEqualTo(folderName)
+            assertThat(it[0].fileType).isEqualTo(FileType.Folder.toString())
+        }
+    }
+
+    @Test
+    fun is_removeFile_works_well() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Make Folder
+        val folderName: String = "TeST"
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(
+                parentFolderToken = rootToken,
+                newFolderName = folderName
+            )
+        )
+        val requestFolderData: FileData = serverManagement.getInsideFiles(rootToken)[0]
+
+        // Perform
+        serverManagement.removeFile(rootToken, requestFolderData.token)
+
+        // Assert
+        serverManagement.getInsideFiles(rootToken).also {
+            assertThat(it.size).isEqualTo(0)
+        }
     }
 
     @Test
