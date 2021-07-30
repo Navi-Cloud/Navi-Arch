@@ -425,10 +425,6 @@ class RegisterFragmentTest {
         val activityController: ActivityController<StartActivity>
             = Robolectric.buildActivity(StartActivity::class.java)
 
-        // Inject [for test]
-        activityController.get().loginFragment = LoginFragment()
-        activityController.get().registerFragment = RegisterFragment()
-
         val startActivity: StartActivity = activityController
             .create()
             .start()
