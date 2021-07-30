@@ -249,6 +249,24 @@ class ServerManagementTest {
     }
 
     @Test
+    fun is_findFolderFromToken_works_well() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Make Folder
+        val folderName: String = "TeST"
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(parentFolderToken = rootToken, newFolderName = folderName))
+        val requestFolderData: FileData = serverManagement.getInsideFiles(rootToken)[0]
+
+        // Perform & Assert
+        serverManagement.findFolderFromToken(requestFolderData.token).also {
+            assertThat(it.fileName).isEqualTo(requestFolderData.fileName)
+            assertThat(it.token).isEqualTo(requestFolderData.token)
+        }
+    }
+
+    @Test
     fun is_initWholeServerClient_works_well() {
         val serverManagementNotConnected: ServerManagement = ServerManagement(null)
 
