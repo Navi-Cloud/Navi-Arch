@@ -90,4 +90,61 @@ class SearchViewModelTest {
     fun destroy() {
         PagerViewModelTest.serverSetup.clearData()
     }
+
+    /* Test */
+    @Test
+    fun is_search_works_well() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Make Folder
+        val folderName: String = "TeST"
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(parentFolderToken = rootToken, newFolderName = folderName)
+        )
+
+        // Perform
+        searchViewModel.search(
+            query = folderName,
+            mode = FileSortingMode.Name,
+            isReversed = false
+        )
+
+        // Assert
+        searchViewModel.searchResultLiveData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+        ViewModelTestHelper.getFields<SearchViewModel, List<FileData>>("searchResultList", searchViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].fileName).isEqualTo(folderName)
+        }
+    }
+
+    @Test
+    fun is_search_works_well_with_default_param() {
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Make Folder
+        val folderName: String = "TeST"
+        serverManagement.createFolder(
+            CreateFolderRequestDTO(parentFolderToken = rootToken, newFolderName = folderName)
+        )
+
+        // Perform
+        searchViewModel.search(
+            query = folderName
+        )
+
+        // Assert
+        searchViewModel.searchResultLiveData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+        ViewModelTestHelper.getFields<SearchViewModel, List<FileData>>("searchResultList", searchViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].fileName).isEqualTo(folderName)
+        }
+    }
 }
