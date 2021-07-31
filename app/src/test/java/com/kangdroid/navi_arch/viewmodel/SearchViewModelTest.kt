@@ -1,6 +1,7 @@
 package com.kangdroid.navi_arch.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.data.FileType
@@ -145,6 +146,80 @@ class SearchViewModelTest {
         ViewModelTestHelper.getFields<SearchViewModel, List<FileData>>("searchResultList", searchViewModel).also {
             assertThat(it.size).isEqualTo(1)
             assertThat(it[0].fileName).isEqualTo(folderName)
+        }
+    }
+
+    private fun setListForSort() {
+        val mockFileResult: List<FileData> = listOf(
+            FileData(
+                userId = "mockUserId",
+                fileName = "/tmp/a.txt",
+                fileType = FileType.File.toString(),
+                token = "/tmp/a.txt.token",
+                prevToken = "fakePrevToken"
+            ),
+            FileData(
+                userId = "mockUserId",
+                fileName = "/tmp/b.txt",
+                fileType = FileType.File.toString(),
+                token = "/tmp/b.txt.token",
+                prevToken = "fakePrevToken"
+            ),
+        )
+        ViewModelTestHelper.setFields("searchResultList", searchViewModel, mockFileResult)
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedName_asc() {
+        setListForSort()
+
+        // Perform
+        searchViewModel.sort(
+            FileSortingMode.TypedName,
+            false
+        )
+
+        // Assert
+        val searchResultData: List<FileData>? =
+            searchViewModel.searchResultLiveData.getOrAwaitValue()
+
+        assertThat(searchResultData).isNotEqualTo(null)
+        assertThat(searchResultData!!.size).isEqualTo(2)
+
+        // Check sorting works well
+        if (searchResultData[0].fileType < searchResultData[1].fileType){
+            assertThat(searchResultData[0].fileType < searchResultData[1].fileType).isEqualTo(true)
+        } else if (searchResultData[0].fileName < searchResultData[1].fileName){
+            assertThat(searchResultData[0].fileName < searchResultData[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(searchResultData[0].lastModifiedTime <= searchResultData[1].lastModifiedTime).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun is_sort_works_when_FileSortingMode_is_TypedName_desc() {
+        setListForSort()
+
+        // Perform
+        searchViewModel.sort(
+            FileSortingMode.TypedName,
+            true
+        )
+
+        // Assert
+        val searchResultData: List<FileData>? =
+            searchViewModel.searchResultLiveData.getOrAwaitValue()
+
+        assertThat(searchResultData).isNotEqualTo(null)
+        assertThat(searchResultData!!.size).isEqualTo(2)
+
+        // Check sorting works well
+        if (searchResultData[0].fileType > searchResultData[1].fileType){
+            assertThat(searchResultData[0].fileType > searchResultData[1].fileType).isEqualTo(true)
+        } else if (searchResultData[0].fileName > searchResultData[1].fileName){
+            assertThat(searchResultData[0].fileName > searchResultData[1].fileName).isEqualTo(true)
+        } else {
+            assertThat(searchResultData[0].lastModifiedTime >= searchResultData[1].lastModifiedTime).isEqualTo(true)
         }
     }
 }
