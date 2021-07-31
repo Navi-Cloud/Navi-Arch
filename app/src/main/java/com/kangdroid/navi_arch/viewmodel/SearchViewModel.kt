@@ -1,6 +1,5 @@
 package com.kangdroid.navi_arch.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +17,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor() : ViewModel() {
 
     // Search Result and Live data
-    var searchResultList: List<FileData> = listOf()
+    private var searchResultList: List<FileData> = listOf()
     val searchResultLiveData: MutableLiveData<List<FileData>> = MutableLiveData()
 
     // Error Data in case of server connection issues
@@ -29,8 +28,8 @@ class SearchViewModel @Inject constructor() : ViewModel() {
 
     // Get Search Result
     fun search(query: String,
-                       mode: FileSortingMode = FileSortingMode.TypedName,
-                       isReversed: Boolean = false) {
+               mode: FileSortingMode = FileSortingMode.TypedName,
+               isReversed: Boolean = false) {
 
         var searchThrow : Throwable?= null
 
