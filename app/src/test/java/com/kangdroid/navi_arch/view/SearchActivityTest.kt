@@ -1,6 +1,7 @@
 package com.kangdroid.navi_arch.view
 
 import android.os.Build
+import android.view.KeyEvent
 import android.view.View
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Lifecycle
@@ -14,14 +15,14 @@ import com.kangdroid.navi_arch.databinding.ActivitySearchBinding
 import com.kangdroid.navi_arch.viewmodel.SearchViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Shadows
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowActivity
 import org.robolectric.shadows.ShadowToast
+import java.util.concurrent.TimeoutException
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
@@ -64,6 +65,66 @@ class SearchActivityTest {
             assertThat(searchBinding).isNotEqualTo(null)
         }
         scenario.close()
+    }
+
+    @Test
+    fun is_inputSearch_works_well_when_KEYCODE_ENTER() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.apply {
+                // Perform
+                inputSearch.dispatchKeyEvent(KeyEvent(
+                    KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_ENTER
+                ))
+
+                // Assert
+                assertThat(progressBar.visibility).isEqualTo(View.VISIBLE)
+
+                // TODO Assert liveErrorData
+                // [Using TestCoroutineDispatcher] This throw RuntimeException: Can't toast on a thread that has not called Looper.prepare()
+                // Same Error with LoginFragmentTest.loginBtn_is_fail()
+//                val searchViewModel: SearchViewModel = getSearchViewModel(it)
+//                // ENTER will change liveErrorData since Server not exists now
+//                searchViewModel.liveErrorData.getOrAwaitValue().also { list ->
+//                    assertThat(list).isNotEqualTo(null)
+//                }
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_inputSearch_works_well_when_other_keycode() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.apply {
+                // Perform
+                inputSearch.dispatchKeyEvent(KeyEvent(
+                    KeyEvent.ACTION_UP, KeyEvent.ACTION_DOWN
+                ))
+
+                // Assert
+                assertThat(progressBar.visibility).isEqualTo(View.GONE)
+
+                val searchViewModel: SearchViewModel = getSearchViewModel(it)
+                runCatching {
+                    searchViewModel.liveErrorData.getOrAwaitValue()
+                }.onSuccess {
+                    Assertions.fail("This should be failed...")
+                }.onFailure { throwable ->
+                    assertThat(throwable is TimeoutException).isEqualTo(true)
+                }
+            }
+            scenario.close()
+        }
     }
 
     @Test
