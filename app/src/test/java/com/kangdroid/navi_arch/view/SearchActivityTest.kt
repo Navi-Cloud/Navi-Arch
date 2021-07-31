@@ -129,4 +129,46 @@ class SearchActivityTest {
         }
         scenario.close()
     }
+
+    @Test
+    fun is_liveErrorData_observer_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val testErrorMsg: String = "erROR"
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.liveErrorData.value = RuntimeException(testErrorMsg)
+
+            // Assert
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.apply {
+                assertThat(progressBar.visibility).isEqualTo(View.GONE)
+                assertThat(ShadowToast.getTextOfLatestToast()).isEqualTo("Search Error: $testErrorMsg")
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_liveErrorData_observer_works_well_when_null() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.liveErrorData.value = null
+
+            // Assert
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.apply {
+                assertThat(progressBar.visibility).isEqualTo(View.GONE)
+            }
+        }
+        scenario.close()
+    }
 }
