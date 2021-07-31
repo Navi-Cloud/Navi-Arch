@@ -8,9 +8,13 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.adapter.BaseFileAdapter
 import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.databinding.ActivitySearchBinding
+import com.kangdroid.navi_arch.viewmodel.PageRequest
 import com.kangdroid.navi_arch.viewmodel.SearchViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
+import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -167,6 +171,81 @@ class SearchActivityTest {
             val searchBinding: ActivitySearchBinding = getSearchBinding(it)
             searchBinding.apply {
                 assertThat(progressBar.visibility).isEqualTo(View.GONE)
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_toggleButton_sortByNameOrLMT_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.sortByNameOrLMT.performClick()
+
+            // Assert
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.searchResultLiveData.getOrAwaitValue().also { list ->
+                assertThat(list).isNotEqualTo(null)
+            }
+            ViewModelTestHelper.getFields<SearchActivity, FileSortingMode>(
+                "currentSortMode", it
+            ).also { fileSortingMode ->
+                assertThat(fileSortingMode).isEqualTo(FileSortingMode.TypedLMT)
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_toggleButton_sortByType_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.sortByType.performClick()
+
+            // Assert
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.searchResultLiveData.getOrAwaitValue().also { list ->
+                assertThat(list).isNotEqualTo(null)
+            }
+            ViewModelTestHelper.getFields<SearchActivity, FileSortingMode>(
+                "currentSortMode", it
+            ).also { fileSortingMode ->
+                assertThat(fileSortingMode).isEqualTo(FileSortingMode.Name)
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_toggleButton_sortByAscendingOrDescending_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.sortByAscendingOrDescending.performClick()
+
+            // Assert
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.searchResultLiveData.getOrAwaitValue().also { list ->
+                assertThat(list).isNotEqualTo(null)
+            }
+            ViewModelTestHelper.getFields<SearchActivity, Boolean>(
+                "isReversed", it
+            ).also { isReversed ->
+                assertThat(isReversed).isEqualTo(true)
             }
         }
         scenario.close()
