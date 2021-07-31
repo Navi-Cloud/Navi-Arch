@@ -97,7 +97,7 @@ class SearchActivity : AppCompatActivity() {
             // Handle search result
             if (it != null) {
                 Log.d(logTag, "Search success!: ${it.size}")
-                if(it.size <= 0){
+                if(it.isEmpty()){
                     searchBinding.searchResultRecyclerView.visibility = View.GONE
                     searchBinding.textNoResult.visibility = View.VISIBLE
                 } else {
