@@ -14,8 +14,10 @@ import com.kangdroid.navi_arch.setup.ServerSetup
 import com.kangdroid.navi_arch.setup.WindowsServerSetup
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import okhttp3.HttpUrl
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.*
+import java.util.concurrent.TimeoutException
 
 class SearchViewModelTest {
     // Target
@@ -82,14 +84,14 @@ class SearchViewModelTest {
     /* Setting */
     @Before
     fun init() {
-        PagerViewModelTest.serverSetup.clearData()
+        serverSetup.clearData()
         searchViewModel = SearchViewModel()
         ViewModelTestHelper.setFields("serverManagement", searchViewModel, serverManagement)
     }
 
     @After
     fun destroy() {
-        PagerViewModelTest.serverSetup.clearData()
+        serverSetup.clearData()
     }
 
     /* Test */
@@ -146,6 +148,26 @@ class SearchViewModelTest {
         ViewModelTestHelper.getFields<SearchViewModel, List<FileData>>("searchResultList", searchViewModel).also {
             assertThat(it.size).isEqualTo(1)
             assertThat(it[0].fileName).isEqualTo(folderName)
+        }
+    }
+
+    @Test
+    fun is_search_works_well_when_server_error() {
+        // Perform
+        searchViewModel.search(
+            query = "query"
+        )
+
+        // Assert
+        searchViewModel.liveErrorData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+        }
+        runCatching {
+            searchViewModel.searchResultLiveData.getOrAwaitValue()
+        }.onSuccess {
+            Assertions.fail("This should be failed...")
+        }.onFailure { throwable ->
+            assertThat(throwable is TimeoutException).isEqualTo(true)
         }
     }
 
