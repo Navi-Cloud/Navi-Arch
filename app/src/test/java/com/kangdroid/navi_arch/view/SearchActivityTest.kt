@@ -4,17 +4,16 @@ import android.os.Build
 import android.view.View
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Lifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.kangdroid.navi_arch.adapter.BaseFileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.databinding.ActivitySearchBinding
-import com.kangdroid.navi_arch.viewmodel.PageRequest
 import com.kangdroid.navi_arch.viewmodel.SearchViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -60,6 +59,24 @@ class SearchActivityTest {
         scenario.onActivity {
             val searchBinding: ActivitySearchBinding = getSearchBinding(it)
             assertThat(searchBinding).isNotEqualTo(null)
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_init_searchResultRecyclerView_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.searchResultRecyclerView.apply {
+                assertThat(layoutManager!!::class.java).isEqualTo(LinearLayoutManager::class.java)
+                val baseFileAdapter: BaseFileAdapter = ViewModelTestHelper
+                    .getFields<SearchActivity, BaseFileAdapter>("baseFileAdapter", it)
+                assertThat(adapter).isEqualTo(baseFileAdapter)
+            }
         }
         scenario.close()
     }
