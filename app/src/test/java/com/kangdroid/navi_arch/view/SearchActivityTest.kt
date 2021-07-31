@@ -18,10 +18,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowActivity
 import org.robolectric.shadows.ShadowToast
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
+
 
 @Config(sdk = [Build.VERSION_CODES.P])
 @RunWith(AndroidJUnit4::class)
@@ -30,19 +33,19 @@ class SearchActivityTest {
     @get:Rule
     val taskExecutorRule = InstantTaskExecutorRule()
 
-    private inline fun<reified T> getSearchViewModel(receiver: T): SearchViewModel {
+    private inline fun <reified T> getSearchViewModel(receiver: T): SearchViewModel {
         val memberProperty = T::class.declaredMembers.find { it.name == "searchViewModel" }!!
         memberProperty.isAccessible = true
         return memberProperty.call(receiver) as SearchViewModel
     }
 
-    private inline fun<reified T> getSearchBinding(receiver: T): ActivitySearchBinding {
+    private inline fun <reified T> getSearchBinding(receiver: T): ActivitySearchBinding {
         val memberProperty = T::class.declaredMembers.find { it.name == "searchBinding" }!!
         memberProperty.isAccessible = true
         return memberProperty.call(receiver) as ActivitySearchBinding
     }
 
-    val mockFolderData: FileData = FileData(
+    private val mockFolderData: FileData = FileData(
         userId = "id",
         token = "token",
         prevToken = "prev",
@@ -77,6 +80,21 @@ class SearchActivityTest {
                     .getFields<SearchActivity, BaseFileAdapter>("baseFileAdapter", it)
                 assertThat(adapter).isEqualTo(baseFileAdapter)
             }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_backButton_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.backButton.performClick()
+
+            assertThat(it.isFinishing).isEqualTo(true)
         }
         scenario.close()
     }
