@@ -104,8 +104,7 @@ class SearchActivity : AppCompatActivity() {
                     searchBinding.searchResultRecyclerView.visibility = View.VISIBLE
                     searchBinding.textNoResult.visibility = View.GONE
 
-                    baseFileAdapter.fileList = it
-                    baseFileAdapter.notifyDataSetChanged()
+                    baseFileAdapter.setBaseFileList(it)
                 }
             }
         }

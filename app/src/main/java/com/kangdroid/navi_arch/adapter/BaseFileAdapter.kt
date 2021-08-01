@@ -52,4 +52,9 @@ open class BaseFileAdapter (
     }
 
     override fun getItemCount(): Int = fileList.size
+
+    fun setBaseFileList(fileList: List<FileData>) {
+        this.fileList = fileList
+        notifyDataSetChanged()
+    }
 }

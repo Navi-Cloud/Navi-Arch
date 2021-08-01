@@ -1,5 +1,6 @@
 package com.kangdroid.navi_arch.view
 
+import android.content.Intent
 import android.os.Build
 import android.view.KeyEvent
 import android.view.View
@@ -20,7 +21,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowActivity
 import org.robolectric.shadows.ShadowToast
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.full.declaredMembers
@@ -63,6 +66,36 @@ class SearchActivityTest {
         scenario.onActivity {
             val searchBinding: ActivitySearchBinding = getSearchBinding(it)
             assertThat(searchBinding).isNotEqualTo(null)
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_recyclerOnClickListener_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Set
+            val baseFileAdapter: BaseFileAdapter = ViewModelTestHelper
+                .getFields<SearchActivity, BaseFileAdapter>("baseFileAdapter", it)
+            baseFileAdapter.setBaseFileList(listOf(mockFolderData))
+
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            // RecyclerView needs to be measured and layed out manually in Robolectric
+            searchBinding.searchResultRecyclerView.measure(0, 0);
+            searchBinding.searchResultRecyclerView.layout(0, 0, 100, 10000);
+
+            // Perform
+            searchBinding.searchResultRecyclerView.getChildAt(0).performClick()
+
+            // Assert
+            assertThat(searchBinding.searchResultRecyclerView.childCount).isEqualTo(1)
+
+            val shadowSearchActivity: ShadowActivity = shadowOf(it)
+            val targetIntent: Intent = Intent(it, MainActivity::class.java)
+            assertThat(shadowSearchActivity.nextStartedActivity.component).isEqualTo(targetIntent.component)
         }
         scenario.close()
     }
