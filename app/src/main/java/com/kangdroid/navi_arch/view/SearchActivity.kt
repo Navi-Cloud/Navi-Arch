@@ -127,7 +127,7 @@ class SearchActivity : AppCompatActivity() {
         val sortListener: (CompoundButton, Boolean) -> Unit = { _, _ ->
             currentSortMode = when (searchBinding.sortByNameOrLMT.isChecked) {
                 true -> if (searchBinding.sortByType.isChecked) FileSortingMode.LMT else FileSortingMode.TypedLMT
-                false -> if (searchBinding.sortByType.isChecked) FileSortingMode.Name else FileSortingMode.TypedName
+                else -> if (searchBinding.sortByType.isChecked) FileSortingMode.Name else FileSortingMode.TypedName
             }
             isReversed = searchBinding.sortByAscendingOrDescending.isChecked
 
