@@ -331,6 +331,32 @@ class SearchActivityTest {
     }
 
     @Test
+    fun is_toggleButton_sortByNameOrLMT_works_well_when_click_twice() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.sortByNameOrLMT.performClick()
+            searchBinding.sortByNameOrLMT.performClick()
+
+            // Assert
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.searchResultLiveData.getOrAwaitValue().also { list ->
+                assertThat(list).isNotEqualTo(null)
+            }
+            ViewModelTestHelper.getFields<SearchActivity, FileSortingMode>(
+                "currentSortMode", it
+            ).also { fileSortingMode ->
+                assertThat(fileSortingMode).isEqualTo(FileSortingMode.TypedName)
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
     fun is_toggleButton_sortByType_works_well() {
         val scenario = ActivityScenario
             .launch(SearchActivity::class.java)
@@ -350,6 +376,32 @@ class SearchActivityTest {
                 "currentSortMode", it
             ).also { fileSortingMode ->
                 assertThat(fileSortingMode).isEqualTo(FileSortingMode.Name)
+            }
+        }
+        scenario.close()
+    }
+
+    @Test
+    fun is_toggleButton_sortByNameOrLMT_and_sortByType_works_well() {
+        val scenario = ActivityScenario
+            .launch(SearchActivity::class.java)
+            .moveToState(Lifecycle.State.STARTED)
+
+        scenario.onActivity {
+            // Perform
+            val searchBinding: ActivitySearchBinding = getSearchBinding(it)
+            searchBinding.sortByNameOrLMT.performClick()
+            searchBinding.sortByType.performClick()
+
+            // Assert
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            searchViewModel.searchResultLiveData.getOrAwaitValue().also { list ->
+                assertThat(list).isNotEqualTo(null)
+            }
+            ViewModelTestHelper.getFields<SearchActivity, FileSortingMode>(
+                "currentSortMode", it
+            ).also { fileSortingMode ->
+                assertThat(fileSortingMode).isEqualTo(FileSortingMode.LMT)
             }
         }
         scenario.close()
