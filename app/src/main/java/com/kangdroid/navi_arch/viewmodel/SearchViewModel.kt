@@ -8,6 +8,7 @@ import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,6 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor() : ViewModel() {
+
+    // CoroutineDispatcher
+    private var dispatcher: CoroutineDispatcher = Dispatchers.IO
 
     // Search Result and Live data
     private var searchResultList: List<FileData> = listOf()
@@ -34,7 +38,7 @@ class SearchViewModel @Inject constructor() : ViewModel() {
         var searchThrow : Throwable?= null
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
+            withContext(dispatcher) {
                 runCatching {
                     serverManagement.searchFile(
                         searchParam = query

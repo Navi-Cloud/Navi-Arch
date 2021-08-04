@@ -37,6 +37,9 @@ class SearchActivityTest {
     @get:Rule
     val taskExecutorRule = InstantTaskExecutorRule()
 
+    @get:Rule
+    val mainCoroutineRule = MainCoroutineRule()
+
     private inline fun <reified T> getSearchViewModel(receiver: T): SearchViewModel {
         val memberProperty = T::class.declaredMembers.find { it.name == "searchViewModel" }!!
         memberProperty.isAccessible = true
@@ -107,6 +110,10 @@ class SearchActivityTest {
             .moveToState(Lifecycle.State.STARTED)
 
         scenario.onActivity {
+            // Set TestCoroutineDispatcher
+            val searchViewModel: SearchViewModel = getSearchViewModel(it)
+            ViewModelTestHelper.setFields("dispatcher", searchViewModel, mainCoroutineRule.dispatcher)
+
             val searchBinding: ActivitySearchBinding = getSearchBinding(it)
             searchBinding.apply {
                 // Perform
@@ -115,16 +122,10 @@ class SearchActivityTest {
                 ))
 
                 // Assert
-                assertThat(progressBar.visibility).isEqualTo(View.VISIBLE)
-
-                // TODO Assert liveErrorData
-                // [Using TestCoroutineDispatcher] This throw RuntimeException: Can't toast on a thread that has not called Looper.prepare()
-                // Same Error with LoginFragmentTest.loginBtn_is_fail()
-//                val searchViewModel: SearchViewModel = getSearchViewModel(it)
-//                // ENTER will change liveErrorData since Server not exists now
-//                searchViewModel.liveErrorData.getOrAwaitValue().also { list ->
-//                    assertThat(list).isNotEqualTo(null)
-//                }
+                searchViewModel.liveErrorData.getOrAwaitValue().also { list ->
+                    assertThat(list).isNotEqualTo(null)
+                }
+                assertThat(ShadowToast.getTextOfLatestToast().contains("Search Error:")).isEqualTo(true)
             }
         }
         scenario.close()
