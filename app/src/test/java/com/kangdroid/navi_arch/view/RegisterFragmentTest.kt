@@ -12,16 +12,10 @@ import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runBlockingTest
-import kotlinx.coroutines.test.setMain
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,29 +31,17 @@ import kotlin.reflect.jvm.isAccessible
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class RegisterFragmentTest {
-
-    // Since unit test can't use Main Looper, coroutine test should pass TestCoroutineDispatcher and execute within the runBlockingTest
-    private val testDispatcher = TestCoroutineDispatcher() // for coroutine test
-
     // Rule that every android-thread should launched in single thread
     @get:Rule
     val taskExecutorRule = InstantTaskExecutorRule()
+
+    @get:Rule
+    var mainCoroutineRule = MainCoroutineRule()
 
     private inline fun<reified T> getUserViewModel(receiver: T): UserViewModel {
         val memberProperty = T::class.declaredMembers.find { it.name == "userViewModel" }!!
         memberProperty.isAccessible = true
         return memberProperty.call(receiver) as UserViewModel
-    }
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher) // swap dispatcher with a test dispatcher
-    }
-
-    @After
-    fun cleanUp() {
-        Dispatchers.resetMain() // reset main dispatcher to the original Main dispatcher
-        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test
