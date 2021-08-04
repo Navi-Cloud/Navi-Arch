@@ -10,6 +10,7 @@ import com.kangdroid.navi_arch.data.dto.response.RegisterResponse
 import com.kangdroid.navi_arch.server.ServerInterface
 import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,6 +25,8 @@ class UserViewModel @Inject constructor(): ViewModel() {
 
     // TAG
     private val logTag: String = this::class.java.simpleName
+
+    private var dispatcher: CoroutineDispatcher = Dispatchers.IO
 
     // Live data for Login/Register error
     val loginErrorData: MutableLiveData<Throwable> = MutableLiveData()
@@ -72,7 +75,7 @@ class UserViewModel @Inject constructor(): ViewModel() {
 
             var loginthrow : Throwable ?= null
 
-            withContext(Dispatchers.IO) {
+            withContext(dispatcher) {
                 runCatching {
                     serverManagement.loginUser(
                         LoginRequest(
@@ -86,7 +89,6 @@ class UserViewModel @Inject constructor(): ViewModel() {
                     loginresponse = it
                 }
             }
-
             if(loginresponse != null){
                 requestMainPage()
             }

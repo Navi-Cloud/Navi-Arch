@@ -121,31 +121,32 @@ class LoginFragmentTest {
     }
 
     @Test
-    fun loginBtn_is_fail(){
+    fun loginBtn_is_fail() {
         val scenario = launchFragmentInContainer<LoginFragment>(
             themeResId = R.style.Theme_NaviArch,
             initialState  = State.STARTED
         )
 
         scenario.onFragment{
-            // Mock ServerManagement for UserViewModel
-            val mockServerManagement: ServerManagement = mockk(relaxed = true) // relaxed mock returns some simple value for all functions
+            // Set TestCoroutineDispatcher
             val userViewModel: UserViewModel = getUserViewModel(it)
-            ViewModelTestHelper.setFields("serverManagement", userViewModel, mockServerManagement)
+            ViewModelTestHelper.setFields("dispatcher", userViewModel, mainCoroutineRule.dispatcher)
 
             // Set values
             it.loginBinding?.apply {
                 idLogin.setText("userId")
                 pwLogin.setText("userPw")
             }
-            userViewModel.loginErrorData.value = RuntimeException("")
 
-            //Perform
+            // Perform
             it.loginBinding?.button!!.performClick().also{ clickResult ->
                 assertThat(clickResult).isEqualTo(true)
             }
 
-            // Get Data
+            // Assert
+            userViewModel.loginErrorData.getOrAwaitValue().also { throwable ->
+                assertThat(throwable).isNotEqualTo(null)
+            }
             assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("")
             assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("")
         }
