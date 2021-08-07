@@ -24,6 +24,7 @@ import com.kangdroid.navi_arch.utils.PagerCacheUtils
 import com.kangdroid.navi_arch.viewmodel.PagerViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
+import io.mockk.mockk
 import junit.framework.Assert.*
 import okhttp3.HttpUrl
 import org.assertj.core.api.Assertions
@@ -44,98 +45,49 @@ class MainActivityTest {
 
     private lateinit var scenario : ActivityScenario<MainActivity>
     private val mainactivity : MainActivity = Robolectric.setupActivity(MainActivity::class.java)
-    private val pageractivity : PagerActivity = Robolectric.setupActivity(MainActivity::class.java)
 
     @get:Rule
     val taskExecutorRule = InstantTaskExecutorRule()
 
-    companion object {
-        @JvmStatic
-        val serverSetup: ServerSetup = ServerSetup(
-            if (System.getProperty("os.name").contains("Windows")) {
-                WindowsServerSetup()
-            } else {
-                LinuxServerSetup()
-            }
-        )
-
-        @JvmStatic
-        @BeforeClass
-        fun setupServer() {
-            println("Setting up server..")
-            serverSetup.setupServer()
-            println("Setting up server finished!")
-        }
-
-        @JvmStatic
-        @AfterClass
-        fun clearServer() {
-            println("Clearing Server..")
-            serverSetup.killServer(false)
-            println("Clearing Server finished!")
-        }
-    }
-
     private inline fun <reified T> getPagerViewModel(receiver: T): PagerViewModel {
-        val memberProperty = T::class.declaredMembers.find { it.name == "pagerViewModel" }!!
+        val memberProperty = T::class.members.find { it.name == "pagerViewModel" }!!
         memberProperty.isAccessible = true
         return memberProperty.call(receiver) as PagerViewModel
     }
 
-    private val serverManagement: ServerManagement = ServerManagement.getServerManagement(
-        HttpUrl.Builder()
-            .scheme("http")
-            .host("localhost")
-            .port(8080)
-            .build()
+    private val filedata : FileData = FileData(
+        userId = "",
+        fileName = "/",
+        fileType = "Folder",
+        token = "rootToken",
+        prevToken = "prevToken"
     )
 
-    // Mock Register Request
-    private val mockUserRegisterRequest: RegisterRequest = RegisterRequest(
-        userId = "kangdroid",
-        userPassword = "test",
-        userEmail = "Ttest",
-        userName = "KangDroid"
-    )
+    private fun fill_PageList(it : MainActivity){
 
-    private fun registerAndLogin() {
-        serverManagement.register(mockUserRegisterRequest)
-        serverManagement.loginUser(
-            LoginRequest(
-                userId = mockUserRegisterRequest.userId,
-                userPassword = mockUserRegisterRequest.userPassword
-            )
+        val mockServerManagement : ServerManagement = mockk(relaxed = true)
+        val pagerViewModel = getPagerViewModel(it)
+        ViewModelTestHelper.setFields("serverManagement",pagerViewModel,mockServerManagement)
+
+
+        val recyclerOnClickListener: ((FileData, Int) -> Unit) = {FileData, Int -> }
+        val tmpList: List<FileData> = listOf(filedata)
+        val fileAdapter: FileAdapter = FileAdapter(
+            onClick = recyclerOnClickListener,
+            onLongClick = pagerViewModel.recyclerOnLongClickListener,
+            fileList = tmpList,
+            pageNumber = 1,
+            currentFolder = filedata
         )
+        pagerViewModel.pageList.add(fileAdapter)
     }
 
-    @Before
-    fun init() {
-       serverSetup.clearData()
-        ViewModelTestHelper.setFields("serverManagement", getPagerViewModel(pageractivity), serverManagement)
-    }
-
-    @After
-    fun destroy() {
-        serverSetup.clearData()
-    }
 
     @Test
     fun is_recyclerOnLongClickListener_well(){
         scenario = ActivityScenario.launch(MainActivity::class.java).moveToState(Lifecycle.State.RESUMED)
         scenario.onActivity {
-
-            registerAndLogin()
-            val filedata : FileData = FileData(
-                userId = "",
-                fileName = "/",
-                fileType = "Folder",
-                token = "rootToken",
-                prevToken = "prevToken"
-            )
-
-            // working....
-            getPagerViewModel(it).createInitialRootPage()
-
+            fill_PageList(it)
             val result = it.recyclerOnLongClickListener(filedata)
             assertEquals(result,true)
         }
@@ -143,14 +95,12 @@ class MainActivityTest {
 
     @Test
     fun is_errorObserverCallback_well() {
-
         scenario = ActivityScenario.launch(MainActivity::class.java).moveToState(Lifecycle.State.STARTED)
         scenario.onActivity {
             it.errorObserverCallback(Throwable())
             val dynamicmenu: Menu = ViewModelTestHelper.getFields("dynamicMenu", it)
             assertEquals(dynamicmenu.findItem(R.id.action_add_folder).isVisible,false)
         }
-
     }
 
     @Test
@@ -167,19 +117,16 @@ class MainActivityTest {
 
     }
 
-//    @Test
-//    fun addfolder_for_OptionItemSelected(){
-//        scenario = ActivityScenario.launch(MainActivity::class.java).moveToState(Lifecycle.State.RESUMED)
-//        scenario.onActivity {
-//
-//            val menuItem: MenuItem = RoboMenuItem(R.id.action_add_folder)
-//            val result = it.onOptionsItemSelected(menuItem)
-//            print(pageractivity.pagerViewModel.pageList[
-//                    pageractivity.activityMainBinding.viewPager.currentItem].currentFolder.token)
-//
-//            assertEquals(result,true)
-//        }
-//    }
+    @Test
+    fun addfolder_for_OptionItemSelected(){
+        scenario = ActivityScenario.launch(MainActivity::class.java).moveToState(Lifecycle.State.RESUMED)
+        scenario.onActivity {
+            fill_PageList(it)
+            val menuItem: MenuItem = RoboMenuItem(R.id.action_add_folder)
+            val result = it.onOptionsItemSelected(menuItem)
+            assertEquals(result,true)
+        }
+    }
 
     @Test
     fun search_for_OptionItemSelected(){
