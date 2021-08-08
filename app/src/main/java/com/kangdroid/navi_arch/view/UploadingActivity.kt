@@ -48,8 +48,11 @@ class UploadingActivity: PagerActivity() {
             R.id.action_select_path -> {
                 Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
                 // Upload it!
-                val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
-                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
+                pagerViewModel.livePagerData.observe(this){
+                    uploadingViewModel.upload(it[activityMainBinding.viewPager.currentItem].currentFolder.token)
+                }
+//                val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
+//                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
                 true
             }
             else -> false
