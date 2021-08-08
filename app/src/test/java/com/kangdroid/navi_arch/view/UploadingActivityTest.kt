@@ -140,16 +140,9 @@ class UploadingActivityTest {
             pagerViewModel.livePagerData.getOrAwaitValue().also {
                 //option click
                 val menuItem = RoboMenuItem(com.kangdroid.navi_arch.R.id.action_select_path)
-                activity.onOptionsItemSelected(menuItem)
+                val isTrue =activity.onOptionsItemSelected(menuItem)
 
-                //observer
-                runCatching {
-                    uploadingViewModel.fileUploadSucceed.getOrAwaitValue()
-                }.onSuccess {
-                    assertThat(it).isEqualTo(true)
-                }.onFailure { throwable ->
-                    println(throwable.stackTraceToString())
-                }
+                assertEquals(isTrue,true)
             }
         }
     }

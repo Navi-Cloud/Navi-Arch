@@ -17,6 +17,7 @@ class UploadingActivity: PagerActivity() {
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model
     private val uploadingViewModel: UploadingViewModel by viewModels()
+//    lateinit var currentPageList: MutableList<FileAdapter>
 
     // Result Callback[StartActivityForResult]
     private val resultCallbackLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -53,6 +54,7 @@ class UploadingActivity: PagerActivity() {
                 }
 //                val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
 //                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
+
                 true
             }
             else -> false
@@ -79,5 +81,8 @@ class UploadingActivity: PagerActivity() {
                     .show()
             }
         }
+//        pagerViewModel.livePagerData.observe(this){
+//            currentPageList = it
+//        }
     }
 }
