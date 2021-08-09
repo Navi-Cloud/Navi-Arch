@@ -3,6 +3,7 @@ package com.kangdroid.navi_arch.server
 import android.util.Log
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
+import com.kangdroid.navi_arch.data.dto.request.FileCopyRequest
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
@@ -221,5 +222,15 @@ class ServerManagement(
             serverManagementHelper.exchangeDataWithServer(findFolderFunction)
 
         return response.body()!!
+    }
+
+    override fun migrateFile(fileCopyRequest: FileCopyRequest, preserveFile: Boolean) {
+        val fileCopyRequest: Call<ResponseBody> = api.migrateFile(
+            headerMap = getHeaders(),
+            fileCopyRequest = fileCopyRequest,
+            preserveFile = preserveFile)
+
+        val response: Response<ResponseBody> =
+            serverManagementHelper.exchangeDataWithServer(fileCopyRequest)
     }
 }
