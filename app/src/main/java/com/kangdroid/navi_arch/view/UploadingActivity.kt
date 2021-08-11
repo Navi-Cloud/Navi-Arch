@@ -11,12 +11,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.adapter.FileAdapter
+import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.dto.request.FileCopyRequest
 import com.kangdroid.navi_arch.viewmodel.UploadingViewModel
 
 class UploadingActivity: PagerActivity() {
     // Uploading ViewModel - Since we are NOT sharing some data FOR NOW, but
     // in case of code growing for uploading, leave it as View Model
     private val uploadingViewModel: UploadingViewModel by viewModels()
+    private var filecopyrequest : FileCopyRequest = FileCopyRequest("","","","")
+    private var isMoveFile : Boolean = false
 
     // Result Callback[StartActivityForResult]
     private val resultCallbackLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -32,7 +36,13 @@ class UploadingActivity: PagerActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setUpObserver()
-        getContentActivity()
+
+        //checking whether it's from MenuBottom or FileBottom
+        // isMoveFile is true -> FileBottom
+        // false -> MenuBottom
+        isMoveFile = intent.getBooleanExtra("ismove",false)
+        if(!isMoveFile) getContentActivity()
+        else checkFileCopyRequest()
         super.onCreate(savedInstanceState)
     }
 
@@ -46,10 +56,17 @@ class UploadingActivity: PagerActivity() {
         return when(item.itemId) {
             // Check[Folder Check Button] when launched with UploadActivity
             R.id.action_select_path -> {
-                Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
-                // Upload it!
                 val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
-                uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
+                // Upload it!
+                if(!isMoveFile){
+                    Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
+                    uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
+                }
+                else {
+                    Log.d(this::class.java.simpleName, "Moving Folder path selected.")
+                    filecopyrequest.toPrevToken = currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token
+                    uploadingViewModel.move(filecopyrequest)
+                }
                 true
             }
             else -> false
@@ -76,5 +93,12 @@ class UploadingActivity: PagerActivity() {
                     .show()
             }
         }
+    }
+
+    private fun checkFileCopyRequest(){
+        val filedata : FileData = intent.getSerializableExtra("filedata") as FileData
+        filecopyrequest.fromToken = filedata.token
+        filecopyrequest.fromPrevToken = filedata.prevToken
+        filecopyrequest.newFileName = filedata.fileName
     }
 }
