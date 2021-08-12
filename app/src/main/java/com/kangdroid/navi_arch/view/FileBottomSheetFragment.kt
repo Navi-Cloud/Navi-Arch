@@ -121,11 +121,9 @@ class FileBottomSheetFragment(
                 val intent : Intent = Intent(requireContext(),UploadingActivity::class.java)
                 intent.putExtra("filedata",targetFileData as Serializable)
                 intent.putExtra("ismove",true)
- //               afterUploadingActivityFinishes.launch(
-                startActivity(intent)
-                refreshPageLambda()
-                dismiss()
- //               )
+                afterUploadingActivityFinishes.launch(
+                    intent
+                )
             }
         }
     }
