@@ -53,6 +53,7 @@ class UploadingViewModel @Inject constructor(
 
     // Live Data when uploading succeed
     var fileUploadSucceed: MutableLiveData<Boolean> = MutableLiveData()
+    var fileMoveSucceed: MutableLiveData<Boolean> = MutableLiveData()
 
     private fun getFileName(uri: Uri): String {
         var targetString: String? = null
@@ -127,10 +128,12 @@ class UploadingViewModel @Inject constructor(
                 runCatching {
                     serverManagement.migrateFile(filecopyrequest,false)
                 }.onSuccess {
-                    fileUploadSucceed.postValue(true)
+                    fileMoveSucceed.postValue(true)
+//                    fileUploadSucceed.postValue(true)
                 }.onFailure {
                     Log.e(this::class.java.simpleName, it.stackTraceToString())
-                    fileUploadSucceed.postValue(false)
+                    fileMoveSucceed.postValue(false)
+//                    fileUploadSucceed.postValue(false)
                 }
             }
         }

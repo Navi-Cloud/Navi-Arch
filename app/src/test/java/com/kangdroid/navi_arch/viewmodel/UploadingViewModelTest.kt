@@ -12,6 +12,9 @@ import android.provider.OpenableColumns
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.kangdroid.navi_arch.data.FileData
+import com.kangdroid.navi_arch.data.FileType
+import com.kangdroid.navi_arch.data.dto.request.FileCopyRequest
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.server.ServerManagement
@@ -86,6 +89,14 @@ class UploadingViewModelTest {
             .build()
     )
 
+    private val mockInsideFilesResult = FileData(
+            userId = "kangdroid",
+            fileName = "/tmp/a.txt",
+            fileType = FileType.File.toString(),
+            token = "/tmp/a.txt.token",
+            prevToken = "fakePrevToken"
+        )
+
     // Mock Register Request
     private val mockUserRegisterRequest: RegisterRequest = RegisterRequest(
         userId = "kangdroid",
@@ -158,7 +169,6 @@ class UploadingViewModelTest {
                 selection: String?,
                 selectionArgs: Array<out String>?
             ): Int = -1
-
         })
     }
 
@@ -271,6 +281,73 @@ class UploadingViewModelTest {
         // Check Live Data
         uploadingViewModel.fileUploadSucceed.getOrAwaitValue().also {
             assertThat(it).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_move_fail_when_file_not_exist(){
+        // Server Setup
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create "com.android.providers.media.documents" author provided URI
+        val expectedString: String = "TestWhatever"
+
+        // Register Input Stream
+        shadowContentResolver.registerInputStream(normalUri, ByteArrayInputStream(expectedString.toByteArray()))
+
+        // Setup for File operation
+        setUpForFileOperation()
+
+        // Create file contents
+        uploadingViewModel.createFileUri(normalUri)
+
+        // Do Execute
+        uploadingViewModel.move(FileCopyRequest(rootToken, rootToken, rootToken, "moveFile"))
+
+        // Check Live Data
+        uploadingViewModel.fileMoveSucceed.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(false)
+        }
+    }
+
+    @Test
+    fun is_move_works_well(){
+        // Server Setup
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create "com.android.providers.media.documents" author provided URI
+        val expectedString: String = "TestWhatever"
+
+        // Register Input Stream
+        shadowContentResolver.registerInputStream(normalUri, ByteArrayInputStream(expectedString.toByteArray()))
+
+        // Setup for File operation
+        setUpForFileOperation()
+
+        // Create file contents
+        uploadingViewModel.createFileUri(normalUri)
+
+        //upload file
+        uploadingViewModel.upload(rootToken)
+        uploadingViewModel.fileUploadSucceed.getOrAwaitValue().also {
+            assertThat(it).isEqualTo(true)
+
+            serverManagement.getInsideFiles(rootToken).also{ findList ->
+                // Do Execute
+                uploadingViewModel.move(FileCopyRequest(findList[0].token, findList[0].prevToken, rootToken, "test_file_name"))
+
+                // Check Live Data
+                uploadingViewModel.fileMoveSucceed.getOrAwaitValue().also {
+                    assertThat(it).isEqualTo(true)
+                    serverManagement.getInsideFiles(rootToken).also { gotList ->
+                        assertThat(gotList.size).isEqualTo(2)
+                        assertThat(gotList[0].fileName).isEqualTo(testFileName)
+                        assertThat(gotList[1].fileName).isEqualTo(testFileName)
+                    }
+                }
+            }
         }
     }
 }
