@@ -56,16 +56,16 @@ class UploadingActivity: PagerActivity() {
         return when(item.itemId) {
             // Check[Folder Check Button] when launched with UploadActivity
             R.id.action_select_path -> {
-                val currentPageList: MutableList<FileAdapter> = pagerViewModel.livePagerData.value!!
-                // Upload it!
-                if(!isMoveFile){
-                    Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
-                    uploadingViewModel.upload(currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token)
-                }
-                else {
-                    Log.d(this::class.java.simpleName, "Moving Folder path selected.")
-                    filecopyrequest.toPrevToken = currentPageList[activityMainBinding.viewPager.currentItem].currentFolder.token
-                    uploadingViewModel.move(filecopyrequest)
+                pagerViewModel.livePagerData.observe(this){
+                    if(!isMoveFile){
+                        Log.d(this::class.java.simpleName, "Uploading Folder path selected.")
+                        uploadingViewModel.upload(it[activityMainBinding.viewPager.currentItem].currentFolder.token)
+                    }
+                    else {
+                        Log.d(this::class.java.simpleName, "Moving Folder path selected.")
+                        filecopyrequest.toPrevToken = it[activityMainBinding.viewPager.currentItem].currentFolder.token
+                        uploadingViewModel.move(filecopyrequest)
+                    }
                 }
                 true
             }
