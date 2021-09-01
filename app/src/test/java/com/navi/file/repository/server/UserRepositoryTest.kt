@@ -6,8 +6,8 @@ import com.navi.file.model.ErrorResponseModel
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
+import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.repository.server.factory.NaviRetrofitFactory
-import com.navi.file.repository.server.factory.ResultType
 import com.navi.file.repository.server.user.UserRepository
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer

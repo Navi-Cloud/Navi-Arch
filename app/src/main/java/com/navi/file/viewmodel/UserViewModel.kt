@@ -4,19 +4,19 @@ import androidx.lifecycle.MutableLiveData
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
-import com.navi.file.repository.server.factory.ExecutionResult
+import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.repository.server.user.UserRepository
 import okhttp3.ResponseBody
 
-class UserViewModel(
+class UserViewModel constructor(
     private val userRepository: UserRepository,
     dispatcherInfo: DispatcherInfo = DispatcherInfo()
 ): ViewModelExtension(dispatcherInfo) {
     // Register Result
-    var registerResult: MutableLiveData<ExecutionResult<ResponseBody>> = MutableLiveData()
+    val registerResult: MutableLiveData<ExecutionResult<ResponseBody>> = MutableLiveData()
 
     // Login Result
-    var loginUser: MutableLiveData<ExecutionResult<UserLoginResponse>> = MutableLiveData()
+    val loginUser: MutableLiveData<ExecutionResult<UserLoginResponse>> = MutableLiveData()
 
     /**
      * Request User Registration to serverRepository.
