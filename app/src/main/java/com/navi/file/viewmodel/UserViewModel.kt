@@ -4,12 +4,12 @@ import androidx.lifecycle.MutableLiveData
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
-import com.navi.file.repository.server.ExecutionResult
-import com.navi.file.repository.server.ServerRepository
+import com.navi.file.repository.server.factory.ExecutionResult
+import com.navi.file.repository.server.user.UserRepository
 import okhttp3.ResponseBody
 
 class UserViewModel(
-    private val serverRepository: ServerRepository,
+    private val userRepository: UserRepository,
     dispatcherInfo: DispatcherInfo = DispatcherInfo()
 ): ViewModelExtension(dispatcherInfo) {
     // Register Result
@@ -26,7 +26,7 @@ class UserViewModel(
      */
     fun requestUserRegister(userRegisterRequest: UserRegisterRequest) {
         dispatchIo {
-            registerResult.postValue(serverRepository.registerUser(userRegisterRequest))
+            registerResult.postValue(userRepository.registerUser(userRegisterRequest))
         }
     }
 
@@ -38,7 +38,7 @@ class UserViewModel(
      */
     fun requestUserLogin(userLoginRequest: UserLoginRequest) {
         dispatchIo {
-            loginUser.postValue(serverRepository.loginUser(userLoginRequest))
+            loginUser.postValue(userRepository.loginUser(userLoginRequest))
         }
     }
 }

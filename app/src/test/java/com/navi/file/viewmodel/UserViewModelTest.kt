@@ -4,9 +4,9 @@ import com.navi.file.InstantExecutorExtension
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
-import com.navi.file.repository.server.ExecutionResult
-import com.navi.file.repository.server.ResultType
-import com.navi.file.repository.server.ServerRepository
+import com.navi.file.repository.server.user.UserRepository
+import com.navi.file.repository.server.factory.ExecutionResult
+import com.navi.file.repository.server.factory.ResultType
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert
 import org.junit.jupiter.api.DisplayName
@@ -16,9 +16,9 @@ import org.mockito.Mockito.*
 
 @ExtendWith(InstantExecutorExtension::class)
 class UserViewModelTest: ViewModelHelper() {
-    private var mockServerRepository: ServerRepository = mock(ServerRepository::class.java)
+    private var mockUserRepository: UserRepository = mock(UserRepository::class.java)
     private var userViewModel: UserViewModel = UserViewModel(
-        serverRepository = mockServerRepository,
+        userRepository = mockUserRepository,
         dispatcherInfo = DispatcherInfo(
             uiDispatcher = Dispatchers.Unconfined,
             ioDispatcher = Dispatchers.Unconfined,
@@ -31,7 +31,7 @@ class UserViewModelTest: ViewModelHelper() {
     fun is_requestUserRegister_works_Well() {
         // Setup
         val emptyRequest = UserRegisterRequest("", "", "")
-        `when`(mockServerRepository.registerUser(emptyRequest))
+        `when`(mockUserRepository.registerUser(emptyRequest))
             .thenReturn(ExecutionResult(ResultType.Success, null, ""))
 
         // Do
@@ -48,7 +48,7 @@ class UserViewModelTest: ViewModelHelper() {
         // Setup
         val emptyRequest = UserLoginRequest("", "")
         val emptyResponse = UserLoginResponse("testToken")
-        `when`(mockServerRepository.loginUser(emptyRequest))
+        `when`(mockUserRepository.loginUser(emptyRequest))
             .thenReturn(ExecutionResult(ResultType.Success, emptyResponse, ""))
 
         // Do

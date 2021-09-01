@@ -6,6 +6,9 @@ import com.navi.file.model.ErrorResponseModel
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
+import com.navi.file.repository.server.factory.NaviRetrofitFactory
+import com.navi.file.repository.server.factory.ResultType
+import com.navi.file.repository.server.user.UserRepository
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert
@@ -14,9 +17,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.net.HttpURLConnection
 
-class ServerRepositoryTest {
+class UserRepositoryTest {
     private lateinit var testServer: MockWebServer
-    private lateinit var serverRepository: ServerRepository
+    private lateinit var userRepository: UserRepository
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
     private val mockError: ErrorResponseModel = ErrorResponseModel(
         traceId = "",
@@ -26,8 +29,10 @@ class ServerRepositoryTest {
     @BeforeEach
     fun setupServer() {
         testServer = MockWebServer()
-        val url = testServer.url("")
-        serverRepository = ServerRepository(url)
+
+        // Setup User Server Repository
+        NaviRetrofitFactory.createRetrofit(testServer.url(""))
+        userRepository = UserRepository()
     }
 
     @Test
@@ -39,7 +44,7 @@ class ServerRepositoryTest {
                 .setResponseCode(HttpURLConnection.HTTP_CONFLICT)
                 .setBody(objectMapper.writeValueAsString(mockError))
         )
-        val result = serverRepository.registerUser(UserRegisterRequest("", "", ""))
+        val result = userRepository.registerUser(UserRegisterRequest("", "", ""))
 
         // Assert
         Assert.assertEquals(ResultType.Conflict, result.resultType)
@@ -53,7 +58,7 @@ class ServerRepositoryTest {
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
         )
-        val result = serverRepository.registerUser(UserRegisterRequest("", "", ""))
+        val result = userRepository.registerUser(UserRegisterRequest("", "", ""))
 
         // Assert
         Assert.assertEquals(ResultType.Success, result.resultType)
@@ -68,7 +73,7 @@ class ServerRepositoryTest {
                 .setResponseCode(HttpURLConnection.HTTP_FORBIDDEN)
                 .setBody(objectMapper.writeValueAsString(mockError))
         )
-        val result = serverRepository.loginUser(UserLoginRequest("", ""))
+        val result = userRepository.loginUser(UserLoginRequest("", ""))
 
         // Assert
         Assert.assertEquals(ResultType.Forbidden, result.resultType)
@@ -85,7 +90,7 @@ class ServerRepositoryTest {
         )
 
         // Do
-        val result = serverRepository.loginUser(UserLoginRequest("", ""))
+        val result = userRepository.loginUser(UserLoginRequest("", ""))
 
         // Assert
         Assert.assertEquals(ResultType.Success, result.resultType)
@@ -103,7 +108,7 @@ class ServerRepositoryTest {
         testServer.shutdown()
 
         // Do
-        val result = serverRepository.loginUser(UserLoginRequest("", ""))
+        val result = userRepository.loginUser(UserLoginRequest("", ""))
 
         // Assert
         Assert.assertEquals(ResultType.Connection, result.resultType)
@@ -119,7 +124,7 @@ class ServerRepositoryTest {
         )
 
         // Do
-        val result = serverRepository.loginUser(UserLoginRequest("", ""))
+        val result = userRepository.loginUser(UserLoginRequest("", ""))
 
         // Assert
         Assert.assertEquals(ResultType.Unknown, result.resultType)
