@@ -4,9 +4,9 @@ import com.navi.file.InstantExecutorExtension
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
+import com.navi.file.model.intercommunication.ExecutionResult
+import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.repository.server.user.UserRepository
-import com.navi.file.repository.server.factory.ExecutionResult
-import com.navi.file.repository.server.factory.ResultType
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert
 import org.junit.jupiter.api.DisplayName
@@ -25,6 +25,13 @@ class UserViewModelTest: ViewModelHelper() {
             backgroundDispatcher = Dispatchers.Unconfined
         )
     )
+
+    @Test
+    @DisplayName("Default constructor should create its instance well.")
+    fun is_userViewModel_creates_object_well() {
+        val userViewModel = UserViewModel(mockUserRepository)
+        Assert.assertNotNull(userViewModel)
+    }
 
     @Test
     @DisplayName("requestUserRegister should set registerResult Data well.")

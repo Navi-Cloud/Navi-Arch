@@ -4,23 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.navi.file.model.ErrorResponseModel
+import com.navi.file.model.intercommunication.ExecutionResult
+import com.navi.file.model.intercommunication.ResultType
 import retrofit2.Call
 import retrofit2.Response
-
-enum class ResultType {
-    Success,
-    Conflict,
-    Forbidden,
-    Connection,
-    Unauthorized,
-    Unknown
-}
-
-class ExecutionResult<T>(
-    var resultType: ResultType,
-    var value: T?,
-    var message: String
-)
 
 abstract class ServerRepositoryBase {
     // ObjectMapper

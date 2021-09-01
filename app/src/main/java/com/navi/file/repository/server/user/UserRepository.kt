@@ -3,9 +3,9 @@ package com.navi.file.repository.server.user
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
-import com.navi.file.repository.server.factory.ExecutionResult
+import com.navi.file.model.intercommunication.ExecutionResult
+import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.repository.server.factory.NaviRetrofitFactory
-import com.navi.file.repository.server.factory.ResultType
 import com.navi.file.repository.server.factory.ServerRepositoryBase
 import okhttp3.ResponseBody
 import retrofit2.*

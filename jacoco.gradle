@@ -66,6 +66,7 @@ def setupAndroidReporting() {
     tasks.withType(Test) {
         // Whether or not classes without source location should be instrumented
         jacoco.includeNoLocationClasses true
+        jacoco.excludes = ['jdk.internal.*']
     }
     task jacocoTestReport(
             type: JacocoReport,
@@ -133,10 +134,12 @@ def setupAndroidCoverageVerification(threshold) {
                 }
 
                 excludes = [
-                    "com.kangdroid.navi_arch.view.**",
-                    "com.kangdroid.navi_arch.adapter.**",
-                    "com.kangdroid.navi_arch.hilt.**",
-                    "com.kangdroid.navi_arch.data.**"
+                    "com.navi.file.model.**",
+                    "com.navi.file.repository.server.factory.**",
+                    "com.navi.file.viewmodel.ViewModelExtension",
+                    "com.navi.file.viewmodel.ViewModelExtension.**",
+                    "com.navi.file.viewmodel.DispatcherInfo",
+                    "com.navi.file.MainActivity"
                 ]
             }
         }

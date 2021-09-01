@@ -1,9 +1,9 @@
 package com.navi.file.repository.server.folder
 
 import com.navi.file.model.FileMetadata
-import com.navi.file.repository.server.factory.ExecutionResult
+import com.navi.file.model.intercommunication.ExecutionResult
+import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.repository.server.factory.NaviRetrofitFactory
-import com.navi.file.repository.server.factory.ResultType
 import com.navi.file.repository.server.factory.ServerRepositoryBase
 import retrofit2.Response
 import retrofit2.create
