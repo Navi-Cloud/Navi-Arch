@@ -12,6 +12,7 @@ enum class ResultType {
     Conflict,
     Forbidden,
     Connection,
+    Unauthorized,
     Unknown
 }
 
