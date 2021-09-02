@@ -9,9 +9,8 @@ import com.navi.file.repository.server.factory.NaviRetrofitFactory
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
+import org.junit.Before
+import org.junit.Test
 import java.net.HttpURLConnection
 
 class FolderRepositoryTest {
@@ -23,7 +22,7 @@ class FolderRepositoryTest {
         message = ""
     )
 
-    @BeforeEach
+    @Before
     fun setupServer() {
         testServer = MockWebServer()
 
@@ -33,8 +32,7 @@ class FolderRepositoryTest {
     }
 
     @Test
-    @DisplayName("exploreFolder: exploreFolder should return its list of file metadata if succeeds.")
-    fun is_exploreFolder_works_well() {
+    fun `exploreFolder should return its list of file metadata if succeeds`() {
         // Let
         testServer.enqueue(
             MockResponse()
@@ -61,8 +59,7 @@ class FolderRepositoryTest {
     }
 
     @Test
-    @DisplayName("exploreFolder: ExploreFolder should return unauthorized result if user is not authorized.")
-    fun is_exploreFolder_returns_unauthorized_when_no_toke() {
+    fun `ExploreFolder should return unauthorized result if user is not authorized`() {
         // Let
         testServer.enqueue(
             MockResponse()

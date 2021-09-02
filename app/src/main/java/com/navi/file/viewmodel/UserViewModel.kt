@@ -5,6 +5,7 @@ import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.ExecutionResult
+import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.repository.server.user.UserRepository
 import okhttp3.ResponseBody
 
@@ -25,8 +26,20 @@ class UserViewModel constructor(
      * @param userRegisterRequest User Register Request Model
      */
     fun requestUserRegister(userRegisterRequest: UserRegisterRequest) {
-        dispatchIo {
-            registerResult.postValue(userRepository.registerUser(userRegisterRequest))
+        if (!userRegisterRequest.validateModel()) {
+            // Valid Failed
+            registerResult.postValue(
+                ExecutionResult(
+                    resultType = ResultType.ModelValidateFailed,
+                    value = null,
+                    message = "Input Email should be valid email, and password must contains special character, and its length should be more then 8."
+                )
+            )
+        } else {
+            // Valid. Do Dispatch.
+            dispatchIo {
+                registerResult.postValue(userRepository.registerUser(userRegisterRequest))
+            }
         }
     }
 

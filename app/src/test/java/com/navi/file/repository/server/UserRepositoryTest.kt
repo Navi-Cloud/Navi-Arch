@@ -12,9 +12,8 @@ import com.navi.file.repository.server.user.UserRepository
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
+import org.junit.Before
+import org.junit.Test
 import java.net.HttpURLConnection
 
 class UserRepositoryTest {
@@ -26,7 +25,7 @@ class UserRepositoryTest {
         message = ""
     )
 
-    @BeforeEach
+    @Before
     fun setupServer() {
         testServer = MockWebServer()
 
@@ -36,8 +35,7 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("RegisterUser: RegisterUser should Conflict Type error when server responsded with conflict.")
-    fun is_RegisterUser_returns_conflict_when_server_responded_conflict() {
+    fun `RegisterUser should Conflict Type error when server responsded with conflict`() {
         // Setup Server
         testServer.enqueue(
             MockResponse()
@@ -51,8 +49,7 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("RegisterUser: RegisterUser should return ok when register user succeeds.")
-    fun is_RegisterUser_returns_ok_when_register_ok() {
+    fun `RegisterUser should return ok when register user succeeds`() {
         // Setup Server
         testServer.enqueue(
             MockResponse()
@@ -65,8 +62,7 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("LoginUser: LoginUser should return Forbidden when identity is not correct.")
-    fun test() {
+    fun `LoginUser should return Forbidden when identity is not correct`() {
         // Setup Server
         testServer.enqueue(
             MockResponse()
@@ -80,8 +76,7 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("LoginUser: LoginUser should return its token when identity is correct.")
-    fun is_loginUser_works_well() {
+    fun `LoginUser should return its token when identity is correct`() {
         // Setup Server
         testServer.enqueue(
             MockResponse()
@@ -102,8 +97,7 @@ class UserRepositoryTest {
      * Private Method Testing from here.
      */
     @Test
-    @DisplayName("If one of request failed because server is offline, it should return connection-type error.")
-    fun is_Request_returns_connection_error_when_server_off() {
+    fun `If one of request failed because server is offline, it should return connection-type error`() {
         // Let
         testServer.shutdown()
 
@@ -115,8 +109,7 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("If one of request's response was 'Unknown' then it should return unknown-type error.")
-    fun is_request_returns_unknown_error_when_500() {
+    fun `If one of request's response was 'Unknown' then it should return unknown-type error`() {
         // Let
         testServer.enqueue(
             MockResponse()
