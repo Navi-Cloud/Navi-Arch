@@ -6,5 +6,6 @@ enum class ResultType {
     Forbidden,
     Connection,
     Unauthorized,
+    ModelValidateFailed,
     Unknown
 }
