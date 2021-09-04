@@ -138,7 +138,8 @@ def setupAndroidCoverageVerification(threshold) {
                     "com.navi.file.viewmodel.ViewModelExtension.**",
                     "com.navi.file.viewmodel.DispatcherInfo",
                     "com.navi.file.MainActivity",
-                    "com.navi.file.view.fragment.RegisterFragment.testViewModel.2"
+                    "com.navi.file.view.fragment.RegisterFragment.testViewModel.2",
+                    "com.navi.file.view.fragment.LoginFragment.userViewModel.2"
                 ]
             }
         }
