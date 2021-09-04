@@ -6,7 +6,6 @@ import androidx.fragment.app.FragmentFactory
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.navi.file.R
@@ -14,37 +13,25 @@ import com.navi.file.databinding.FragmentRegisterBinding
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
-import com.navi.file.viewmodel.UserViewModel
+import com.navi.file.viewmodel.RegisterViewModel
 import okhttp3.ResponseBody
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowToast
-import kotlin.reflect.full.declaredMembers
-import kotlin.reflect.jvm.isAccessible
-
-class UserViewModelFactory(
-    private val mockUserViewModel: UserViewModel
-): ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return if (modelClass.isAssignableFrom(UserViewModel::class.java)) {
-            mockUserViewModel as T
-        } else {
-            throw IllegalStateException()
-        }
-    }
-}
 
 class RegisterFragmentFactory(
-    private val userViewModelFactory: UserViewModelFactory
+    private val registerViewModelFactory: ViewModelProvider.Factory
 ): FragmentFactory() {
     override fun instantiate(classLoader: ClassLoader, className: String): Fragment {
         return when (className) {
-            RegisterFragment::class.java.name -> RegisterFragment(userViewModelFactory)
+            RegisterFragment::class.java.name -> RegisterFragment(registerViewModelFactory)
             else -> super.instantiate(classLoader, className)
         }
     }
@@ -52,34 +39,22 @@ class RegisterFragmentFactory(
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.Q], manifest = Config.NONE)
-class RegisterFragmentTest {
+class RegisterFragmentTest: ViewModelTestHelper() {
     private lateinit var registerFragment: FragmentScenario<RegisterFragment>
-    private lateinit var mockUserViewModel: UserViewModel
+    private lateinit var mockRegisterViewModel: RegisterViewModel
 
     private fun createFragmentScenario() {
         // Create Register Fragment Factory
-        val registerFragmentFactory = RegisterFragmentFactory(
-            userViewModelFactory = UserViewModelFactory(
-                mockUserViewModel = mockUserViewModel
-            )
-        )
+        val registerFragmentFactory = RegisterFragmentFactory(createViewModelFactory(mockRegisterViewModel))
 
         // Setup Test
         registerFragment = launchFragmentInContainer(themeResId = R.style.Theme_NaviFile, factory = registerFragmentFactory)
     }
 
-    private fun getBinding(objectCall: RegisterFragment): FragmentRegisterBinding {
-        val memberProperty = RegisterFragment::class.declaredMembers.find {it.name == "registerBinding"}!!.apply {
-            isAccessible = true
-        }
-
-        return memberProperty.call(objectCall) as FragmentRegisterBinding
-    }
-
     @Before
     fun initTest() {
         // Create Initial Mock
-        mockUserViewModel = mock(UserViewModel::class.java)
+        mockRegisterViewModel = mock()
     }
 
     @Test
@@ -89,10 +64,10 @@ class RegisterFragmentTest {
         val mockRequest = UserRegisterRequest("testEmail", "testName", "testPassword")
 
         // Setup Live Data
-        `when`(mockUserViewModel.registerResult).thenReturn(mockRegisterResult)
+        whenever(mockRegisterViewModel.registerResult).thenReturn(mockRegisterResult)
 
         // Setup Request
-        `when`(mockUserViewModel.requestUserRegister(mockRequest)).thenAnswer {
+        whenever(mockRegisterViewModel.requestUserRegister(any(), any(), any())).thenAnswer {
             mockRegisterResult.value = ExecutionResult(ResultType.ModelValidateFailed, value = null, "")
             null
         }
@@ -102,7 +77,7 @@ class RegisterFragmentTest {
 
         // do
         registerFragment.onFragment {
-            val binding = getBinding(it).apply {
+            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(it, "registerBinding").apply {
                 emailInputLayout.editText?.setText(mockRequest.userEmail)
                 inputNameLayout.editText?.setText(mockRequest.userName)
                 inputPasswordLayout.editText?.setText(mockRequest.userPassword)
@@ -128,10 +103,10 @@ class RegisterFragmentTest {
         val mockRequest = UserRegisterRequest("testEmail", "testName", "testPassword")
 
         // Setup Live Data
-        `when`(mockUserViewModel.registerResult).thenReturn(mockRegisterResult)
+        whenever(mockRegisterViewModel.registerResult).thenReturn(mockRegisterResult)
 
         // Setup Request
-        `when`(mockUserViewModel.requestUserRegister(mockRequest)).thenAnswer {
+        whenever(mockRegisterViewModel.requestUserRegister(any(), any(), any())).thenAnswer {
             mockRegisterResult.value = ExecutionResult(ResultType.Conflict, value = null, "")
             null
         }
@@ -141,7 +116,7 @@ class RegisterFragmentTest {
 
         // do
         registerFragment.onFragment {
-            val binding = getBinding(it).apply {
+            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(it, "registerBinding").apply {
                 emailInputLayout.editText?.setText(mockRequest.userEmail)
                 inputNameLayout.editText?.setText(mockRequest.userName)
                 inputPasswordLayout.editText?.setText(mockRequest.userPassword)
@@ -167,10 +142,10 @@ class RegisterFragmentTest {
         val mockRequest = UserRegisterRequest("testEmail", "testName", "testPassword")
 
         // Setup Live Data
-        `when`(mockUserViewModel.registerResult).thenReturn(mockRegisterResult)
+        whenever(mockRegisterViewModel.registerResult).thenReturn(mockRegisterResult)
 
         // Setup Request
-        `when`(mockUserViewModel.requestUserRegister(mockRequest)).thenAnswer {
+        whenever(mockRegisterViewModel.requestUserRegister(mockRequest.userEmail, mockRequest.userName, mockRequest.userPassword)).thenAnswer {
             mockRegisterResult.value = ExecutionResult(ResultType.Success, value = null, "")
             null
         }
@@ -180,7 +155,7 @@ class RegisterFragmentTest {
 
         // do
         registerFragment.onFragment {
-            val binding = getBinding(it).apply {
+            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(it, "registerBinding").apply {
                 emailInputLayout.editText?.setText(mockRequest.userEmail)
                 inputNameLayout.editText?.setText(mockRequest.userName)
                 inputPasswordLayout.editText?.setText(mockRequest.userPassword)
