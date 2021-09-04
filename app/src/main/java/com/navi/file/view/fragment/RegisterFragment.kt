@@ -23,7 +23,7 @@ import okhttp3.ResponseBody
  * RUNTIME: Not Impacted or Not Injected.
  * TEST RUNTIME: Factory should be injected.
  *
- * @param factoryProducer A Factory Producer that it could produce viewmodel.
+ * @param viewModelFactory A Factory Producer that it could produce viewmodel.
  */
 class RegisterFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fragment() {
     // Custom Injection

@@ -12,6 +12,12 @@
     <string name="app_user_password">Password</string>
     <string name="app_user_reenter">Input Password Again</string>
     <string name="app_user_confirm">Confirm</string>
+    <string name="app_login_title">Login</string>
+    <string name="app_login_email">Email</string>
+    <string name="app_login_password">Password</string>
+    <string name="app_login_remember_email">Remember Email</string>
+    <string name="app_login_not_member">Not a member?</string>
+
 
     <!-- Privacy Policy -->
     <string name = "privacy"> 1. 개인정보 처리방침이란?
