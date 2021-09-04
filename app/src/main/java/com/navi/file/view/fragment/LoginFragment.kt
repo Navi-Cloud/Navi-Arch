@@ -13,11 +13,11 @@ import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
-import com.navi.file.viewmodel.UserViewModel
+import com.navi.file.viewmodel.LoginViewModel
 
 class LoginFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fragment() {
     // Custom Injection
-    private val userViewModel: UserViewModel by viewModels {
+    private val loginViewModel: LoginViewModel by viewModels {
         viewModelFactory ?: ViewModelProvider.NewInstanceFactory()
     }
 
@@ -44,13 +44,13 @@ class LoginFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fragme
             loginButton.setOnClickListener {
                 val userEmail = loginEmailInput.editText!!.text.toString()
                 val userPassword = loginPasswordInput.editText!!.text.toString()
-                userViewModel.requestUserLogin(UserLoginRequest(userEmail, userPassword))
+                loginViewModel.requestUserLogin(userEmail, userPassword)
             }
         }
     }
 
     private fun observe() {
-        userViewModel.loginUser.observe(viewLifecycleOwner) {
+        loginViewModel.loginUser.observe(viewLifecycleOwner) {
             when (it.resultType) {
                 ResultType.Success -> {}
                 else -> {handleLoginError(it)}

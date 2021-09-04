@@ -7,13 +7,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.navi.file.databinding.FragmentRegisterBinding
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
-import com.navi.file.viewmodel.UserViewModel
+import com.navi.file.viewmodel.RegisterViewModel
 import okhttp3.ResponseBody
 
 /**
@@ -27,7 +26,7 @@ import okhttp3.ResponseBody
  */
 class RegisterFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fragment() {
     // Custom Injection
-    private val testViewModel: UserViewModel by viewModels {
+    private val registerViewModel: RegisterViewModel by viewModels {
         viewModelFactory ?: ViewModelProvider.NewInstanceFactory()
     }
 
@@ -61,19 +60,17 @@ class RegisterFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fra
         with(registerBinding) {
             // Setup Confirm[Register] Button
             confirmButton.setOnClickListener {
-                testViewModel.requestUserRegister(
-                    UserRegisterRequest(
-                        userEmail = emailInputLayout.editText!!.text.toString(),
-                        userName = inputNameLayout.editText!!.text.toString(),
-                        userPassword = inputPasswordLayout.editText!!.text.toString()
-                    )
+                registerViewModel.requestUserRegister(
+                    email = emailInputLayout.editText!!.text.toString(),
+                    name = inputNameLayout.editText!!.text.toString(),
+                    password = inputPasswordLayout.editText!!.text.toString()
                 )
             }
         }
     }
 
     private fun observe() {
-        testViewModel.registerResult.observe(viewLifecycleOwner) {
+        registerViewModel.registerResult.observe(viewLifecycleOwner) {
             when (it.resultType) {
                 ResultType.Success -> {}
                 else -> {handleRegisterError(it)}

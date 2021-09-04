@@ -1,23 +1,20 @@
 package com.navi.file.viewmodel
 
 import androidx.lifecycle.MutableLiveData
-import com.navi.file.model.UserLoginRequest
-import com.navi.file.model.UserLoginResponse
+import com.navi.file.helper.FormValidator.validateModel
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.repository.server.user.UserRepository
 import okhttp3.ResponseBody
+import java.util.regex.Pattern
 
-class UserViewModel constructor(
+class RegisterViewModel(
     private val userRepository: UserRepository,
     dispatcherInfo: DispatcherInfo = DispatcherInfo()
 ): ViewModelExtension(dispatcherInfo) {
     // Register Result
     val registerResult: MutableLiveData<ExecutionResult<ResponseBody>> = MutableLiveData()
-
-    // Login Result
-    val loginUser: MutableLiveData<ExecutionResult<UserLoginResponse>> = MutableLiveData()
 
     /**
      * Request User Registration to serverRepository.
@@ -25,8 +22,8 @@ class UserViewModel constructor(
      *
      * @param userRegisterRequest User Register Request Model
      */
-    fun requestUserRegister(userRegisterRequest: UserRegisterRequest) {
-        if (!userRegisterRequest.validateModel()) {
+    fun requestUserRegister(email: String, name: String, password: String) {
+        if (!validateModel(email, password)) {
             // Valid Failed
             registerResult.postValue(
                 ExecutionResult(
@@ -38,20 +35,12 @@ class UserViewModel constructor(
         } else {
             // Valid. Do Dispatch.
             dispatchIo {
-                registerResult.postValue(userRepository.registerUser(userRegisterRequest))
+                registerResult.postValue(
+                    userRepository.registerUser(
+                        UserRegisterRequest(email, name, password)
+                    )
+                )
             }
-        }
-    }
-
-    /**
-     * Request User Login to serverRepository.
-     * Since all input validation and after-handler is on UI, so we just handle communication.
-     *
-     * @param userLoginRequest
-     */
-    fun requestUserLogin(userLoginRequest: UserLoginRequest) {
-        dispatchIo {
-            loginUser.postValue(userRepository.loginUser(userLoginRequest))
         }
     }
 }
