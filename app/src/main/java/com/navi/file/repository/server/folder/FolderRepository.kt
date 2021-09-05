@@ -3,15 +3,18 @@ package com.navi.file.repository.server.folder
 import com.navi.file.model.FileMetadata
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
-import com.navi.file.repository.server.factory.NaviRetrofitFactory
 import com.navi.file.repository.server.factory.ServerRepositoryBase
 import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.create
 import java.net.HttpURLConnection
+import javax.inject.Inject
 
-class FolderRepository: ServerRepositoryBase() {
+class FolderRepository @Inject constructor(
+    baseRetrofit: Retrofit
+): ServerRepositoryBase() {
     // Create API Interface
-    private val folderRepositoryApi: FolderApi = NaviRetrofitFactory.baseRetrofit.create()
+    private val folderRepositoryApi: FolderApi = baseRetrofit.create()
 
     /**
      * Explore Folder with given targetFolder.

@@ -5,16 +5,18 @@ import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
-import com.navi.file.repository.server.factory.NaviRetrofitFactory
 import com.navi.file.repository.server.factory.ServerRepositoryBase
 import okhttp3.ResponseBody
 import retrofit2.*
 import java.net.HttpURLConnection
+import javax.inject.Inject
 
-object UserRepository : ServerRepositoryBase() {
+class UserRepository @Inject constructor(
+    baseRetrofit: Retrofit
+) : ServerRepositoryBase() {
 
     // Create ApiInterface
-    private val serverRestUserApi: UserApi = NaviRetrofitFactory.baseRetrofit.create()
+    private val serverRestUserApi: UserApi = baseRetrofit.create()
 
     /**
      * Register user to server.

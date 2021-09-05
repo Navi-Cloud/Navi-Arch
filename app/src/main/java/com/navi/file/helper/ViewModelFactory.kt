@@ -6,8 +6,11 @@ import com.navi.file.repository.server.user.UserRepository
 import com.navi.file.viewmodel.AccountViewModel
 import com.navi.file.viewmodel.LoginViewModel
 import com.navi.file.viewmodel.RegisterViewModel
+import javax.inject.Inject
 
-object ViewModelFactory {
+class ViewModelFactory @Inject constructor(
+    userRepository: UserRepository
+) {
 
     /**
      * Create ViewModel Factory for UI Testing.
@@ -31,10 +34,10 @@ object ViewModelFactory {
     }
 
     // The Login View Model
-    val loginViewModelFactory = createViewModelFactory(LoginViewModel(UserRepository))
+    val loginViewModelFactory = createViewModelFactory(LoginViewModel(userRepository))
 
     // The Register View Model
-    val registerViewModelFactory = createViewModelFactory(RegisterViewModel(UserRepository))
+    val registerViewModelFactory = createViewModelFactory(RegisterViewModel(userRepository))
 
     // AccountViewModelFactory
     val accountViewModelFactory = createViewModelFactory(AccountViewModel())

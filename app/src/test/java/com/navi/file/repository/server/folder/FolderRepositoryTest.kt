@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.navi.file.model.ErrorResponseModel
 import com.navi.file.model.FileMetadata
 import com.navi.file.model.intercommunication.ResultType
-import com.navi.file.repository.server.factory.NaviRetrofitFactory
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert

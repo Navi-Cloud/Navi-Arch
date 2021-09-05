@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.SavedStateViewModelFactory
 import androidx.lifecycle.ViewModelProvider
 import com.navi.file.databinding.FragmentLoginBinding
+import com.navi.file.helper.ViewModelFactory
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
 import com.navi.file.model.intercommunication.DisplayScreen
@@ -18,19 +19,21 @@ import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.viewmodel.AccountViewModel
 import com.navi.file.viewmodel.LoginViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class LoginFragment(
-    viewModelFactory: ViewModelProvider.Factory? = null,
-    accountViewModelFactory: ViewModelProvider.Factory? = null
-): Fragment() {
-    // Custom Injection
-    private val loginViewModel: LoginViewModel by viewModels {
-        viewModelFactory ?: ViewModelProvider.NewInstanceFactory()
-    }
+@AndroidEntryPoint
+class LoginFragment: Fragment() {
 
-    private val accountViewModel: AccountViewModel by activityViewModels {
-        accountViewModelFactory ?: ViewModelProvider.NewInstanceFactory()
-    }
+    // View Model Factory
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    // Login View Model
+    private val loginViewModel: LoginViewModel by viewModels { viewModelFactory.loginViewModelFactory }
+
+    // Account View Model[Or DisplayViewModel]
+    private val accountViewModel: AccountViewModel by activityViewModels { viewModelFactory.accountViewModelFactory }
 
     // Binding
     private var _loginFragmentBinding: FragmentLoginBinding? = null

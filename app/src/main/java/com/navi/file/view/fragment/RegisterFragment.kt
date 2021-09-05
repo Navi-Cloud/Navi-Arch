@@ -10,34 +10,28 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.navi.file.databinding.FragmentRegisterBinding
+import com.navi.file.helper.ViewModelFactory
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.DisplayScreen
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.viewmodel.AccountViewModel
 import com.navi.file.viewmodel.RegisterViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.ResponseBody
+import javax.inject.Inject
 
-/**
- * TODO
- *
- * @constructor
- * RUNTIME: Not Impacted or Not Injected.
- * TEST RUNTIME: Factory should be injected.
- *
- * @param viewModelFactory A Factory Producer that it could produce viewmodel.
- */
-class RegisterFragment(
-    viewModelFactory: ViewModelProvider.Factory? = null,
-    accountViewModelFactory: ViewModelProvider.Factory? = null
-): Fragment() {
-    // Custom Injection
-    private val registerViewModel: RegisterViewModel by viewModels {
-        viewModelFactory ?: ViewModelProvider.NewInstanceFactory()
-    }
-    private val accountViewModel: AccountViewModel by activityViewModels {
-        accountViewModelFactory ?: ViewModelProvider.NewInstanceFactory()
-    }
+@AndroidEntryPoint
+class RegisterFragment: Fragment() {
+    // ViewModelFactory
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    // Register ViewModel
+    private val registerViewModel: RegisterViewModel by viewModels { viewModelFactory.registerViewModelFactory }
+
+    // Account ViewModel
+    private val accountViewModel: AccountViewModel by activityViewModels { viewModelFactory.accountViewModelFactory }
 
     // Binding
     private var _registerBinding: FragmentRegisterBinding? = null

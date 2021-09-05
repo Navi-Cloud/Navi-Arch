@@ -8,33 +8,28 @@ import com.navi.file.R
 import com.navi.file.databinding.ActivityAccountBinding
 import com.navi.file.helper.ViewModelFactory
 import com.navi.file.model.intercommunication.DisplayScreen
-import com.navi.file.repository.server.factory.NaviRetrofitFactory
-import com.navi.file.view.fragment.CustomFragmentFactory
 import com.navi.file.view.fragment.LoginFragment
 import com.navi.file.view.fragment.RegisterFragment
 import com.navi.file.viewmodel.AccountViewModel
-import okhttp3.HttpUrl
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AccountActivity: AppCompatActivity() {
+    // ViewModel Factory
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    // Account ViewModel[Or Display ViewModel]
+    private val accountViewModel: AccountViewModel by viewModels { viewModelFactory.accountViewModelFactory }
+
+    // UI Binding
     private val activityAccountBinding: ActivityAccountBinding by lazy {
         ActivityAccountBinding.inflate(layoutInflater)
     }
 
-    private val accountViewModel: AccountViewModel by viewModels {
-        ViewModelFactory.accountViewModelFactory
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Setup Retrofit
-        NaviRetrofitFactory.createRetrofit(
-            HttpUrl.Builder()
-                .scheme("http")
-                .host("192.168.0.46")
-                .port(5000)
-                .build()
-        )
 
         // Set UI
         setContentView(activityAccountBinding.root)
@@ -50,9 +45,6 @@ class AccountActivity: AppCompatActivity() {
                 }
             }
         }
-
-        // Set Custom Fragment Factory
-        supportFragmentManager.fragmentFactory = CustomFragmentFactory()
 
         // Initial State is first fragment.
         replaceFragment<LoginFragment>()
