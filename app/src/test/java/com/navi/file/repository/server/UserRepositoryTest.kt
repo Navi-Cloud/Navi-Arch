@@ -13,6 +13,8 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.net.HttpURLConnection
 
 class UserRepositoryTest {
@@ -29,8 +31,12 @@ class UserRepositoryTest {
         testServer = MockWebServer()
 
         // Setup User Server Repository
-        NaviRetrofitFactory.createRetrofit(testServer.url(""))
-        userRepository = UserRepository
+        val retrofit: Retrofit = Retrofit.Builder()
+            .baseUrl(testServer.url(""))
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        userRepository = UserRepository(retrofit)
     }
 
     @Test

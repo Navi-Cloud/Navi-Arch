@@ -135,12 +135,12 @@ def setupAndroidCoverageVerification(threshold) {
                     "com.navi.file.model.**",
                     "com.navi.file.repository.server.factory.**",
                     "com.navi.file.viewmodel.ViewModelExtension",
+                    "com.navi.file.viewmodel.AccountViewModel",
                     "com.navi.file.viewmodel.ViewModelExtension.**",
                     "com.navi.file.viewmodel.DispatcherInfo",
-                    "com.navi.file.MainActivity",
-                    "com.navi.file.view.fragment.LoginFragment.loginViewModel.2:",
-                    "com.navi.file.view.fragment.RegisterFragment.registerViewModel.2:",
-                    "com.navi.file.helper.FormValidator"
+                    "com.navi.file.helper.**",
+                    "com.navi.file.view.**",
+                    "com.navi.file.hilt.**"
                 ]
             }
         }

@@ -1,61 +1,63 @@
 package com.navi.file.view.fragment
 
 import android.os.Build
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentFactory
 import androidx.fragment.app.testing.FragmentScenario
-import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.navi.file.R
 import com.navi.file.databinding.FragmentRegisterBinding
+import com.navi.file.helper.ViewModelFactory
+import com.navi.file.hilt.ViewModelFactoryModule
 import com.navi.file.model.UserRegisterRequest
 import com.navi.file.model.intercommunication.DisplayScreen
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
 import com.navi.file.viewmodel.AccountViewModel
 import com.navi.file.viewmodel.RegisterViewModel
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.HiltTestApplication
+import dagger.hilt.android.testing.UninstallModules
+import dagger.hilt.components.SingletonComponent
 import okhttp3.ResponseBody
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowToast
+import javax.inject.Singleton
 
-class RegisterFragmentFactory(
-    private val registerViewModelFactory: ViewModelProvider.Factory,
-    private val userAccountViewModelFactory: ViewModelProvider.Factory
-): FragmentFactory() {
-    override fun instantiate(classLoader: ClassLoader, className: String): Fragment {
-        return when (className) {
-            RegisterFragment::class.java.name -> RegisterFragment(registerViewModelFactory, userAccountViewModelFactory)
-            else -> super.instantiate(classLoader, className)
-        }
-    }
-}
-
+@UninstallModules(ViewModelFactoryModule::class)
+@HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
-@Config(sdk = [Build.VERSION_CODES.Q], manifest = Config.NONE)
+@Config(sdk = [Build.VERSION_CODES.Q], manifest = Config.NONE, application = HiltTestApplication::class)
 class RegisterFragmentTest: ViewModelTestHelper() {
-    private lateinit var registerFragment: FragmentScenario<RegisterFragment>
     private lateinit var mockRegisterViewModel: RegisterViewModel
     private lateinit var mockAccountViewModel: AccountViewModel
 
-    private fun createFragmentScenario() {
-        // Create Register Fragment Factory
-        val registerFragmentFactory = RegisterFragmentFactory(
-            createViewModelFactory(mockRegisterViewModel),
-            createViewModelFactory(mockAccountViewModel)
-        )
+    @get:Rule
+    var hiltRule = HiltAndroidRule(this)
 
-        // Setup Test
-        registerFragment = launchFragmentInContainer(themeResId = R.style.Theme_NaviFile, factory = registerFragmentFactory)
+    @Module
+    @InstallIn(SingletonComponent::class)
+    inner class ViewModelFactoryTestModule {
+        @Provides
+        @Singleton
+        fun provideTestFactory(): ViewModelFactory {
+            return mock {
+                on {registerViewModelFactory} doReturn(createViewModelFactory(mockRegisterViewModel))
+                on {accountViewModelFactory} doReturn(createViewModelFactory(mockAccountViewModel))
+            }
+        }
     }
 
     @Before
@@ -80,12 +82,9 @@ class RegisterFragmentTest: ViewModelTestHelper() {
             null
         }
 
-        // Create Fragment
-        createFragmentScenario()
-
         // do
-        registerFragment.onFragment {
-            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(it, "registerBinding").apply {
+        launchFragmentInHiltContainer<RegisterFragment>{
+            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(this, "registerBinding").apply {
                 emailInputLayout.editText?.setText(mockRequest.userEmail)
                 inputNameLayout.editText?.setText(mockRequest.userName)
                 inputPasswordLayout.editText?.setText(mockRequest.userPassword)
@@ -119,12 +118,9 @@ class RegisterFragmentTest: ViewModelTestHelper() {
             null
         }
 
-        // Create Fragment
-        createFragmentScenario()
-
         // do
-        registerFragment.onFragment {
-            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(it, "registerBinding").apply {
+        launchFragmentInHiltContainer<RegisterFragment> {
+            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(this, "registerBinding").apply {
                 emailInputLayout.editText?.setText(mockRequest.userEmail)
                 inputNameLayout.editText?.setText(mockRequest.userName)
                 inputPasswordLayout.editText?.setText(mockRequest.userPassword)
@@ -160,12 +156,9 @@ class RegisterFragmentTest: ViewModelTestHelper() {
             null
         }
 
-        // Create Fragment
-        createFragmentScenario()
-
         // do
-        registerFragment.onFragment {
-            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(it, "registerBinding").apply {
+        launchFragmentInHiltContainer<RegisterFragment> {
+            val binding = getBinding<FragmentRegisterBinding, RegisterFragment>(this, "registerBinding").apply {
                 emailInputLayout.editText?.setText(mockRequest.userEmail)
                 inputNameLayout.editText?.setText(mockRequest.userName)
                 inputPasswordLayout.editText?.setText(mockRequest.userPassword)
