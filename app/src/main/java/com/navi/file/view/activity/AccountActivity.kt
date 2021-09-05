@@ -43,6 +43,7 @@ class AccountActivity: AppCompatActivity() {
                 DisplayScreen.Register -> {
                     replaceFragment<RegisterFragment>(true)
                 }
+                else -> {} // Do Nothing at all.
             }
         }
 
