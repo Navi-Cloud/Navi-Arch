@@ -11,7 +11,7 @@ import okhttp3.ResponseBody
 import retrofit2.*
 import java.net.HttpURLConnection
 
-class UserRepository : ServerRepositoryBase() {
+object UserRepository : ServerRepositoryBase() {
 
     // Create ApiInterface
     private val serverRestUserApi: UserApi = NaviRetrofitFactory.baseRetrofit.create()

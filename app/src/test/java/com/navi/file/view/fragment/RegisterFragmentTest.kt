@@ -11,8 +11,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.navi.file.R
 import com.navi.file.databinding.FragmentRegisterBinding
 import com.navi.file.model.UserRegisterRequest
+import com.navi.file.model.intercommunication.DisplayScreen
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
+import com.navi.file.viewmodel.AccountViewModel
 import com.navi.file.viewmodel.RegisterViewModel
 import okhttp3.ResponseBody
 import org.junit.Assert
@@ -27,11 +29,12 @@ import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowToast
 
 class RegisterFragmentFactory(
-    private val registerViewModelFactory: ViewModelProvider.Factory
+    private val registerViewModelFactory: ViewModelProvider.Factory,
+    private val userAccountViewModelFactory: ViewModelProvider.Factory
 ): FragmentFactory() {
     override fun instantiate(classLoader: ClassLoader, className: String): Fragment {
         return when (className) {
-            RegisterFragment::class.java.name -> RegisterFragment(registerViewModelFactory)
+            RegisterFragment::class.java.name -> RegisterFragment(registerViewModelFactory, userAccountViewModelFactory)
             else -> super.instantiate(classLoader, className)
         }
     }
@@ -42,10 +45,14 @@ class RegisterFragmentFactory(
 class RegisterFragmentTest: ViewModelTestHelper() {
     private lateinit var registerFragment: FragmentScenario<RegisterFragment>
     private lateinit var mockRegisterViewModel: RegisterViewModel
+    private lateinit var mockAccountViewModel: AccountViewModel
 
     private fun createFragmentScenario() {
         // Create Register Fragment Factory
-        val registerFragmentFactory = RegisterFragmentFactory(createViewModelFactory(mockRegisterViewModel))
+        val registerFragmentFactory = RegisterFragmentFactory(
+            createViewModelFactory(mockRegisterViewModel),
+            createViewModelFactory(mockAccountViewModel)
+        )
 
         // Setup Test
         registerFragment = launchFragmentInContainer(themeResId = R.style.Theme_NaviFile, factory = registerFragmentFactory)
@@ -55,6 +62,7 @@ class RegisterFragmentTest: ViewModelTestHelper() {
     fun initTest() {
         // Create Initial Mock
         mockRegisterViewModel = mock()
+        mockAccountViewModel = mock()
     }
 
     @Test
@@ -136,13 +144,15 @@ class RegisterFragmentTest: ViewModelTestHelper() {
     }
 
     @Test
-    fun `when register succeeds, it should do nothing, literally nothing for now`() {
+    fun `when register succeeds, it set display to LOGIN`() {
         // Let
         val mockRegisterResult = MutableLiveData<ExecutionResult<ResponseBody>>()
+        val mockDisplayResult = MutableLiveData<DisplayScreen>()
         val mockRequest = UserRegisterRequest("testEmail", "testName", "testPassword")
 
         // Setup Live Data
         whenever(mockRegisterViewModel.registerResult).thenReturn(mockRegisterResult)
+        whenever(mockAccountViewModel.displayLiveData).thenReturn(mockDisplayResult)
 
         // Setup Request
         whenever(mockRegisterViewModel.requestUserRegister(mockRequest.userEmail, mockRequest.userName, mockRequest.userPassword)).thenAnswer {
@@ -167,9 +177,9 @@ class RegisterFragmentTest: ViewModelTestHelper() {
             }
 
             // Check it
-            assertEquals(mockRequest.userEmail, binding.emailInputLayout.editText?.text.toString())
-            assertEquals(mockRequest.userName, binding.inputNameLayout.editText?.text.toString())
-            assertEquals(mockRequest.userPassword, binding.inputPasswordLayout.editText?.text.toString())
+            mockDisplayResult.getOrAwaitValue().also { result ->
+                assertEquals(DisplayScreen.Login, result)
+            }
         }
     }
 }

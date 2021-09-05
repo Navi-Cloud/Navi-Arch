@@ -1,5 +1,6 @@
 package com.navi.file.repository.server.factory
 
+import android.util.Log
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -25,6 +26,8 @@ abstract class ServerRepositoryBase {
             val response = this.execute()
             handleCommunication(handledCase, response)
         }.getOrElse {
+            Log.e(this::class.java.simpleName, "Unknown Error occurred during server communication.")
+            Log.e(this::class.java.simpleName, it.stackTraceToString())
             ExecutionResult(ResultType.Connection, null, "Unknown Error Occurred!")
         }
     }
@@ -39,8 +42,11 @@ abstract class ServerRepositoryBase {
      */
     protected fun<T> getErrorMessage(response: Response<T>): String {
         return runCatching {
-            objectMapper.readValue<ErrorResponseModel>(response.errorBody().toString()).message
+            objectMapper.readValue<ErrorResponseModel>(response.errorBody()!!.string()).message
         }.getOrElse {
+            Log.e(this::class.java.simpleName, "Unknown Error occurred during server communication.")
+            Log.e(this::class.java.simpleName, it.stackTraceToString())
+            Log.e(this::class.java.simpleName, "Response Message: ${response.errorBody()!!.string()}")
             "Unknown Error Occurred!"
         }
     }
@@ -59,7 +65,8 @@ abstract class ServerRepositoryBase {
         return if (handledCase.containsKey(response.code())) {
             handledCase[response.code()]!!.invoke(response)
         } else {
-            ExecutionResult(ResultType.Unknown, null, "Unknown Error Occurred!")
+            Log.e(this::class.java.simpleName, "Code: ${response.code()} is not handled by application!!")
+            ExecutionResult(ResultType.Unknown, null, "Unhandled Error occurred!")
         }
     }
 }

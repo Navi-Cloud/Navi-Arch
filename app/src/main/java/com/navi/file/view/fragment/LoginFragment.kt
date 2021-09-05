@@ -6,19 +6,30 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.SavedStateViewModelFactory
 import androidx.lifecycle.ViewModelProvider
 import com.navi.file.databinding.FragmentLoginBinding
 import com.navi.file.model.UserLoginRequest
 import com.navi.file.model.UserLoginResponse
+import com.navi.file.model.intercommunication.DisplayScreen
 import com.navi.file.model.intercommunication.ExecutionResult
 import com.navi.file.model.intercommunication.ResultType
+import com.navi.file.viewmodel.AccountViewModel
 import com.navi.file.viewmodel.LoginViewModel
 
-class LoginFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fragment() {
+class LoginFragment(
+    viewModelFactory: ViewModelProvider.Factory? = null,
+    accountViewModelFactory: ViewModelProvider.Factory? = null
+): Fragment() {
     // Custom Injection
     private val loginViewModel: LoginViewModel by viewModels {
         viewModelFactory ?: ViewModelProvider.NewInstanceFactory()
+    }
+
+    private val accountViewModel: AccountViewModel by activityViewModels {
+        accountViewModelFactory ?: ViewModelProvider.NewInstanceFactory()
     }
 
     // Binding
@@ -46,13 +57,18 @@ class LoginFragment(viewModelFactory: ViewModelProvider.Factory? = null): Fragme
                 val userPassword = loginPasswordInput.editText!!.text.toString()
                 loginViewModel.requestUserLogin(userEmail, userPassword)
             }
+
+            // Set Display Screen to Register.
+            textView2.setOnClickListener {
+                accountViewModel.displayLiveData.value = DisplayScreen.Register
+            }
         }
     }
 
     private fun observe() {
         loginViewModel.loginUser.observe(viewLifecycleOwner) {
             when (it.resultType) {
-                ResultType.Success -> {}
+                ResultType.Success -> {android.util.Log.e("SUC", "LOGIN_SUCCEED")}
                 else -> {handleLoginError(it)}
             }
         }

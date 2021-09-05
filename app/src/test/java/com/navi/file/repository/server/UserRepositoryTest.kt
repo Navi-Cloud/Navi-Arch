@@ -31,7 +31,7 @@ class UserRepositoryTest {
 
         // Setup User Server Repository
         NaviRetrofitFactory.createRetrofit(testServer.url(""))
-        userRepository = UserRepository()
+        userRepository = UserRepository
     }
 
     @Test
