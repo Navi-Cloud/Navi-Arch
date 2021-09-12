@@ -224,16 +224,14 @@ class PagerViewModel @Inject constructor(): ViewModel() {
             }
 
             // So in main thread..
-            withContext(Dispatchers.Main) {
-                val fileAdapter: FileAdapter = FileAdapter(
-                    onClick = recyclerOnClickListener,
-                    onLongClick = recyclerOnLongClickListener,
-                    fileList = sortedData,
-                    pageNumber = pageList.size + 1,
-                    currentFolder = nextFolder
-                )
-                updatePageAndNotify(fileAdapter, nextFolder.token, true)
-            }
+            val fileAdapter: FileAdapter = FileAdapter(
+                onClick = recyclerOnClickListener,
+                onLongClick = recyclerOnLongClickListener,
+                fileList = sortedData,
+                pageNumber = pageList.size + 1,
+                currentFolder = nextFolder
+            )
+            updatePageAndNotify(fileAdapter, nextFolder.token, true)
         }
     }
 

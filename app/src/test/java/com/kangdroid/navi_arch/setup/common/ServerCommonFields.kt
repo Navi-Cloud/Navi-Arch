@@ -22,7 +22,7 @@ abstract class ServerCommonFields {
     protected val serverUrl: URL = URL("http://localhost:8080/api/remove")
 
     // File MD5
-    protected val fileMd5Sum: String = "382fe3291da7aff442a4f6dedbe7bb0e"
+    protected val fileMd5Sum: String = "899692b7e401b934609a455266ab6b2b"
 
     // Target Process
     protected var targetProcess: Process? = null

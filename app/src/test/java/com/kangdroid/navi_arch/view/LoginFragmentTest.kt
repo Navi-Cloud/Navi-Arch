@@ -12,11 +12,7 @@ import com.kangdroid.navi_arch.viewmodel.UserViewModel
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.*
@@ -26,7 +22,6 @@ import org.robolectric.shadows.ShadowToast
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
-
 @Config(sdk = [Build.VERSION_CODES.P])
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -35,23 +30,13 @@ class LoginFragmentTest {
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = TestCoroutineDispatcher() // for coroutine test
+    @get:Rule
+    var mainCoroutineRule = MainCoroutineRule()
 
     private inline fun<reified T> getUserViewModel(receiver: T): UserViewModel {
         val memberProperty = T::class.declaredMembers.find { it.name == "userViewModel" }!!
         memberProperty.isAccessible = true
         return memberProperty.call(receiver) as UserViewModel
-    }
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher) // swap dispatcher with a test dispatcher
-    }
-
-    @After
-    fun cleanUp() {
-        Dispatchers.resetMain() // reset main dispatcher to the original Main dispatcher
-        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test
@@ -136,31 +121,32 @@ class LoginFragmentTest {
     }
 
     @Test
-    fun loginBtn_is_fail(){
+    fun loginBtn_is_fail() {
         val scenario = launchFragmentInContainer<LoginFragment>(
             themeResId = R.style.Theme_NaviArch,
             initialState  = State.STARTED
         )
 
         scenario.onFragment{
-            // Mock ServerManagement for UserViewModel
-            val mockServerManagement: ServerManagement = mockk(relaxed = true) // relaxed mock returns some simple value for all functions
+            // Set TestCoroutineDispatcher
             val userViewModel: UserViewModel = getUserViewModel(it)
-            ViewModelTestHelper.setFields("serverManagement", userViewModel, mockServerManagement)
+            ViewModelTestHelper.setFields("dispatcher", userViewModel, mainCoroutineRule.dispatcher)
 
             // Set values
             it.loginBinding?.apply {
                 idLogin.setText("userId")
                 pwLogin.setText("userPw")
             }
-            userViewModel.loginErrorData.value = RuntimeException("")
 
-            //Perform
+            // Perform
             it.loginBinding?.button!!.performClick().also{ clickResult ->
                 assertThat(clickResult).isEqualTo(true)
             }
 
-            // Get Data
+            // Assert
+            userViewModel.loginErrorData.getOrAwaitValue().also { throwable ->
+                assertThat(throwable).isNotEqualTo(null)
+            }
             assertThat(it.loginBinding!!.idLogin.text.toString()).isEqualTo("")
             assertThat(it.loginBinding!!.pwLogin.text.toString()).isEqualTo("")
         }

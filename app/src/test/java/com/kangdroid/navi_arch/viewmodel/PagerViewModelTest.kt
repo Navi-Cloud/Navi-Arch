@@ -6,6 +6,7 @@ import com.kangdroid.navi_arch.adapter.FileAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.FileSortingMode
 import com.kangdroid.navi_arch.data.FileType
+import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.server.ServerManagement
@@ -17,9 +18,13 @@ import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getFunction
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.getOrAwaitValue
 import com.kangdroid.navi_arch.viewmodel.ViewModelTestHelper.setFields
 import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.*
+import java.io.File
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.KFunction
 
@@ -616,6 +621,144 @@ class PagerViewModelTest {
         // Create Initial Root Page
         pagerViewModel.createInitialRootPage()
 
+        // Get Live Data
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(rootToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo("/")
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_createInitialPage_works_well_when_folder() {
+        // Mock Server init
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create test folder
+        val testFolderName: String = "TeSt"
+        serverManagement.createFolder(CreateFolderRequestDTO(
+            parentFolderToken = rootToken,
+            newFolderName = testFolderName
+        ))
+        val requestFolder: FileData = serverManagement.getInsideFiles(rootToken)[0]
+
+        // Perform
+        // Create Initial Page
+        pagerViewModel.createInitialPage(requestFolder)
+
+        // Assert
+        // Get Live Data
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            assertThat(it.contains(requestFolder.token)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo(testFolderName)
+            assertThat(it[0].fileList.size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun is_createInitialPage_works_well_when_file() {
+        /* SetUp */
+        // Mock Server init
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create test folder
+        val testFolderName: String = "TeSt"
+        serverManagement.createFolder(CreateFolderRequestDTO(
+            parentFolderToken = rootToken,
+            newFolderName = testFolderName
+        ))
+        val parentFolder: FileData = serverManagement.getInsideFiles(rootToken)[0]
+
+        // Upload test file
+        val file: File = File(System.getProperty("java.io.tmpdir"), "test.txt").apply {
+            writeText("tEsT")
+        }
+        val requestBody : RequestBody = RequestBody.create("multipart/form-data".toMediaTypeOrNull(), file)
+        val uploadFile : MultipartBody.Part = MultipartBody.Part.createFormData("uploadFile","test.txt", requestBody)
+        val param : HashMap<String,Any> = HashMap()
+        with(param){
+            put("uploadPath", parentFolder.token)
+        }
+        serverManagement.upload(param, uploadFile)
+
+        /* Perform */
+        val requestFile: FileData = serverManagement.getInsideFiles(parentFolder.token)[0]
+        pagerViewModel.createInitialPage(requestFile)
+
+        /* Assert */
+        // Get Live Data
+        pagerViewModel.livePagerData.getOrAwaitValue().also {
+            assertThat(it).isNotEqualTo(null)
+            assertThat(it.size).isEqualTo(1)
+        }
+
+        println(rootToken)
+        println(parentFolder.token)
+        println(requestFile.token)
+        println(requestFile.prevToken)
+        // Get Value for set
+        getFields<PagerViewModel, MutableSet<String>>("pageSet", pagerViewModel).also {
+            it.forEach {a -> println("itst------"+ a) }
+            assertThat(it.contains(requestFile.prevToken)).isEqualTo(true)
+        }
+
+        // Page List
+        getFields<PagerViewModel, MutableList<FileAdapter>>("pageList", pagerViewModel).also {
+            assertThat(it.size).isEqualTo(1)
+            assertThat(it[0].currentFolder.fileName).isEqualTo(testFolderName)
+            assertThat(it[0].fileList.size).isEqualTo(1)
+            assertThat(it[0].fileList[0].prevToken).isEqualTo(parentFolder.token)
+            assertThat(it[0].fileList[0].token).isEqualTo(requestFile.token)
+        }
+
+        // Cleanup
+        file.delete()
+    }
+
+    @Test
+    fun is_createInitialPage_works_well_when_file_with_invalid_fileData() {
+        // Mock Server init
+        registerAndLogin()
+        val rootToken: String = serverManagement.getRootToken().rootToken
+
+        // Create fake FileData
+        val fakeFileData: FileData = FileData(
+            userId = "id",
+            token = "token",
+            prevToken = "invalid!",
+            fileName = "name",
+            fileType = FileType.File.toString()
+        )
+
+        // Perform
+        // Create Initial Page with invalid fileData
+        pagerViewModel.createInitialPage(fakeFileData)
+
+        // Assert
         // Get Live Data
         pagerViewModel.livePagerData.getOrAwaitValue().also {
             assertThat(it).isNotEqualTo(null)
