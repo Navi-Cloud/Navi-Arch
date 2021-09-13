@@ -37,81 +37,12 @@ abstract class PagerActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
 
-        // Init View Model
-        initViewModel()
+        activityMainBinding.apply {
+            mainOption.setOnClickListener {
+                val optionBottomSheetFragment = OptionBottomSheetFragment()
 
-        // Init toggle button
-        initToggleButton()
-
-        if(intent.getSerializableExtra("searchFolder") != null){
-            isFromSearch = true
-            val searchFolder: FileData = intent.getSerializableExtra("searchFolder") as FileData
-            pagerViewModel.createInitialPage(searchFolder)
-        } else {
-            // Now start from initial page
-            pagerViewModel.createInitialRootPage()
-        }
-
-        // Init Pager Adapter
-        initPager()
-    }
-
-    private fun initPager() {
-        activityMainBinding.viewPager.adapter = pageAdapter
-
-        TabLayoutMediator(
-            activityMainBinding.mainTab,
-            activityMainBinding.viewPager
-        ) { tab, position ->
-            tab.text = if(isFromSearch) {
-                pagerViewModel.livePagerData.value?.get(position)?.currentFolder?.getBriefName()
-            } else {
-                if (position == 0) { "/" }
-                else { pagerViewModel.livePagerData.value?.get(position)?.currentFolder?.getBriefName() }
+                optionBottomSheetFragment.show(supportFragmentManager, optionBottomSheetFragment.tag)
             }
-        }.attach()
-    }
-
-    private fun initViewModel() {
-        // Set onLongClickListener to viewModel
-        pagerViewModel.recyclerOnLongClickListener = {
-            recyclerOnLongClickListener?.invoke(it) ?: false
-        }
-
-        // Set Data Observer for pageData
-        pagerViewModel.livePagerData.observe(this) {
-            Log.d(this::class.java.simpleName, "Observed, Setting changed page")
-            pageAdapter.setNaviPageList(it)
-            activityMainBinding.viewPager.currentItem = it.lastIndex
-        }
-
-        // Set Error Message Observer
-        pagerViewModel.liveErrorData.observe(this) {
-            Log.e(this::class.java.simpleName, "Error Message Observed")
-            Log.e(this::class.java.simpleName, it.stackTraceToString())
-            Toast.makeText(this, "Error: ${it.message}", Toast.LENGTH_LONG).show()
-            errorObserverCallback?.invoke(it)
-        }
-    }
-
-    private fun initToggleButton() {
-        // Toggle Buttons[Sorting Buttons]
-        val sortListener: (CompoundButton, Boolean) -> Unit = { _, _ ->
-            pagerViewModel.sort(
-                when (activityMainBinding.sortByNameOrLMT.isChecked) {
-                    true -> if (activityMainBinding.sortByType.isChecked) FileSortingMode.LMT else FileSortingMode.TypedLMT
-                    false -> if (activityMainBinding.sortByType.isChecked) FileSortingMode.Name else FileSortingMode.TypedName
-                },
-                activityMainBinding.sortByAscendingOrDescending.isChecked,
-                activityMainBinding.viewPager.currentItem
-            )
-        }
-
-        // Toggle Button INIT
-        with(activityMainBinding) {
-            sortByNameOrLMT.setOnCheckedChangeListener(sortListener)
-            sortByType.setOnCheckedChangeListener(sortListener)
-            sortByAscendingOrDescending.setOnCheckedChangeListener(sortListener)
         }
     }
 }
