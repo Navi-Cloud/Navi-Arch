@@ -114,17 +114,6 @@ class FileBottomSheetFragment(
                     targetToken = targetFileData.token
                 )
             }
-
-            //Set Move Text
-            it.bottomFileMove.text = resources.getString(R.string.bottom_sheet_default_move,targetFileData.fileName)
-            it.bottomFileMoveView.setOnClickListener {
-                val intent : Intent = Intent(requireContext(),UploadingActivity::class.java)
-                intent.putExtra("filedata",targetFileData as Serializable)
-                intent.putExtra("ismove",true)
-                afterUploadingActivityFinishes.launch(
-                    intent
-                )
-            }
         }
     }
 
