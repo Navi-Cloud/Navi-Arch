@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/top_round_white"
+    android:elevation="20dp"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingBottom="10dp">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="13dp"
+        android:contentDescription="@string/contentDescription"
+        app:srcCompat="@drawable/icon_option_drag" />
+
+    <LinearLayout
+        android:id="@+id/delete_recent_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/delete_recent_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/contentDescription"
+            app:srcCompat="@drawable/ic_common_folder_24" />
+
+        <TextView
+            android:id="@+id/delete_recent_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/delete_recent_title" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/storage_analysis_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/storage_analysis_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/contentDescription"
+            app:srcCompat="@drawable/ic_action_upload_24" />
+
+        <TextView
+            android:id="@+id/storage_analysis_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/storage_analysis_title" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/recycle_bin_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/recycle_bin_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/contentDescription"
+            app:srcCompat="@drawable/ic_baseline_photo_camera_24" />
+
+        <TextView
+            android:id="@+id/recycle_bin_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/recycle_bin_title" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/setting_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/box2"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/setting_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/contentDescription"
+            app:srcCompat="@drawable/ic_baseline_search_24" />
+
+        <TextView
+            android:id="@+id/setting_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/setting_title" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>g
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
     <color name="sky_blue">#9CC8D9</color>
     <color name="blue_gray">#859CA6</color>
     <color name="dark_navy">#011C26</color>
     <color name="dark_blue">#466673</color>
     <color name="light_blue">#DCEEF2</color>
     <color name="dark_beige">#E7E6E6</color>
+
+<!--    Re color    -->
+    <color name="black">#373737</color>
+    <color name="white">#FFFFFF</color>
+    <color name="gray">#F1F2F3</color>
+    <color name="main_color">#5451DB</color>
+    <color name="sub_color">#DFDEFF</color>
+    <color name="light_black">#373737</color>
+
 </resources>
