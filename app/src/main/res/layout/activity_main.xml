@@ -32,6 +32,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/main_search_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="34dp"
@@ -60,6 +61,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/main_myfile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="29dp"
@@ -68,7 +70,6 @@
         android:padding="19dp">
 
         <TextView
-            android:id="@+id/main_myfile"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

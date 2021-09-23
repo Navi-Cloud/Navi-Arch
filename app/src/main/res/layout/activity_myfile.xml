@@ -143,9 +143,10 @@
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/myfileRecyclerView"
-        android:layout_marginTop="20dp"
+        android:id="@+id/myfile_framelayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp" />
+
 
 </LinearLayout>
