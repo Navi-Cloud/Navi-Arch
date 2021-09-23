@@ -30,10 +30,10 @@
                 android:contentDescription="@string/contentDescription"
                 android:src="@drawable/icon_search_white"/>
 
-            <TextView
+            <EditText
                 android:id="@+id/main_hint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
                 android:layout_gravity="center"
                 android:layout_marginStart="14dp"
                 android:gravity="center"
@@ -53,10 +53,29 @@
 
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/sky_blue"
+        android:layout_margin="10dp"
+        android:visibility="gone"
+        />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/searchResultRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/textNoResult"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="일치하는 파일/폴더가 없습니다."
+        android:gravity="center"
+        android:visibility="gone"
         android:layout_marginTop="10dp"/>
 
 </LinearLayout>
