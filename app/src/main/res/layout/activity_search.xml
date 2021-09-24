@@ -20,7 +20,8 @@
             android:layout_weight="6"
             android:background="@drawable/round_purple"
             android:orientation="horizontal"
-            android:padding="15dp">
+            android:padding="15dp"
+            android:paddingHorizontal="15dp">
 
             <ImageView
                 android:id="@+id/main_search"
@@ -37,8 +38,9 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="14dp"
                 android:background="@null"
-                android:text="@string/main_hint"
+                android:hint="@string/main_hint"
                 android:textColor="@color/white"
+                android:textColorHint="@color/white"
                 android:textSize="16sp" />
         </LinearLayout>
 
