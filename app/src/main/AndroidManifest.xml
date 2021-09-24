@@ -25,13 +25,10 @@
         </activity>
         <activity android:name=".view.MainActivity"></activity>
         <activity
-            android:name=".view.UploadingActivity"
-            android:theme="@style/Theme.NaviArch.Uploading"
-            android:label="@string/uploading"
-            />
+            android:name=".view.SearchActivity">
+        </activity>
         <activity
-            android:name=".view.SearchActivity"
-            android:theme="@style/Theme.NaviArch.NoActionBar">
+            android:name=".view.MyfileActivity">
         </activity>
     </application>
 
