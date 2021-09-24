@@ -16,8 +16,8 @@
         <LinearLayout
             android:id="@+id/search_bar"
             android:layout_width="0dp"
-            android:layout_weight="6"
             android:layout_height="wrap_content"
+            android:layout_weight="6"
             android:background="@drawable/round_purple"
             android:orientation="horizontal"
             android:padding="15dp">
@@ -28,15 +28,15 @@
                 android:layout_height="19dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/contentDescription"
-                android:src="@drawable/icon_search_white"/>
+                android:src="@drawable/icon_search_white" />
 
             <EditText
                 android:id="@+id/main_hint"
                 android:layout_width="match_parent"
-                android:layout_height="25dp"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginStart="14dp"
-                android:gravity="center"
+                android:background="@null"
                 android:text="@string/main_hint"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
