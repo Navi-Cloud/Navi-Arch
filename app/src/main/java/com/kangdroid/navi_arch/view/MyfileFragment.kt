@@ -17,7 +17,8 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class MyfileFragment : Fragment() {
 
-    private lateinit var myfilefragmentBinding : RecyclerFileListViewBinding
+    private var _binding : RecyclerFileListViewBinding?= null
+    private val myfilefragmentBinding : RecyclerFileListViewBinding get() = _binding!!
 
     // Pager ViewModel
     protected val pagerViewModel: PagerViewModel by viewModels()
@@ -30,7 +31,7 @@ class MyfileFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        myfilefragmentBinding = RecyclerFileListViewBinding.inflate(layoutInflater, container, false)
+        _binding = RecyclerFileListViewBinding.inflate(layoutInflater, container, false)
         return myfilefragmentBinding.root
     }
 
@@ -43,5 +44,10 @@ class MyfileFragment : Fragment() {
                 LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
             naviMainRecycler.adapter = pageAdapter
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
