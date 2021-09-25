@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.kangdroid.navi_arch.databinding.DialogOptionBoxBinding
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class OptionBottomSheetFragment(
 ) : BottomSheetDialogFragment() {
     private val logTag: String = this::class.java.simpleName

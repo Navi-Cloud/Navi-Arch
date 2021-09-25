@@ -12,7 +12,9 @@ import com.kangdroid.navi_arch.adapter.PagerAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.databinding.RecyclerFileListViewBinding
 import com.kangdroid.navi_arch.viewmodel.PagerViewModel
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class MyfileFragment : Fragment() {
 
     private lateinit var myfilefragmentBinding : RecyclerFileListViewBinding
