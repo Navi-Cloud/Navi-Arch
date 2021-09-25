@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.kangdroid.navi_arch.data.dto.request.FileCopyRequest
 import com.kangdroid.navi_arch.server.ServerManagement
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,7 @@ class UploadingViewModel @Inject constructor(
 
     // Live Data when uploading succeed
     var fileUploadSucceed: MutableLiveData<Boolean> = MutableLiveData()
+    var fileMoveSucceed: MutableLiveData<Boolean> = MutableLiveData()
 
     private fun getFileName(uri: Uri): String {
         var targetString: String? = null
@@ -115,6 +117,23 @@ class UploadingViewModel @Inject constructor(
                 }.onFailure {
                     Log.e(this::class.java.simpleName, it.stackTraceToString())
                     fileUploadSucceed.postValue(false)
+                }
+            }
+        }
+    }
+
+    fun move(filecopyrequest : FileCopyRequest){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    serverManagement.migrateFile(filecopyrequest,false)
+                }.onSuccess {
+                    fileMoveSucceed.postValue(true)
+//                    fileUploadSucceed.postValue(true)
+                }.onFailure {
+                    Log.e(this::class.java.simpleName, it.stackTraceToString())
+                    fileMoveSucceed.postValue(false)
+//                    fileUploadSucceed.postValue(false)
                 }
             }
         }

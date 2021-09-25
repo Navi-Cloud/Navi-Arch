@@ -2,6 +2,7 @@ package com.kangdroid.navi_arch.server
 
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
+import com.kangdroid.navi_arch.data.dto.request.FileCopyRequest
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
 import com.kangdroid.navi_arch.data.dto.response.DownloadResponse
@@ -22,4 +23,5 @@ interface ServerInterface {
     fun removeFile(prevToken: String, targetToken: String)
     fun searchFile(searchParam: String): List<FileData>
     fun findFolderFromToken(token: String): FileData
+    fun migrateFile(fileCopyRequest: FileCopyRequest, preserveFile: Boolean)
 }

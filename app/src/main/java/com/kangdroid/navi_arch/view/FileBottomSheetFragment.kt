@@ -1,6 +1,7 @@
 package com.kangdroid.navi_arch.view
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -19,6 +21,7 @@ import com.kangdroid.navi_arch.data.FileType
 import com.kangdroid.navi_arch.databinding.LayoutBottomBinding
 import com.kangdroid.navi_arch.viewmodel.FileBottomSheetViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.Serializable
 import javax.inject.Inject
 
 class FileBottomSheetFragment(
@@ -35,6 +38,16 @@ class FileBottomSheetFragment(
 
     // Layout Binding
     private var layoutBottomBinding: LayoutBottomBinding? = null
+
+    // UploadingActivity Results Callback
+    private val afterUploadingActivityFinishes: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == AppCompatActivity.RESULT_OK) {
+                // Update view since file is uploaded
+                refreshPageLambda()
+                dismiss()
+            }
+        }
 
     // View Model for File Bottom Sheet[DI]
     private val fileBottomSheetViewModel: FileBottomSheetViewModel by viewModels()

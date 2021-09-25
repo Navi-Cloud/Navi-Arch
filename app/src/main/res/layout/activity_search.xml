@@ -1,81 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.SearchActivity"
-    android:orientation="vertical">
-
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:buttonGravity="center_vertical"
-        android:background="@color/dark_blue"
-        app:contentInsetEnd="0dp"
-        app:contentInsetRight="0dp">
-
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_arrow_back_ios_24"
-            android:background="@null"
-            app:tint="@color/blue_gray" />
-
-        <EditText
-            android:id="@+id/inputSearch"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:hint="검색어를 입력하세요."
-            android:background="@color/blue_gray"
-            android:padding="10dp"
-            android:layout_marginRight="10dp"
-            android:textColor="@color/white"
-            android:textCursorDrawable="@color/white"
-            android:inputType="text"
-            android:imeOptions="actionSearch"
-            android:maxLines="1"
-            />
-    </androidx.appcompat.widget.Toolbar>
+    android:orientation="vertical"
+    android:padding="20dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal|center_vertical"
         android:orientation="horizontal">
 
-        <ToggleButton
-            android:id="@+id/sortByNameOrLMT"
-            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/search_bar"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:checked="false"
-            android:minHeight="0dip"
-            android:textOff="@string/sort_name"
-            android:textOn="@string/sort_lmt" />
+            android:layout_weight="6"
+            android:background="@drawable/round_purple"
+            android:orientation="horizontal"
+            android:padding="15dp"
+            android:paddingHorizontal="15dp">
 
-        <ToggleButton
-            android:id="@+id/sortByAscendingOrDescending"
-            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:minHeight="0dip"
-            android:textOff="@string/sort_ascending"
-            android:textOn="@string/sort_descending" />
+            <ImageView
+                android:id="@+id/main_search"
+                android:layout_width="19dp"
+                android:layout_height="19dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/contentDescription"
+                android:src="@drawable/icon_search_white" />
 
-        <ToggleButton
-            android:id="@+id/sortByType"
-            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:minHeight="0dip"
-            android:textOff="@string/sort_type"
-            android:textOn="@string/sort_type_not" />
+            <EditText
+                android:id="@+id/main_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="14dp"
+                android:background="@null"
+                android:hint="@string/main_hint"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+         <TextView
+             android:layout_width="0dp"
+             android:layout_weight="1"
+             android:layout_height="match_parent"
+             android:text="취소"
+             android:textSize="16sp"
+             android:textColor="@color/main_color"
+             android:gravity="center"/>
 
     </LinearLayout>
 
@@ -92,7 +68,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/searchResultRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"/>
 
     <TextView
         android:id="@+id/textNoResult"
@@ -100,6 +77,7 @@
         android:layout_height="match_parent"
         android:text="일치하는 파일/폴더가 없습니다."
         android:gravity="center"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        android:layout_marginTop="10dp"/>
 
 </LinearLayout>

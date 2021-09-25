@@ -61,7 +61,7 @@ class MenuBottomSheetFragment(
         }
 
         dialogAddBinding.makeFolderLayout.setOnClickListener {
-            val folderNameDialog: FolderNameDialog = FolderNameDialog(
+            val folderNameDialog = FolderNameDialog(
                 createFolderLogic = { fileName ->
                     menuBottomSheetViewModel.createFolder(
                         createFolderRequestDTO = CreateFolderRequestDTO(
@@ -72,12 +72,6 @@ class MenuBottomSheetFragment(
                 }
             )
             folderNameDialog.show(parentFragmentManager, "")
-        }
-
-        dialogAddBinding.uploadLayout.setOnClickListener {
-            afterUploadingActivityFinishes.launch(
-                Intent(requireContext(), UploadingActivity::class.java)
-            )
         }
     }
 

@@ -2,6 +2,7 @@ package com.kangdroid.navi_arch.server
 
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.data.dto.request.CreateFolderRequestDTO
+import com.kangdroid.navi_arch.data.dto.request.FileCopyRequest
 import com.kangdroid.navi_arch.data.dto.request.LoginRequest
 import com.kangdroid.navi_arch.data.dto.response.RootTokenResponseDto
 import com.kangdroid.navi_arch.data.dto.request.RegisterRequest
@@ -44,4 +45,7 @@ interface APIInterface {
 
     @GET("/api/navi/folder/{token}")
     fun findFolderFromToken(@HeaderMap headerMap: HashMap<String, Any?>, @Path("token") token: String) : Call<FileData>
+
+    @POST("/api/navi/file/duplicate")
+    fun migrateFile(@HeaderMap headerMap: HashMap<String, Any?>, @Body fileCopyRequest:FileCopyRequest, @Query("preserve") preserveFile: Boolean): Call<ResponseBody>
 }

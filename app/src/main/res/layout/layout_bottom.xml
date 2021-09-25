@@ -85,4 +85,33 @@
             android:layout_gravity="center" />
 
     </LinearLayout>
+
+    <!--For move menu-->
+    <LinearLayout
+        android:id="@+id/bottomFileMoveView"
+        android:orientation="horizontal"
+        android:layout_margin="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_baseline_drive_file_move_24" />
+
+        <TextView
+            android:id="@+id/bottomFileMove"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/bottom_sheet_default_move"
+            android:textSize="15sp"
+            android:layout_gravity="center" />
+
+    </LinearLayout>
 </LinearLayout>
