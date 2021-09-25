@@ -12,10 +12,12 @@ import com.kangdroid.navi_arch.adapter.PagerAdapter
 import com.kangdroid.navi_arch.data.FileData
 import com.kangdroid.navi_arch.databinding.RecyclerFileListViewBinding
 import com.kangdroid.navi_arch.viewmodel.PagerViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
-@HiltAndroidApp
-class MyfileFragment : Fragment() {
+@AndroidEntryPoint
+class MyfileFragment @Inject constructor() : Fragment() {
 
     private var _binding : RecyclerFileListViewBinding?= null
     private val myfilefragmentBinding : RecyclerFileListViewBinding get() = _binding!!

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kangdroid.navi_arch.R
 import com.kangdroid.navi_arch.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 // The View
 @AndroidEntryPoint
@@ -16,13 +17,15 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
+    @Inject
+    lateinit var optionBottomSheetFragment : OptionBottomSheetFragment
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activityMainBinding.root)
 
         activityMainBinding.apply {
             mainOption.setOnClickListener {
-                val optionBottomSheetFragment = OptionBottomSheetFragment()
                 optionBottomSheetFragment.show(supportFragmentManager, optionBottomSheetFragment.tag)
             }
             mainSearchBar.setOnClickListener{

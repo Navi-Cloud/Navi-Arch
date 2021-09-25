@@ -6,11 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.kangdroid.navi_arch.databinding.DialogOptionBoxBinding
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
-@HiltAndroidApp
-class OptionBottomSheetFragment(
-) : BottomSheetDialogFragment() {
+@AndroidEntryPoint
+class OptionBottomSheetFragment @Inject constructor() : BottomSheetDialogFragment() {
     private val logTag: String = this::class.java.simpleName
     private var _dialogOptionBoxBinding: DialogOptionBoxBinding? = null
     private val dialogOptionBoxBinding: DialogOptionBoxBinding get() = _dialogOptionBoxBinding!!
