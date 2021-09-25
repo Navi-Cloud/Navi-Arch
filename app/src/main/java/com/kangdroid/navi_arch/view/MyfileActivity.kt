@@ -16,8 +16,12 @@ class MyfileActivity : PagerActivity() {
         super.onCreate(savedInstanceState)
         setContentView(activityMyfileBinding.root)
 
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.myfile_framelayout, MyfileFragment())
-        transaction.commit()
+
+        activityMyfileBinding.apply {
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.myfile_framelayout, MyfileFragment())
+            transaction.commit()
+
+        }
     }
 }
